@@ -8,6 +8,9 @@
         "start": "next start",
         "lint": "eslint",
         "lint:fsd": "steiger ./src",
+        "test": "vitest run",
+        "test:watch": "vitest",
+        "test:coverage": "vitest run --coverage",
         "prepare": "husky"
     },
     "dependencies": {
@@ -68,6 +71,9 @@
         ],
         "*.{json,css,md}": [
             "prettier --write"
+        ],
+        "src/**/*.{ts,tsx}": [
+            "steiger ./src"
         ]
     }
 }

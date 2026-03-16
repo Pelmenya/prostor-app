@@ -11,4 +11,10 @@ export default defineConfig([
         // Моки для тестов
         ignores: ['**/__mocks__/**'],
     },
+    {
+        // Пустые слои пока не наполнены — убрать когда появится код
+        rules: {
+            'fsd/insignificant-slice': 'off',
+        },
+    },
 ]);
