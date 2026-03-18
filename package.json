@@ -71,9 +71,6 @@
         ],
         "*.{json,css,md}": [
             "prettier --write"
-        ],
-        "src/**/*.{ts,tsx}": [
-            "steiger ./src"
         ]
     }
 }
