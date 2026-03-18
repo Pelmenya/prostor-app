@@ -2,6 +2,27 @@
 
 Инструкции для Claude Code при работе с этим репозиторием.
 
+## Текущая задача
+
+### Фронт: Adapter Pattern — `docs/features/AUTH_ADAPTER.md`
+
+| Шаг                  | Описание                                       | Прогресс |
+| -------------------- | ---------------------------------------------- | -------- |
+| 1. Каркас            | messenger adapter + api-слой + dev-токен       | ⬜ 0%    |
+| 2. Web авторизация   | NextAuth (логин/пароль, Яндекс ID, magic link) | ⬜ 0%    |
+| 3. Telegram Mini App | TelegramAdapter + SDK                          | ⬜ 0%    |
+| 4. MAX Mini App      | MaxAdapter                                     | ⬜ 0%    |
+
+### Бэк: Strangle Fig Migration — `docs/backend/STRANGLE_FIG_MIGRATION.md`
+
+| Шаг | Описание                              | Риск   | Прогресс |
+| --- | ------------------------------------- | ------ | -------- |
+| 1   | UUID колонка в User (не меняя PK)     | 0      | ⬜ 0%    |
+| 2   | Таблица UserIdentity                  | 0      | ⬜ 0%    |
+| 3   | JWT + OAuth + magic link в auth.guard | Низкий | ⬜ 0%    |
+| 4   | Bull/BullMQ очереди                   | 0      | ⬜ 0%    |
+| 5   | Тесты на новый код                    | 0      | ⬜ 0%    |
+
 ## Язык общения
 
 - Всегда общайся на русском языке
