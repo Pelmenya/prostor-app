@@ -127,10 +127,20 @@
 
 ### Платежи
 
-| Пакет                 | Зачем                                                   |
-| --------------------- | ------------------------------------------------------- |
-| **ЮKassa виджет**     | Прямая интеграция для веба (без привязки к мессенджеру) |
-| **Telegram Payments** | Для Mini App layout (существующий)                      |
+| Платформа    | Способ оплаты           | Зачем                                                           |
+| ------------ | ----------------------- | --------------------------------------------------------------- |
+| **Web**      | **ЮKassa виджет**       | Прямая интеграция, iframe/редирект (без привязки к мессенджеру) |
+| **Telegram** | **Telegram Payments**   | Нативная оплата внутри Mini App (Stars / провайдеры)            |
+| **MAX**      | **MAX Payments** (TODO) | Нативная оплата внутри MAX Mini App                             |
+
+Платежи изолированы в адаптерах — бизнес-логика вызывает `adapter.pay()`, адаптер выбирает способ:
+
+```
+features/checkout → MessengerAdapter.pay(order)
+                        ├── TelegramAdapter → Telegram Payments API (нативно)
+                        ├── MaxAdapter      → MAX Payments API (нативно)
+                        └── WebAdapter      → ЮKassa виджет (iframe/редирект)
+```
 
 ### Layout группы и стратегии рендеринга
 
@@ -158,7 +168,14 @@ Business Logic → MessengerAdapter interface
                     └── WebAdapter (JWT, NextAuth)
 ```
 
-Адаптер предоставляет: аутентификацию, haptic feedback, back button, theme, storage, платежи.
+Адаптер предоставляет: аутентификацию, платежи, haptic feedback, back button, theme, storage.
+
+**Платежи через адаптер:**
+
+- `TelegramAdapter.pay()` → Telegram Payments API (нативные Stars / провайдеры)
+- `MaxAdapter.pay()` → MAX Payments API (нативная оплата)
+- `WebAdapter.pay()` → ЮKassa виджет (iframe / редирект)
+- Бизнес-логика в `features/checkout` не знает про способ оплаты
 
 ## Аутентификация
 
@@ -487,28 +504,56 @@ GitHub Actions — будет настроен позже. Планируетс�
 
 ## Этапы реализации
 
-### Этап 0: Подготовка бэкенда (блокер, 2-3 недели)
+### Этап 0: Подготовка бэкенда (Strangle Fig Pattern)
 
-- Миграция User.id с Telegram bigint на UUID
-- Таблица UserIdentity (platform + externalId)
-- Рефакторинг AuthService под мульти-аутентификацию
-- Обновить deleteUser (GDPR) для новой структуры
+> Подробный план: `docs/backend/STRANGLE_FIG_MIGRATION.md`
+
+PK остаётся bigint — Telegram не ломается. Добавляем новое рядом:
+
+1. UUID колонка в User (не меняя PK) — 1 день, риск 0
+2. Таблица UserIdentity (platform + externalId) — 2 дня, риск 0
+3. JWT + OAuth + magic link в auth.guard — 1 неделя, риск низкий
+4. Bull/BullMQ очереди (email, sync) — 1-2 недели, риск 0
+5. Тесты на новый код — параллельно
 
 ### Этап 1: Web MVP (4-6 недель)
 
-- Бойлерплейт Next.js 16 + React 19 + Tailwind 4 + DaisyUI 5
+> Архитектура авторизации: `docs/features/AUTH_ADAPTER.md`
+
+- ✅ Бойлерплейт Next.js 16 + React 19 + Tailwind 4 + DaisyUI 5
+- ✅ Весь стек установлен, ESLint + Steiger + Husky настроены
+- Adapter Pattern (messenger adapter + api-слой + dev-токен)
 - Перенос shared-компонентов из старого фронта
-- Web авторизация (логин/пароль + Яндекс ID + magic link)
-- Каталог, корзина, оплата (ЮKassa виджет), профиль
+- Каталог (публичные эндпоинты, без auth)
+- Web авторизация (NextAuth — после готовности бэка шаг 3)
+- Корзина, оплата (ЮKassa виджет), профиль
 
 ### Этап 2: MAX (2-3 недели)
 
-- Адаптер поверх готовой архитектуры (SDK почти идентичен Telegram)
+- MaxAdapter поверх готовой архитектуры (SDK почти идентичен Telegram)
 
 ### Этап 3: Полный Web (4-6 недель)
 
 - Desktop UI для мастеров/кураторов
 - Карта, чат, PWA, SEO
+
+## Документация
+
+### В этом репозитории
+
+- `docs/BOILERPLATE.md` — **что сделано и что делать** (структура файлов, layout groups, shared, entities, widgets, pages)
+- `docs/features/AUTH_ADAPTER.md` — **архитектура авторизации** (Adapter Pattern, фронтенд)
+- `docs/backend/STRANGLE_FIG_MIGRATION.md` — **план миграции бэкенда** (Strangle Fig Pattern, 5 шагов)
+- `docs/strategy/` — общая стратегия, решения
+- `docs/research/` — исследования платформ (MAX, Web, PWA)
+- `docs/backend/` — изменения бэкенда
+- `docs/frontend/` — архитектура фронтенда
+
+### В бэкенд-репозитории (crm-aqua-kinetics-back)
+
+- `docs/multi-platform/MIGRATION_PLAN.md` — **полный план миграции** (8 этапов, распределение Дмитрий/Пётр, чеклисты)
+- `docs/architecture/CATALOG_ARCHITECTURE.md` — архитектура каталога услуг (таблицы, синхронизация МС, API)
+- `docs/features/service-sales/SERVICE_SALES.md` — бизнес-аналитика (Парето, рейтинг, KPI)
 
 ## Команда
 
@@ -652,19 +697,3 @@ src/
 | `src/configs/postgres.config.ts`         | Список всех entity, подключение к БД                              |
 | `src/modules/payment/payment.service.ts` | Текущие платежи через Telegram                                    |
 | `.env.example`                           | Все переменные окружения с описаниями                             |
-
-## Документация
-
-### В этом репозитории
-
-- `docs/BOILERPLATE.md` — **что сделано и что делать** (структура файлов, layout groups, shared, entities, widgets, pages)
-- `docs/strategy/` — общая стратегия, решения
-- `docs/research/` — исследования платформ (MAX, Web, PWA)
-- `docs/backend/` — изменения бэкенда (User ID, мульти-auth)
-- `docs/frontend/` — архитектура фронтенда (Adapter Pattern)
-
-### В бэкенд-репозитории (crm-aqua-kinetics-back)
-
-- `docs/multi-platform/MIGRATION_PLAN.md` — **полный план миграции** (8 этапов, распределение Дмитрий/Пётр, чеклисты)
-- `docs/architecture/CATALOG_ARCHITECTURE.md` — архитектура каталога услуг (таблицы, синхронизация МС, API)
-- `docs/features/service-sales/SERVICE_SALES.md` — бизнес-аналитика (Парето, рейтинг, KPI)

@@ -26,7 +26,19 @@ Entity хук (useProducts, useCurrentUser)
 - Entity-хуки (`useProducts`, `useCurrentUser`) вызывают `useApi()` и не знают про авторизацию
 - `useApi()` берёт auth header из адаптера и подставляет в каждый запрос
 - Адаптер изолирует платформенный код (Telegram SDK, NextAuth, MAX SDK)
-- При добавлении новой авторизации: один файл адаптера + одна строка в фабрике
+- **Платежи** тоже через адаптер — `features/checkout` вызывает `adapter.pay()`, не зная способ оплаты
+- При добавлении новой авторизации/платёжки: один файл адаптера + одна строка в фабрике
+
+### Платежи через адаптер
+
+```
+features/checkout → adapter.pay(order)
+                        ├── TelegramAdapter → Telegram Payments API (нативные Stars / провайдеры)
+                        ├── MaxAdapter      → MAX Payments API (нативная оплата)
+                        └── WebAdapter      → ЮKassa виджет (iframe / редирект)
+```
+
+Бэкенд уже поддерживает оба способа (`payment.service.ts`): ЮKassa + Telegram Payments. Адаптер на фронте выбирает нужный.
 
 ### Файловая структура
 
