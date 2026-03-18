@@ -644,6 +644,6 @@ src/
 
 ### В бэкенд-репозитории (crm-aqua-kinetics-back)
 
-- `docs/features/service-sales/MIGRATION_PLAN.md` — **полный план миграции** (8 этапов, распределение Дмитрий/Пётр, чеклисты)
-- `docs/features/service-sales/CATALOG_ARCHITECTURE.md` — архитектура каталога услуг (таблицы, синхронизация МС, API)
+- `docs/multi-platform/MIGRATION_PLAN.md` — **полный план миграции** (8 этапов, распределение Дмитрий/Пётр, чеклисты)
+- `docs/architecture/CATALOG_ARCHITECTURE.md` — архитектура каталога услуг (таблицы, синхронизация МС, API)
 - `docs/features/service-sales/SERVICE_SALES.md` — бизнес-аналитика (Парето, рейтинг, KPI)
