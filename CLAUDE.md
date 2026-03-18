@@ -634,9 +634,16 @@ src/
 
 ## Документация
 
-Подробная документация по миграции: `docs/`
+### В этом репозитории
 
+- `docs/BOILERPLATE.md` — **что сделано и что делать** (структура файлов, layout groups, shared, entities, widgets, pages)
 - `docs/strategy/` — общая стратегия, решения
 - `docs/research/` — исследования платформ (MAX, Web, PWA)
 - `docs/backend/` — изменения бэкенда (User ID, мульти-auth)
 - `docs/frontend/` — архитектура фронтенда (Adapter Pattern)
+
+### В бэкенд-репозитории (crm-aqua-kinetics-back)
+
+- `docs/features/service-sales/MIGRATION_PLAN.md` — **полный план миграции** (8 этапов, распределение Дмитрий/Пётр, чеклисты)
+- `docs/features/service-sales/CATALOG_ARCHITECTURE.md` — архитектура каталога услуг (таблицы, синхронизация МС, API)
+- `docs/features/service-sales/SERVICE_SALES.md` — бизнес-аналитика (Парето, рейтинг, KPI)
