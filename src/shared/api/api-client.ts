@@ -24,10 +24,11 @@ export async function apiClient<T = unknown>(
 ): Promise<T> {
     const { method = 'GET', body, auth, headers = {} } = options;
 
-    const requestHeaders: Record<string, string> = {
-        'Content-Type': 'application/json',
-        ...headers,
-    };
+    const requestHeaders: Record<string, string> = { ...headers };
+
+    if (body) {
+        requestHeaders['Content-Type'] = 'application/json';
+    }
 
     if (auth) {
         requestHeaders['Authorization'] = auth;

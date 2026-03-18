@@ -20,7 +20,7 @@ export class TelegramAdapter implements TMessengerAdapter {
             initSDK();
 
             const launchParams = retrieveLaunchParams();
-            this.initDataRaw = String(launchParams.initDataRaw ?? '') || null;
+            this.initDataRaw = launchParams.initDataRaw ? String(launchParams.initDataRaw) : null;
 
             const initData = launchParams.initData as { user?: TLaunchParamsUser } | undefined;
 

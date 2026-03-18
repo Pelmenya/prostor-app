@@ -6,8 +6,8 @@ export class WebAdapter implements TMessengerAdapter {
     private devToken: string | null = null;
 
     async init(): Promise<void> {
-        // DEV: токен из env для разработки без авторизации
-        if (process.env.NEXT_PUBLIC_DEV_TOKEN) {
+        // DEV: токен из env для разработки без авторизации (только dev-режим)
+        if (process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_DEV_TOKEN) {
             this.devToken = process.env.NEXT_PUBLIC_DEV_TOKEN;
         }
 
