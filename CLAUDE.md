@@ -562,6 +562,7 @@ PK остаётся bigint — Telegram не ломается. Добавляе�
 
 - `docs/BOILERPLATE.md` — **что сделано и что делать** (структура файлов, layout groups, shared, entities, widgets, pages)
 - `docs/features/AUTH_ADAPTER.md` — **архитектура авторизации** (Adapter Pattern, фронтенд)
+- `docs/features/CART_STRATEGY.md` — **корзина для web** (Zustand + localStorage → sync после логина)
 - `docs/backend/STRANGLE_FIG_MIGRATION.md` — **план миграции бэкенда** (Strangle Fig Pattern, 5 шагов)
 - `docs/strategy/` — общая стратегия, решения
 - `docs/research/` — исследования платформ (MAX, Web, PWA)
