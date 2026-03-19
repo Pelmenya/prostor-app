@@ -2,7 +2,9 @@
 
 import { useSubGroups, useProducts, useGroupPath } from '@/entities/product';
 import { GroupList, GroupListSkeleton, ProductList, ProductListSkeleton } from '@/features/catalog';
+import { Page } from '@/widgets/page';
 import { Header } from '@/widgets/header';
+import { Footer } from '@/widgets/footer';
 import { Breadcrumbs } from '@/shared/ui/breadcrumbs';
 import { MAIN_CATALOG_ID } from '@/shared/config';
 
@@ -32,38 +34,33 @@ export function SubCatalogPage({ groupId }: TSubCatalogPageProps) {
     ];
 
     return (
-        <div className="flex min-h-screen flex-col bg-base-300">
-            <Header />
-            <main className="flex-1 p-4 md:p-6 xl:p-10">
-                <div className="flex flex-col gap-4 lg:gap-6">
-                    <Breadcrumbs items={breadcrumbs} isLoading={isLoadingPath} />
+        <Page header={<Header />} footer={<Footer />} className="bg-base-300">
+            <div className="flex flex-col gap-4 lg:gap-6">
+                <Breadcrumbs items={breadcrumbs} isLoading={isLoadingPath} />
 
-                    {(isLoadingSubGroups || (subGroups && subGroups.length > 0)) && (
-                        <>
-                            {isLoadingSubGroups ? (
-                                <GroupListSkeleton
-                                    variant={products?.length ? 'compact' : 'default'}
-                                />
-                            ) : (
-                                <GroupList
-                                    groups={subGroups || []}
-                                    variant={products?.length ? 'compact' : 'default'}
-                                />
-                            )}
-                        </>
-                    )}
+                {(isLoadingSubGroups || (subGroups && subGroups.length > 0)) && (
+                    <>
+                        {isLoadingSubGroups ? (
+                            <GroupListSkeleton variant={products?.length ? 'compact' : 'default'} />
+                        ) : (
+                            <GroupList
+                                groups={subGroups || []}
+                                variant={products?.length ? 'compact' : 'default'}
+                            />
+                        )}
+                    </>
+                )}
 
-                    {(isLoadingProducts || (products && products.length > 0)) && (
-                        <>
-                            {isLoadingProducts ? (
-                                <ProductListSkeleton />
-                            ) : (
-                                <ProductList products={products || []} />
-                            )}
-                        </>
-                    )}
-                </div>
-            </main>
-        </div>
+                {(isLoadingProducts || (products && products.length > 0)) && (
+                    <>
+                        {isLoadingProducts ? (
+                            <ProductListSkeleton />
+                        ) : (
+                            <ProductList products={products || []} />
+                        )}
+                    </>
+                )}
+            </div>
+        </Page>
     );
 }

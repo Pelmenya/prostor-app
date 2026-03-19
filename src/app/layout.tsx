@@ -1,24 +1,30 @@
-import type { Metadata, Viewport } from "next";
-import { Montserrat } from "next/font/google";
-import "./globals.css";
+import type { Metadata, Viewport } from 'next';
+import { Montserrat } from 'next/font/google';
+import './globals.css';
 
 const montserrat = Montserrat({
-    subsets: ["latin", "cyrillic"],
-    variable: "--font-montserrat",
-    display: "swap",
+    subsets: ['latin', 'cyrillic'],
+    variable: '--font-montserrat',
+    display: 'swap',
 });
 
 export const metadata: Metadata = {
-    title: "PROSTOR — водоочистка и обслуживание",
-    description: "Монтаж и обслуживание систем водоочистки, продажа оборудования",
+    title: 'PROSTOR — водоочистка и обслуживание',
+    description: 'Монтаж и обслуживание систем водоочистки, продажа оборудования',
+    manifest: '/manifest.json',
+    appleWebApp: {
+        capable: true,
+        statusBarStyle: 'default',
+        title: 'PROSTOR',
+    },
 };
 
 export const viewport: Viewport = {
-    width: "device-width",
+    width: 'device-width',
     initialScale: 1,
     maximumScale: 1,
     userScalable: false,
-    viewportFit: "cover",
+    viewportFit: 'cover',
 };
 
 export default function RootLayout({
@@ -28,9 +34,7 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="ru" data-theme="light">
-            <body className={`${montserrat.variable} font-sans antialiased`}>
-                {children}
-            </body>
+            <body className={`${montserrat.variable} font-sans antialiased`}>{children}</body>
         </html>
     );
 }

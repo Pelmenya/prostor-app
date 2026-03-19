@@ -542,11 +542,21 @@ PK остаётся bigint — Telegram не ломается. Добавляе�
 
 - ✅ Бойлерплейт Next.js 16 + React 19 + Tailwind 4 + DaisyUI 5
 - ✅ Весь стек установлен, ESLint + Steiger + Husky настроены
-- Adapter Pattern (platform adapter + api-слой + dev-токен)
-- Перенос shared-компонентов из старого фронта
-- Каталог (публичные эндпоинты, без auth)
+- ✅ Adapter Pattern (platform adapter + api-слой + dev-токен)
+- ✅ Каталог + подкаталог + страница товара (публичные эндпоинты)
+- ✅ Zustand корзина (localStorage, гостевая)
+- ✅ PWA manifest (standalone, без browser chrome на мобилках)
+- Перенос остальных shared-компонентов из старого фронта
 - Web авторизация (NextAuth — после готовности бэка шаг 3)
-- Корзина, оплата (ЮKassa виджет), профиль
+- Корзина: sync после логина (`POST /cart/sync`)
+- Оплата (ЮKassa виджет), профиль
+
+**TODO: PWA**
+
+- Иконки `public/icon-192.png` и `public/icon-512.png` (лого PROSTOR)
+- Баннер «Установить приложение» (на 2-3 визит)
+- `beforeinstallprompt` для Chrome/Android — перехват и своя кнопка
+- iOS инструкция: «Поделиться → На экран Домой»
 
 ### Этап 2: MAX (2-3 недели)
 

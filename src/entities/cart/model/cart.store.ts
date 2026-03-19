@@ -73,7 +73,14 @@ function shouldRemoveProduct(item: TCartItem): boolean {
 // ---- Селекторы (чистые функции) ----
 
 export function selectTotalItems(items: Record<string, TCartItem>): number {
-    return Object.values(items).reduce((sum, item) => sum + item.count, 0);
+    return Object.values(items).reduce((total, item) => {
+        const productCount = item.count;
+        const servicesCount = Object.values(item.services).reduce(
+            (serviceTotal, svc) => serviceTotal + (svc.checked ? svc.count : 0),
+            0,
+        );
+        return total + productCount + servicesCount;
+    }, 0);
 }
 
 export function selectTotalPrice(items: Record<string, TCartItem>): number {

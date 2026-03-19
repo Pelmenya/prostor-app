@@ -1,59 +1,64 @@
 'use client';
 
 import Link from 'next/link';
-import { ShoppingCartIcon } from '@heroicons/react/24/outline';
+import { useRouter } from 'next/navigation';
+import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '@/shared/lib/platform';
-import { useCartStore, selectTotalItems } from '@/entities/cart';
 
-export function Header() {
+type THeaderProps = {
+    back?: boolean;
+    backTo?: string;
+};
+
+export function Header({ back = false, backTo }: THeaderProps) {
+    const router = useRouter();
     const { isAuthenticated, user } = useAuth();
-    const items = useCartStore((s) => s.items);
-    const totalItems = selectTotalItems(items);
 
     return (
-        <header className="navbar bg-base-100 shadow-sm px-4 md:px-6 xl:px-10">
-            <div className="navbar-start">
-                <Link href="/catalog" className="text-lg font-bold gradient-text">
-                    PROSTOR
-                </Link>
-            </div>
-
-            <nav className="navbar-center hidden sm:flex">
-                <ul className="menu menu-horizontal gap-1 text-sm">
-                    <li>
-                        <Link href="/catalog" className="font-medium">
-                            Каталог
-                        </Link>
-                    </li>
-                </ul>
-            </nav>
-
-            <div className="navbar-end gap-2">
-                <Link href="/cart" className="btn btn-ghost btn-sm relative">
-                    <ShoppingCartIcon className="size-5" />
-                    {totalItems > 0 && (
-                        <span className="badge badge-primary badge-sm absolute -top-1 -right-1">
-                            {totalItems}
-                        </span>
+        <header className="relative z-10 shrink-0 bg-base-100 border-b border-base-content/10 shadow-sm">
+            <div className="navbar px-4 py-2">
+                <div className="navbar-start gap-2 !w-auto flex-1 min-w-0">
+                    {back && (
+                        <button
+                            onClick={() => (backTo ? router.push(backTo) : router.back())}
+                            className="size-10 flex items-center justify-center cursor-pointer hover:opacity-80"
+                        >
+                            <ArrowLeftIcon className="size-5" />
+                        </button>
                     )}
-                </Link>
 
-                {isAuthenticated && user ? (
-                    <div className="flex items-center gap-2">
-                        <div className="avatar placeholder">
-                            <div className="size-8 rounded-full bg-primary text-primary-content md:size-10">
-                                <span className="text-sm">{user.firstName?.charAt(0) ?? '?'}</span>
+                    {isAuthenticated && user ? (
+                        <>
+                            <div className={`avatar placeholder ${!back ? 'ml-1' : ''}`}>
+                                <div className="ring-primary ring-offset-base-100 size-6 rounded-full ring-1 ring-offset-2 bg-primary text-primary-content sm:size-8 md:size-12 lg:size-16">
+                                    <span className="text-xs sm:text-sm md:text-base">
+                                        {user.firstName?.charAt(0) ?? '?'}
+                                    </span>
+                                </div>
                             </div>
-                        </div>
-                        <span className="hidden text-sm font-medium sm:inline">
-                            {user.firstName}
-                        </span>
-                    </div>
-                ) : (
-                    <Link href="/login" className="btn btn-primary btn-sm">
-                        Войти
-                    </Link>
-                )}
+                            <div className="flex flex-col overflow-hidden font-medium min-w-0">
+                                <p className="text-sm whitespace-nowrap overflow-hidden text-ellipsis md:text-base lg:text-lg">
+                                    {user.firstName} {user.lastName}
+                                </p>
+                            </div>
+                        </>
+                    ) : (
+                        <Link
+                            href="/catalog"
+                            className={`text-lg font-bold gradient-text ${!back ? 'ml-1' : ''}`}
+                        >
+                            PROSTOR
+                        </Link>
+                    )}
+                </div>
+
+                <div className="navbar-end gap-2 !w-auto">
+                    {!isAuthenticated && (
+                        <Link href="/login" className="btn btn-primary btn-sm">
+                            Войти
+                        </Link>
+                    )}
+                </div>
             </div>
         </header>
     );
