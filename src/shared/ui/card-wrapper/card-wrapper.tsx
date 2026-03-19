@@ -6,23 +6,19 @@ type TCardWrapperProps = {
     children: React.ReactNode;
     onClick?: () => void;
     variant?: TCardWrapperVariant;
+    outlined?: boolean;
     className?: string;
-};
-
-const VARIANT_STYLES: Record<TCardWrapperVariant, string> = {
-    default: 'flex flex-col gap-3 p-3',
-    compact: 'flex flex-row gap-3 p-3 items-center',
-    'no-gap': 'flex flex-col',
 };
 
 export function CardWrapper({
     children,
     onClick,
     variant = 'default',
+    outlined = false,
     className,
 }: TCardWrapperProps) {
     return (
-        <div
+        <article
             role={onClick ? 'button' : undefined}
             tabIndex={onClick ? 0 : undefined}
             onClick={onClick}
@@ -34,13 +30,16 @@ export function CardWrapper({
                     : undefined
             }
             className={cn(
-                'rounded-2xl bg-base-100 shadow transition-shadow',
-                onClick && 'cursor-pointer hover:shadow-md active:shadow-sm',
-                VARIANT_STYLES[variant],
+                'flex items-center bg-base-100 rounded-2xl',
+                outlined ? 'border border-base-300' : 'shadow-sm',
+                variant === 'compact' && 'gap-2 p-2',
+                variant === 'default' && 'gap-4 p-4',
+                variant === 'no-gap' && 'gap-0 p-4',
+                onClick && 'cursor-pointer hover:bg-base-200',
                 className,
             )}
         >
             {children}
-        </div>
+        </article>
     );
 }

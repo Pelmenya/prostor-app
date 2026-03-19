@@ -53,6 +53,17 @@ export type TProductImage = {
     tinyHref?: string;
 };
 
+export type TImage = {
+    meta: {
+        downloadHref: string;
+    };
+    title: string;
+    filename: string;
+    miniature: {
+        downloadHref: string;
+    };
+};
+
 export type TProduct = {
     id: string;
     name: string;

@@ -4,6 +4,8 @@ export {
     useProducts,
     useProduct,
     useGroupPath,
+    useBundleImages,
+    getImageProxyUrl,
 } from './api/product.api';
 
 export type {
@@ -12,6 +14,7 @@ export type {
     TService,
     TAttribute,
     TProductImage,
+    TImage,
 } from './model/types/t-product';
 export type { TGroup, TGroupPath, TSystemBundle } from './model/types/t-group';
 export { EServiceCategory } from './model/types/t-product';

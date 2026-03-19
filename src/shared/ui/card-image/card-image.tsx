@@ -1,67 +1,58 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { cn } from '@/shared/lib/cn';
 
 type TCardImageProps = {
     src?: string | null;
-    alt: string;
-    aspectRatio?: 'square' | '4/3' | '16/9';
+    alt?: string;
+    isLoading?: boolean;
     className?: string;
+    imgClassName?: string;
 };
 
-const ASPECT_STYLES: Record<string, string> = {
-    square: 'aspect-square',
-    '4/3': 'aspect-4/3',
-    '16/9': 'aspect-video',
-};
-
-export function CardImage({ src, alt, aspectRatio = 'square', className }: TCardImageProps) {
-    const [isLoaded, setIsLoaded] = useState(false);
+export function CardImage({
+    src,
+    alt = 'Изображение товара',
+    isLoading = false,
+    className,
+    imgClassName = 'object-contain',
+}: TCardImageProps) {
+    const [isImgLoaded, setIsImgLoaded] = useState(false);
     const [isError, setIsError] = useState(false);
 
-    const showSkeleton = !isLoaded && !isError;
-    const showPlaceholder = isError || !src;
+    const showSkeleton = isLoading || (!isImgLoaded && !isError && !!src);
+    const showPlaceholder = !isLoading && (!src || isError) && !showSkeleton;
 
     return (
-        <div
+        <figure
             className={cn(
-                'relative overflow-hidden rounded-xl bg-base-200',
-                ASPECT_STYLES[aspectRatio],
+                'relative bg-base-300 flex items-center justify-center rounded-xl shrink-0 overflow-hidden',
                 className,
             )}
         >
-            {showSkeleton && <div className="skeleton absolute inset-0 rounded-xl" />}
+            {showSkeleton && <div className="skeleton size-full" />}
 
-            {showPlaceholder ? (
-                <div className="flex h-full items-center justify-center text-base-content/30">
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        strokeWidth={1}
-                        stroke="currentColor"
-                        className="size-10"
-                    >
-                        <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z"
-                        />
-                    </svg>
-                </div>
-            ) : (
-                <img
+            {!isLoading && src && !isError && (
+                <Image
+                    className={cn(
+                        imgClassName,
+                        'transition-opacity duration-300',
+                        isImgLoaded ? 'opacity-100' : 'opacity-0',
+                    )}
                     src={src}
                     alt={alt}
-                    className={cn(
-                        'h-full w-full object-cover transition-opacity duration-300',
-                        isLoaded ? 'opacity-100' : 'opacity-0',
-                    )}
-                    onLoad={() => setIsLoaded(true)}
+                    fill
+                    sizes="(max-width: 768px) 80px, 106px"
+                    onLoad={() => setIsImgLoaded(true)}
                     onError={() => setIsError(true)}
                 />
             )}
-        </div>
+
+            {showPlaceholder && (
+                <div className="text-xs text-base-content/40 text-center px-2">Нет изображения</div>
+            )}
+        </figure>
     );
 }

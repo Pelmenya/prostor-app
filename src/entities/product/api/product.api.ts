@@ -1,9 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '@/shared/api';
 import type { TGroup, TGroupPath } from '../model/types/t-group';
-import type { TProduct } from '../model/types/t-product';
+import type { TProduct, TImage } from '../model/types/t-product';
 
 const BASE = '/moysklad';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 /**
  * Верхнеуровневые группы каталога
@@ -61,4 +62,24 @@ export function useGroupPath(groupId: string) {
         enabled: !!groupId,
         staleTime: 5 * 60 * 1000,
     });
+}
+
+/**
+ * Изображения bundle (для групп каталога)
+ */
+export function useBundleImages(bundleId: string | undefined) {
+    return useQuery({
+        queryKey: ['catalog', 'bundle-images', bundleId],
+        queryFn: () => apiClient<TImage[]>(`${BASE}/bundle/${bundleId}/images`),
+        enabled: !!bundleId,
+        staleTime: 10 * 60 * 1000,
+    });
+}
+
+/**
+ * URL для прокси-загрузки изображения через бэкенд
+ * МойСклад требует авторизацию — грузим через наш бэк
+ */
+export function getImageProxyUrl(downloadHref: string): string {
+    return `${API_URL}${BASE}/image?href=${encodeURIComponent(downloadHref)}`;
 }
