@@ -5,7 +5,7 @@
 **Готово:**
 
 - Next.js 16 + React 19 + Tailwind 4 + DaisyUI 5
-- FSD структура (`app/`, `pages/`, `widgets/`, `features/`, `entities/`, `shared/`)
+- FSD структура (`app/`, `views/`, `widgets/`, `features/`, `entities/`, `shared/`)
 - Шрифт Montserrat (latin + cyrillic)
 - DaisyUI тема (oklch, перенесена из старого фронта)
 - Breakpoints (Bootstrap-like: 576/768/992/1200)
@@ -19,7 +19,7 @@
 
 - `src/entities/` — пусто
 - `src/features/` — пусто
-- `src/pages/` — пусто
+- `src/views/` — пусто
 - `src/widgets/` — пусто
 - `src/app/` — только root layout + заглушка page
 
@@ -83,11 +83,11 @@ src/app/
         └── route.ts            -- Webhook для ISR ревалидации
 ```
 
-**Правило FSD:** `page.tsx` — тонкая обёртка, импортирует готовую страницу из `src/pages/`:
+**Правило FSD:** `page.tsx` — тонкая обёртка, импортирует готовую страницу из `src/views/`:
 
 ```tsx
 // src/app/(web)/catalog/page.tsx
-import { CatalogPage } from '@/pages/catalog';
+import { CatalogPage } from '@/views/catalog';
 export default function Page() {
     return <CatalogPage />;
 }
@@ -126,22 +126,22 @@ export async function apiClient<T>(
 }
 ```
 
-### 2.2. MessengerAdapter (Дмитрий)
+### 2.2. PlatformAdapter (Дмитрий)
 
 ```
 src/shared/lib/
-├── messenger/
-│   ├── types.ts                -- TMessengerAdapter interface
+├── platform/
+│   ├── types.ts                -- TPlatformAdapter interface
 │   ├── telegram-adapter.ts     -- Telegram SDK
 │   ├── max-adapter.ts          -- MAX SDK
 │   ├── web-adapter.ts          -- Web (NextAuth JWT)
-│   ├── adapter-provider.tsx    -- React context
-│   └── use-messenger.ts        -- hook
+│   ├── platform-provider.tsx   -- React context
+│   └── use-platform.ts         -- hook
 ```
 
 ```typescript
-// src/shared/lib/messenger/types.ts
-export type TMessengerAdapter = {
+// src/shared/lib/platform/types.ts
+export type TPlatformAdapter = {
     platform: 'telegram' | 'max' | 'web';
     getAuthHeader(): string; // 'tma ...', 'max ...', 'Bearer ...'
     hapticFeedback?(type: string): void;
@@ -275,10 +275,10 @@ src/widgets/
 
 ---
 
-## Шаг 5: Pages (Пётр — UI, Дмитрий — логика)
+## Шаг 5: Views (Пётр — UI, Дмитрий — логика)
 
 ```
-src/pages/
+src/views/
 ├── home/                       -- Лендинг
 ├── catalog/                    -- Каталог товаров
 ├── product/                    -- Карточка товара
@@ -309,10 +309,10 @@ src/pages/
 | `entities/*/model/types/*.ts`     | `entities/*/model/types/*.ts` | Копировать, `T`-префикс    |
 | `shared/ui/*`                     | `shared/ui/*`                 | Адаптировать под FSD       |
 | `shared/hooks/*`                  | `shared/hooks/*`              | Убрать useMemo/useCallback |
-| `pages/*`                         | `pages/*`                     | Переписать под App Router  |
+| `pages/*`                         | `views/*`                     | Переписать под App Router  |
 | `widgets/*`                       | `widgets/*`                   | Адаптировать               |
 | Redux slices                      | Zustand stores                | Переписать                 |
 | React Router                      | App Router                    | Переписать                 |
-| Telegram SDK вызовы               | MessengerAdapter              | Изолировать                |
+| Telegram SDK вызовы               | PlatformAdapter               | Изолировать                |
 | Tailwind классы                   | Tailwind классы               | Копировать как есть        |
 | DaisyUI тема                      | DaisyUI тема                  | Уже перенесена             |

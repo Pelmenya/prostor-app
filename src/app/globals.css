@@ -1,11 +1,9 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 @plugin "daisyui";
 
 @theme {
-    --font-sans: var(--font-montserrat), 'sans-serif';
-
-    --text-min: .75rem;
-    --text-ex-min: .625rem;
+    --text-min: 0.75rem;
+    --text-ex-min: 0.625rem;
 
     --breakpoint-sm: 576px;
     --breakpoint-md: 768px;
@@ -16,10 +14,10 @@
 }
 
 @plugin "daisyui/theme" {
-    name: "light";
+    name: 'light';
     default: false;
     prefersdark: false;
-    color-scheme: "light";
+    color-scheme: 'light';
     --color-base-100: oklch(100% 0 0);
     --color-base-200: oklch(98% 0 0);
     --color-base-300: oklch(95% 0 0);
@@ -71,7 +69,7 @@
     }
 
     .gradient-bg-grey {
-        background: radial-gradient(circle, #D4D4D4, #B4B4B4);
+        background: radial-gradient(circle, #d4d4d4, #b4b4b4);
     }
 }
 

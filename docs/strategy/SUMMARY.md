@@ -27,6 +27,7 @@
 **Оценка времени:** 14-21 рабочий день
 
 **Основные задачи:**
+
 - Создать адаптационный слой
 - Заменить 32 файла с `initDataRaw`
 - Интегрировать платежи СБП
@@ -48,6 +49,7 @@
 **Оценка времени:** 40-60 рабочих дней
 
 **Основные задачи:**
+
 - Разработать Phone + OTP аутентификацию
 - Интегрировать Stripe/ЮКassa
 - Создать responsive UI
@@ -59,23 +61,23 @@
 
 ## 📊 Сравнительная таблица
 
-| Критерий | Telegram | MAX | Web |
-|----------|----------|-----|-----|
-| **Текущий статус** | ✅ Production | 📋 Планируется | 🔄 Исследование |
-| **Аудитория** | Большая | Растущая | Потенциально большая |
-| **Сложность миграции** | - | 🟢 Низкая | 🟡 Высокая |
-| **Время разработки** | - | 14-21 день | 40-60 дней |
-| **Аутентификация** | initDataRaw | initData | Phone + OTP |
-| **Платежи** | Invoice API | СБП API | Stripe/ЮКassa |
-| **UI/UX** | Мобильный | Мобильный | Desktop + Mobile |
-| **Haptic feedback** | ✅ | ✅ | 🟡 Ограничено |
-| **Back button** | ✅ | ✅ | Browser history |
-| **Biometric** | ❌ | ✅ | ❌ |
-| **QR Scanner** | ❌ | ✅ | 🟡 WebRTC |
-| **Уведомления** | Telegram чат | MAX чат | Push API/Email |
-| **SEO** | ❌ | ❌ | ✅ |
-| **Модерация** | Да | Да | Нет |
-| **UI Framework** | DaisyUI + Tailwind | DaisyUI + Tailwind | DaisyUI + Tailwind |
+| Критерий               | Telegram           | MAX                | Web                  |
+| ---------------------- | ------------------ | ------------------ | -------------------- |
+| **Текущий статус**     | ✅ Production      | 📋 Планируется     | 🔄 Исследование      |
+| **Аудитория**          | Большая            | Растущая           | Потенциально большая |
+| **Сложность миграции** | -                  | 🟢 Низкая          | 🟡 Высокая           |
+| **Время разработки**   | -                  | 14-21 день         | 40-60 дней           |
+| **Аутентификация**     | initDataRaw        | initData           | Phone + OTP          |
+| **Платежи**            | Invoice API        | СБП API            | Stripe/ЮКassa        |
+| **UI/UX**              | Мобильный          | Мобильный          | Desktop + Mobile     |
+| **Haptic feedback**    | ✅                 | ✅                 | 🟡 Ограничено        |
+| **Back button**        | ✅                 | ✅                 | Browser history      |
+| **Biometric**          | ❌                 | ✅                 | ❌                   |
+| **QR Scanner**         | ❌                 | ✅                 | 🟡 WebRTC            |
+| **Уведомления**        | Telegram чат       | MAX чат            | Push API/Email       |
+| **SEO**                | ❌                 | ❌                 | ✅                   |
+| **Модерация**          | Да                 | Да                 | Нет                  |
+| **UI Framework**       | DaisyUI + Tailwind | DaisyUI + Tailwind | DaisyUI + Tailwind   |
 
 ---
 
@@ -115,7 +117,7 @@ Month 4:   Тестирование и beta
 ```
 Business Logic
       ↓
-Messenger Adapter ← единый интерфейс
+Platform Adapter ← единый интерфейс
       ↓
 ├─ Telegram Adapter
 ├─ MAX Adapter
@@ -123,6 +125,7 @@ Messenger Adapter ← единый интерфейс
 ```
 
 **Преимущества:**
+
 - Не теряем Telegram аудиторию
 - Легко добавлять новые платформы (VK, WhatsApp)
 - Безопасный путь назад при проблемах
@@ -130,6 +133,7 @@ Messenger Adapter ← единый интерфейс
 ### 2. Начните с MAX
 
 **Почему:**
+
 - Минимальные изменения кода
 - Быстрый time-to-market
 - Опыт создания адаптера пригодится для Web
@@ -145,9 +149,9 @@ Messenger Adapter ← единый интерфейс
 
 ```typescript
 const FEATURES = {
-  biometric: ['max'],
-  qrScanner: ['max'],
-  emailNotifications: ['web'],
+    biometric: ['max'],
+    qrScanner: ['max'],
+    emailNotifications: ['web'],
 };
 ```
 
@@ -184,7 +188,7 @@ const FEATURES = {
 
 ### Средний срок (1-2 месяца)
 
-- [ ] Разработать Messenger Adapter
+- [ ] Разработать Platform Adapter
 - [ ] Мигрировать компоненты
 - [ ] Интегрировать платежи
 - [ ] Запустить в MAX
@@ -200,10 +204,12 @@ const FEATURES = {
 ## 📞 Поддержка
 
 **Документация:**
+
 - [MAX для разработчиков](https://dev.max.ru/)
 - [Telegram Mini Apps](https://docs.telegram-mini-apps.com/)
 
 **Контакты:**
+
 - Вопросы по проекту: см. репозиторий
 - Техническая поддержка: см. CLAUDE.md
 
@@ -212,6 +218,7 @@ const FEATURES = {
 ## 📈 Метрики успеха
 
 **MAX Миграция:**
+
 - ✅ Все функции работают
 - ✅ Аутентификация стабильна
 - ✅ Платежи проходят
@@ -219,6 +226,7 @@ const FEATURES = {
 - ✅ Performance ≥ Telegram версии
 
 **Web Платформа:**
+
 - ✅ < 3 сек время загрузки
 - ✅ Lighthouse score > 90
 - ✅ Responsive на всех устройствах

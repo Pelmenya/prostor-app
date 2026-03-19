@@ -8,7 +8,7 @@
 
 | Шаг                  | Описание                                       | Прогресс |
 | -------------------- | ---------------------------------------------- | -------- |
-| 1. Каркас            | messenger adapter + api-слой + dev-токен       | ⬜ 0%    |
+| 1. Каркас            | platform adapter + api-слой + dev-токен        | ✅ done  |
 | 2. Web авторизация   | NextAuth (логин/пароль, Яндекс ID, magic link) | ⬜ 0%    |
 | 3. Telegram Mini App | TelegramAdapter + SDK                          | ⬜ 0%    |
 | 4. MAX Mini App      | MaxAdapter                                     | ⬜ 0%    |
@@ -136,7 +136,7 @@
 Платежи изолированы в адаптерах — бизнес-логика вызывает `adapter.pay()`, адаптер выбирает способ:
 
 ```
-features/checkout → MessengerAdapter.pay(order)
+features/checkout → PlatformAdapter.pay(order)
                         ├── TelegramAdapter → Telegram Payments API (нативно)
                         ├── MaxAdapter      → MAX Payments API (нативно)
                         └── WebAdapter      → ЮKassa виджет (iframe/редирект)
@@ -157,12 +157,12 @@ features/checkout → MessengerAdapter.pay(order)
 - Бизнес-логика, UI-компоненты, TanStack Query хуки — в FSD-слоях (`entities/`, `features/`, `shared/`), общие для всех layout'ов
 - Один деплой, один домен, разные точки входа
 
-### Adapter Pattern (MessengerAdapter)
+### Adapter Pattern (PlatformAdapter)
 
 Бизнес-логика не зависит от платформы. Платформенный код изолирован в адаптерах:
 
 ```
-Business Logic → MessengerAdapter interface
+Business Logic → PlatformAdapter interface
                     ├── TelegramAdapter (initDataRaw)
                     ├── MaxAdapter (initData)
                     └── WebAdapter (JWT, NextAuth)
@@ -239,7 +239,7 @@ src/
 │   ├── api/                    — BFF / NextAuth endpoints
 │   └── layout.tsx              — Root layout
 │
-├── pages/                      — FSD-слой pages: композиция страниц из виджетов и фич
+├── views/                      — FSD-слой pages (переименован из pages/ — конфликт с Next.js Pages Router)
 │
 ├── widgets/                    — Составные блоки UI (header, navigation, sidebar)
 │
@@ -257,7 +257,7 @@ src/
     ├── api/                    — API-клиент (fetch обёртка), конфиг TanStack Query
     ├── hooks/                  — Общие хуки
     ├── lib/                    — Утилиты, хелперы
-    │   └── messenger/          — Adapter Pattern (Telegram/MAX/Web)
+    │   └── platform/           — Adapter Pattern (Telegram/MAX/Web)
     ├── types/                  — Общие типы
     └── styles/                 — Глобальные стили
 ```
@@ -266,11 +266,12 @@ src/
 
 FSD 2.1 — **строгое архитектурное требование**. Весь код ДОЛЖЕН следовать FSD. Нарушение структуры FSD недопустимо. Steiger линтер проверяет соблюдение правил автоматически.
 
-- **Pages first (FSD 2.1):** слой `pages/` — главная точка композиции. Страница собирает виджеты, фичи и сущности. `app/` (в нашем случае Next.js App Router) — только маршрутизация, layout'ы и провайдеры, без бизнес-логики и UI-композиции. Вся логика страницы — в `pages/`
-- **Импорты только сверху вниз:** `app → pages → widgets → features → entities → shared`. Нарушение направления импортов запрещено
+- **Views first (FSD 2.1):** слой `views/` (в FSD это `pages`, но переименован из-за конфликта с Next.js Pages Router) — главная точка композиции. Страница собирает виджеты, фичи и сущности. `app/` — только маршрутизация, layout'ы и провайдеры, без бизнес-логики и UI-композиции. Вся логика страницы — в `views/`
+- **Импорты только сверху вниз:** `app → views → widgets → features → entities → shared`. Нарушение направления импортов запрещено
 - **Нельзя** импортировать из соседнего слайса того же слоя (entity не импортирует entity напрямую). Для cross-entity зависимостей — поднимать в `features/`
 - **Public API:** каждый слайс экспортирует через `index.ts`. Импорт из внутренних файлов слайса напрямую запрещён
-- **`app/`** — только маршрутизация, layout'ы и композиция. Без бизнес-логики. `page.tsx` файлы — тонкие обёртки, импортирующие готовую страницу из `src/pages/`
+- **`app/`** — только маршрутизация, layout'ы и композиция. Без бизнес-логики. `page.tsx` файлы — тонкие обёртки, импортирующие готовую страницу из `src/views/`
+- **⚠️ `src/pages/` запрещён** — Next.js воспринимает его как Pages Router. FSD-слой pages живёт в `src/views/`
 - **Новые файлы** — всегда размещать в правильном FSD-слое. Не создавать файлы вне структуры `src/`
 
 ## Конвенции кода
@@ -280,7 +281,14 @@ FSD 2.1 — **строгое архитектурное требование**. 
 - **Отступы:** 4 пробела (табы запрещены)
 - **Никаких `any`** — использовать `unknown`, дженерики, Zod-инференс. ESLint правило `@typescript-eslint/no-explicit-any: "error"`
 - **React 19:** НЕ использовать `useMemo`, `useCallback`, `React.memo` — React Compiler делает это автоматически
+- **Haptic / Telegram SDK:** НЕ импортировать в shared UI компоненты. Haptic доступен только через Platform Adapter в `(miniapp)` layout. Shared компоненты должны работать на всех платформах
 - **Компоненты по умолчанию серверные** (без `'use client'`). `'use client'` только когда нужен клиентский JS
+- **Header/Footer в layout, не в views.** `app/(web)/layout.tsx` оборачивает все web-страницы. Views содержат только контент. Не дублировать обрамление в каждом view
+- **ISR/SSR для публичных данных.** Каталог, товары — prefetchQuery на сервере + HydrationBoundary + revalidate. Скелетоны только как fallback, не основной UX
+- **FSD Public API обязательно.** Каждый слайс экспортирует через `index.ts`. Импорт из внутренних файлов (`features/catalog/ui/product-card/product-card.tsx`) запрещён — только через `@/features/catalog`
+- **Бизнес-типы в `shared/model/`.** TProduct, TUser, TGroup — единый источник правды. Entities реэкспортируют, не дублируют
+- **Не дублировать логику.** Общие паттерны (хлебные крошки, форматирование цен) — выносить в хуки/утилиты в features или shared
+- **`h-dvh` вместо `h-screen`** на корневом контейнере — учитывает dynamic viewport на мобилках (адресная строка браузера)
 
 ### Нейминг файлов и папок
 
@@ -509,13 +517,15 @@ curl -s -X POST "https://yougile.com/api-v2/tasks" \
 - Бизнес-логика (утилиты, хелперы)
 - date-fns форматирование
 
+**⚠️ Стили копировать 1-в-1 из старого фронта.** Все CSS-классы, размеры, отступы, брейкпоинты уже протестированы на разных разрешениях. Не менять без необходимости — адаптив проверен дизайнером.
+
 ## Что нужно переписать
 
 - **RTK Query слайсы → TanStack Query хуки** (эндпоинты и типы те же, меняется обёртка)
 - **Redux стейт → Zustand сторы** (корзина, UI-состояние)
 - React Router → App Router (маршрутизация)
 - `useMemo` / `useCallback` / `React.memo` → убрать (React Compiler)
-- Telegram SDK прямые вызовы → Messenger Adapter
+- Telegram SDK прямые вызовы → Platform Adapter
 - Аутентификация → мульти-auth (NextAuth + initData)
 
 ## Этапы реализации
@@ -538,11 +548,21 @@ PK остаётся bigint — Telegram не ломается. Добавляе�
 
 - ✅ Бойлерплейт Next.js 16 + React 19 + Tailwind 4 + DaisyUI 5
 - ✅ Весь стек установлен, ESLint + Steiger + Husky настроены
-- Adapter Pattern (messenger adapter + api-слой + dev-токен)
-- Перенос shared-компонентов из старого фронта
-- Каталог (публичные эндпоинты, без auth)
+- ✅ Adapter Pattern (platform adapter + api-слой + dev-токен)
+- ✅ Каталог + подкаталог + страница товара (публичные эндпоинты)
+- ✅ Zustand корзина (localStorage, гостевая)
+- ✅ PWA manifest (standalone, без browser chrome на мобилках)
+- Перенос остальных shared-компонентов из старого фронта
 - Web авторизация (NextAuth — после готовности бэка шаг 3)
-- Корзина, оплата (ЮKassa виджет), профиль
+- Корзина: sync после логина (`POST /cart/sync`)
+- Оплата (ЮKassa виджет), профиль
+
+**TODO: PWA**
+
+- Иконки `public/icon-192.png` и `public/icon-512.png` (лого PROSTOR)
+- Баннер «Установить приложение» (на 2-3 визит)
+- `beforeinstallprompt` для Chrome/Android — перехват и своя кнопка
+- iOS инструкция: «Поделиться → На экран Домой»
 
 ### Этап 2: MAX (2-3 недели)
 
@@ -553,12 +573,29 @@ PK остаётся bigint — Telegram не ломается. Добавляе�
 - Desktop UI для мастеров/кураторов
 - Карта, чат, PWA, SEO
 
+## Субагенты (Code Review)
+
+В `.claude/agents/` установлены субагенты из [VoltAgent/awesome-claude-code-subagents](https://github.com/VoltAgent/awesome-claude-code-subagents):
+
+| Агент                    | Когда использовать                                               |
+| ------------------------ | ---------------------------------------------------------------- |
+| **code-reviewer**        | Ревью кода: качество, безопасность, дублирование, best practices |
+| **architect-reviewer**   | Архитектурные решения: FSD, паттерны, слои, зависимости          |
+| **test-automator**       | Генерация тестов, покрытие, стратегия тестирования               |
+| **performance-engineer** | Оптимизация: бандл, рендер, SSR/ISR, lazy loading                |
+| **frontend-developer**   | React, Next.js, Tailwind — реализация UI компонентов             |
+
+**Использование:** Claude Code автоматически подхватывает агентов из `.claude/agents/`. Вызываются через Agent tool при соответствующих задачах.
+
+**Рекомендация:** запускать `code-reviewer` и `architect-reviewer` перед каждым PR.
+
 ## Документация
 
 ### В этом репозитории
 
 - `docs/BOILERPLATE.md` — **что сделано и что делать** (структура файлов, layout groups, shared, entities, widgets, pages)
 - `docs/features/AUTH_ADAPTER.md` — **архитектура авторизации** (Adapter Pattern, фронтенд)
+- `docs/features/CART_STRATEGY.md` — **корзина для web** (Zustand + localStorage → sync после логина)
 - `docs/backend/STRANGLE_FIG_MIGRATION.md` — **план миграции бэкенда** (Strangle Fig Pattern, 5 шагов)
 - `docs/strategy/` — общая стратегия, решения
 - `docs/research/` — исследования платформ (MAX, Web, PWA)
@@ -627,15 +664,15 @@ src/
 
 ### Что брать из старого фронта
 
-| Что                 | Откуда                                             | Как переносить                                 |
-| ------------------- | -------------------------------------------------- | ---------------------------------------------- |
-| **API эндпоинты**   | `src/entities/*/api/`                              | Конвертировать RTK Query → TanStack Query хуки |
-| **Типы**            | `src/entities/*/api/types.ts`, `src/shared/types/` | Копировать, привести к `T`-префиксу            |
-| **UI компоненты**   | `src/shared/ui/`, `src/entities/*/ui/`             | Адаптировать под App Router + FSD              |
-| **Бизнес-хуки**     | `src/shared/hooks/`, `src/features/*/hooks/`       | Убрать useMemo/useCallback                     |
-| **Стейт (Redux)**   | `src/entities/*/model/`                            | Конвертировать Redux slices → Zustand stores   |
-| **Страницы (флоу)** | `src/pages/`                                       | Переписать как page.tsx в App Router           |
-| **Стили**           | Tailwind классы в компонентах                      | Копировать как есть                            |
+| Что                 | Откуда                                             | Как переносить                                      |
+| ------------------- | -------------------------------------------------- | --------------------------------------------------- |
+| **API эндпоинты**   | `src/entities/*/api/`                              | Конвертировать RTK Query → TanStack Query хуки      |
+| **Типы**            | `src/entities/*/api/types.ts`, `src/shared/types/` | Копировать, привести к `T`-префиксу                 |
+| **UI компоненты**   | `src/shared/ui/`, `src/entities/*/ui/`             | Адаптировать под App Router + FSD                   |
+| **Бизнес-хуки**     | `src/shared/hooks/`, `src/features/*/hooks/`       | Убрать useMemo/useCallback                          |
+| **Стейт (Redux)**   | `src/entities/*/model/`                            | Конвертировать Redux slices → Zustand stores        |
+| **Страницы (флоу)** | `src/pages/`                                       | Переписать в `src/views/` + тонкие обёртки в `app/` |
+| **Стили**           | Tailwind классы в компонентах                      | Копировать как есть                                 |
 
 ### Ключевые флоу для переноса
 
