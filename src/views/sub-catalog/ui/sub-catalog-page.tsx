@@ -8,8 +8,7 @@ import {
     ProductListSkeleton,
     useCatalogBreadcrumbs,
 } from '@/features/catalog';
-import { PageContainer } from '@/shared/ui/page-container';
-import { Breadcrumbs } from '@/shared/ui/breadcrumbs';
+import { PageContainer, Breadcrumbs } from '@/shared/ui';
 
 type TSubCatalogPageProps = {
     groupId: string;

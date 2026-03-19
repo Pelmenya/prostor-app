@@ -10,9 +10,7 @@ import {
     useCartActions,
     useCatalogBreadcrumbs,
 } from '@/features/catalog';
-import { PageContainer } from '@/shared/ui/page-container';
-import { Breadcrumbs } from '@/shared/ui/breadcrumbs';
-import { ProductTabSwitcher, type TProductTabType } from '@/shared/ui/product-tab-switcher';
+import { PageContainer, Breadcrumbs, ProductTabSwitcher, type TProductTabType } from '@/shared/ui';
 
 type TProductPageProps = {
     productId: string;

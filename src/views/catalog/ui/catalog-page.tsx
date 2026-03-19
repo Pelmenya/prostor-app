@@ -2,9 +2,7 @@
 
 import { useSubGroups } from '@/entities/product';
 import { GroupList, GroupListSkeleton } from '@/features/catalog';
-import { PageContainer } from '@/shared/ui/page-container';
-import { PageTitle } from '@/shared/ui/page-title';
-import { CatalogInfoBlock } from '@/shared/ui/catalog-info-block';
+import { PageContainer, PageTitle, CatalogInfoBlock } from '@/shared/ui';
 import { MAIN_CATALOG_ID } from '@/shared/config';
 
 export function CatalogPage() {

@@ -1,7 +1,9 @@
 import { cn } from '@/shared/lib/cn';
 
+type TPageContainerBg = 'bg-base-100' | 'bg-base-200' | 'bg-base-300';
+
 type TPageContainerProps = {
-    bg?: string;
+    bg?: TPageContainerBg;
     className?: string;
     children: React.ReactNode;
 };
