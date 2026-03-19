@@ -4,7 +4,6 @@ import './globals.css';
 
 const montserrat = Montserrat({
     subsets: ['latin', 'cyrillic'],
-    variable: '--font-montserrat',
     display: 'swap',
 });
 
@@ -34,7 +33,7 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="ru" data-theme="light">
-            <body className={`${montserrat.variable} font-sans antialiased`}>{children}</body>
+            <body className={`${montserrat.className} antialiased`}>{children}</body>
         </html>
     );
 }
