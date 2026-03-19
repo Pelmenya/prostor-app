@@ -65,6 +65,18 @@ export function useGroupPath(groupId: string) {
 }
 
 /**
+ * Изображения товара
+ */
+export function useProductImages(productId: string) {
+    return useQuery({
+        queryKey: ['catalog', 'product-images', productId],
+        queryFn: () => apiClient<TImage[]>(`${BASE}/product/${productId}/images`),
+        enabled: !!productId,
+        staleTime: 10 * 60 * 1000,
+    });
+}
+
+/**
  * Изображения bundle (для групп каталога)
  */
 export function useBundleImages(bundleId: string | undefined) {

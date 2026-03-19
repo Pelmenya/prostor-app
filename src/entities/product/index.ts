@@ -4,6 +4,7 @@ export {
     useProducts,
     useProduct,
     useGroupPath,
+    useProductImages,
     useBundleImages,
     getImageProxyUrl,
 } from './api/product.api';
