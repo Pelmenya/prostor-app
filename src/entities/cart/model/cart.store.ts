@@ -70,6 +70,10 @@ function shouldRemoveProduct(item: TCartItem): boolean {
     return item.count === 0 && allServicesZero;
 }
 
+function omitKey(obj: Record<string, TCartItem>, key: string): Record<string, TCartItem> {
+    return Object.fromEntries(Object.entries(obj).filter(([k]) => k !== key));
+}
+
 // ---- Селекторы (чистые функции) ----
 
 export function selectTotalItems(items: Record<string, TCartItem>): number {
@@ -152,8 +156,7 @@ export const useCartStore = create<TCartStore>()(
 
                     const updated = { ...item, count };
                     if (shouldRemoveProduct(updated)) {
-                        const { [productId]: _removed, ...rest } = state.items;
-                        return { items: rest };
+                        return { items: omitKey(state.items, productId) };
                     }
                     return {
                         items: { ...state.items, [productId]: updated },
@@ -161,10 +164,7 @@ export const useCartStore = create<TCartStore>()(
                 }),
 
             removeProduct: (productId) =>
-                set((state) => {
-                    const { [productId]: _removed, ...rest } = state.items;
-                    return { items: rest };
-                }),
+                set((state) => ({ items: omitKey(state.items, productId) })),
 
             addService: (productId, service, count, price) =>
                 set((state) => {
@@ -213,8 +213,7 @@ export const useCartStore = create<TCartStore>()(
                     };
 
                     if (shouldRemoveProduct(updatedItem)) {
-                        const { [productId]: _removed, ...rest } = state.items;
-                        return { items: rest };
+                        return { items: omitKey(state.items, productId) };
                     }
 
                     return {
