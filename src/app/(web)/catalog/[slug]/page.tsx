@@ -1,10 +1,10 @@
 import { SubCatalogPage } from '@/views/sub-catalog';
 
 type TSubCatalogRouteProps = {
-    params: Promise<{ id: string }>;
+    params: Promise<{ slug: string }>;
 };
 
 export default async function SubCatalogRoute({ params }: TSubCatalogRouteProps) {
-    const { id } = await params;
-    return <SubCatalogPage groupId={id} />;
+    const { slug } = await params;
+    return <SubCatalogPage slug={slug} />;
 }

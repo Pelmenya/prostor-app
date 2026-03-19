@@ -1,10 +1,10 @@
 import { ProductPage } from '@/views/product';
 
 type TProductRouteProps = {
-    params: Promise<{ id: string }>;
+    params: Promise<{ slug: string }>;
 };
 
 export default async function ProductRoute({ params }: TProductRouteProps) {
-    const { id } = await params;
-    return <ProductPage productId={id} />;
+    const { slug } = await params;
+    return <ProductPage slug={slug} />;
 }
