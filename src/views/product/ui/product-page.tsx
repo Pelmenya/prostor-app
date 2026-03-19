@@ -3,17 +3,16 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useProduct, useGroupPath, EServiceCategory } from '@/entities/product';
-import { useCartStore, type TCartItem } from '@/entities/cart';
 import { ProductSlider } from '@/features/catalog/ui/product-slider';
 import { ProductTabContent } from '@/features/catalog/ui/product-tab-content';
 import { ProductTotal } from '@/features/catalog/ui/product-total';
+import { useCartActions } from '@/features/catalog/lib/hooks/use-cart-actions';
 import { Page } from '@/widgets/page';
 import { Header } from '@/widgets/header';
 import { Footer } from '@/widgets/footer';
 import { Breadcrumbs } from '@/shared/ui/breadcrumbs';
 import { ProductTabSwitcher, type TProductTabType } from '@/shared/ui/product-tab-switcher';
 import { MAIN_CATALOG_ID } from '@/shared/config';
-import { getSalePrices } from '@/features/catalog/lib/get-sale-prices';
 
 type TProductPageProps = {
     productId: string;
@@ -23,12 +22,16 @@ export function ProductPage({ productId }: TProductPageProps) {
     const { data: product, isLoading, isFetching, error } = useProduct(productId);
     const [activeTab, setActiveTab] = useState<TProductTabType>('buy');
 
-    // Корзина
-    const cartItem = useCartStore((s) => s.items[productId]) as TCartItem | undefined;
-    const addProduct = useCartStore((s) => s.addProduct);
-    const updateProductCount = useCartStore((s) => s.updateProductCount);
-    const addService = useCartStore((s) => s.addService);
-    const updateServiceCount = useCartStore((s) => s.updateServiceCount);
+    // Корзина (логика вынесена в хук)
+    const {
+        cartItem,
+        hasCartItems,
+        handleProductIncrement,
+        handleProductDecrement,
+        handleServiceIncrement,
+        handleServiceDecrement,
+        handleCheckboxChange,
+    } = useCartActions(product, productId);
 
     // Хлебные крошки
     const lastGroupId = product?.groupPath?.[product.groupPath.length - 1]?.id;
@@ -55,9 +58,6 @@ export function ProductPage({ productId }: TProductPageProps) {
         (attr) => attr.name === 'Видимость для приложения',
     )?.value;
 
-    // Цена товара
-    const productUnitPrice = getSalePrices(product?.salePrices)[0]?.value ?? 0;
-
     // Фильтрация услуг
     const installation =
         product?.services?.filter((s) => s.category === EServiceCategory.MONTAZH) || [];
@@ -69,62 +69,12 @@ export function ProductPage({ productId }: TProductPageProps) {
     const hasInstallationServices = installation.length > 0;
     const hasServiceServices = service.length > 0;
 
-    // Вычисляем эффективный таб (если выбранный недоступен — fallback на 'buy')
+    // Вычисляем эффективный таб
     const effectiveTab: TProductTabType =
         (activeTab === 'installation' && !hasInstallationServices) ||
         (activeTab === 'service' && !hasServiceServices)
             ? 'buy'
             : activeTab;
-
-    // Есть ли товары/услуги в корзине
-    const hasCartItems =
-        cartItem &&
-        (cartItem.count > 0 ||
-            Object.values(cartItem.services).some((svc) => svc.checked && svc.count > 0));
-
-    // ---- Обработчики ----
-
-    const handleProductIncrement = () => {
-        if (!product) return;
-        if (!cartItem) {
-            addProduct(product, 1, productUnitPrice);
-        } else {
-            updateProductCount(productId, cartItem.count + 1);
-        }
-    };
-
-    const handleProductDecrement = () => {
-        if (!cartItem) return;
-        updateProductCount(productId, Math.max(cartItem.count - 1, 0));
-    };
-
-    const handleServiceIncrement = (serviceId: string) => {
-        if (!product) return;
-        if (!cartItem) addProduct(product, 0, productUnitPrice);
-        updateServiceCount(productId, serviceId, (cartItem?.services[serviceId]?.count || 0) + 1);
-    };
-
-    const handleServiceDecrement = (serviceId: string) => {
-        if (!cartItem) return;
-        updateServiceCount(
-            productId,
-            serviceId,
-            Math.max((cartItem.services[serviceId]?.count || 0) - 1, 0),
-        );
-    };
-
-    const handleCheckboxChange = (serviceId: string, rateOfHours: number, price?: number) => {
-        if (!product) return;
-        if (!cartItem) addProduct(product, 0, productUnitPrice);
-
-        if (cartItem?.services[serviceId]) {
-            const newChecked = !cartItem.services[serviceId].checked;
-            updateServiceCount(productId, serviceId, newChecked ? 1 : 0);
-        } else {
-            const fullService = product.services?.find((s) => s.id === serviceId);
-            if (fullService) addService(productId, fullService, 1, price ?? 0);
-        }
-    };
 
     // ---- Ошибка ----
     if (error) {
