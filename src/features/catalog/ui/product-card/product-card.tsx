@@ -5,7 +5,6 @@ import { CardWrapper } from '@/shared/ui/card-wrapper';
 import { CardImage } from '@/shared/ui/card-image';
 import type { TProduct } from '@/entities/product';
 import { useProductImages, getImageProxyUrl } from '@/entities/product';
-import { generateSlug } from '@/shared/lib/generate-slug';
 
 type TProductCardProps = {
     product: TProduct;
@@ -27,11 +26,10 @@ export function ProductCard({ product }: TProductCardProps) {
     const imageUrl = mainImage ? getImageProxyUrl(mainImage.meta.downloadHref) : null;
 
     const price = product.salePrices?.[0]?.value;
-    const slug = generateSlug(product.name, product.id);
 
     return (
         <CardWrapper
-            onClick={() => router.push(`/product/${slug}`)}
+            onClick={() => router.push(`/product/${product.id}`)}
             className="flex-col gap-4 min-h-[286px]"
         >
             <CardImage

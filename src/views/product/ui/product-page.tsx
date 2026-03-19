@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useProductBySlug, useGroupPath, EServiceCategory } from '@/entities/product';
+import { useProduct, useGroupPath, EServiceCategory } from '@/entities/product';
 import { useCartStore, type TCartItem } from '@/entities/cart';
 import { ProductSlider } from '@/features/catalog/ui/product-slider';
 import { ProductTabContent } from '@/features/catalog/ui/product-tab-content';
@@ -16,19 +16,15 @@ import { MAIN_CATALOG_ID } from '@/shared/config';
 import { getSalePrices } from '@/features/catalog/lib/get-sale-prices';
 
 type TProductPageProps = {
-    slug: string;
+    productId: string;
 };
 
-export function ProductPage({ slug }: TProductPageProps) {
-    const { data: product, isLoading, isFetching, error } = useProductBySlug(slug);
+export function ProductPage({ productId }: TProductPageProps) {
+    const { data: product, isLoading, isFetching, error } = useProduct(productId);
     const [activeTab, setActiveTab] = useState<TProductTabType>('buy');
 
-    const productId = product?.id ?? '';
-
     // Корзина
-    const cartItem = useCartStore((s) => (productId ? s.items[productId] : undefined)) as
-        | TCartItem
-        | undefined;
+    const cartItem = useCartStore((s) => s.items[productId]) as TCartItem | undefined;
     const addProduct = useCartStore((s) => s.addProduct);
     const updateProductCount = useCartStore((s) => s.updateProductCount);
     const addService = useCartStore((s) => s.addService);
@@ -145,7 +141,7 @@ export function ProductPage({ slug }: TProductPageProps) {
     }
 
     // ---- Скелетон ----
-    if ((isLoading || isFetching) && !product) {
+    if ((isLoading || isFetching) && (!product || product.id !== productId)) {
         return (
             <Page header={<Header />} footer={<Footer />}>
                 <div className="flex flex-col gap-4">

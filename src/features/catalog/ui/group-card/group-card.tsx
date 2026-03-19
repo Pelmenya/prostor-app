@@ -6,7 +6,6 @@ import { CardImage } from '@/shared/ui/card-image';
 import type { TGroup } from '@/entities/product';
 import { useBundleImages, getImageProxyUrl } from '@/entities/product';
 import { cn } from '@/shared/lib/cn';
-import { generateSlug } from '@/shared/lib/generate-slug';
 
 type TGroupCardProps = {
     group: TGroup;
@@ -20,10 +19,8 @@ export function GroupCard({ group, variant = 'default' }: TGroupCardProps) {
     const mainImage = images?.[0];
     const imageUrl = mainImage ? getImageProxyUrl(mainImage.meta.downloadHref) : null;
 
-    const slug = group.groupName ? generateSlug(group.groupName, group.id) : group.id;
-
     return (
-        <CardWrapper variant={variant} onClick={() => router.push(`/catalog/${slug}`)}>
+        <CardWrapper variant={variant} onClick={() => router.push(`/catalog/${group.id}`)}>
             <CardImage
                 src={imageUrl}
                 isLoading={isImagesLoading}

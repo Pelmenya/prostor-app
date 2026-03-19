@@ -1,11 +1,8 @@
 export {
     useTopLevelGroups,
     useSubGroups,
-    useSubGroupsBySlug,
     useProducts,
-    useProductsBySlug,
     useProduct,
-    useProductBySlug,
     useGroupPath,
     useProductImages,
     useBundleImages,

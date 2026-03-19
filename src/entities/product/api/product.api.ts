@@ -29,41 +29,6 @@ export function useSubGroups(groupId: string) {
 }
 
 /**
- * Подгруппы по slug группы
- */
-export function useSubGroupsBySlug(slug: string) {
-    return useQuery({
-        queryKey: ['catalog', 'groups-by-slug', slug],
-        queryFn: () => apiClient<TGroup[]>(`${BASE}/group/by-slug/${slug}/groups`),
-        enabled: !!slug,
-        staleTime: 5 * 60 * 1000,
-    });
-}
-
-/**
- * Товары по slug группы
- */
-export function useProductsBySlug(slug: string) {
-    return useQuery({
-        queryKey: ['catalog', 'products-by-slug', slug],
-        queryFn: () => apiClient<TProduct[]>(`${BASE}/group/by-slug/${slug}/products`),
-        enabled: !!slug,
-        staleTime: 5 * 60 * 1000,
-    });
-}
-
-/**
- * Товар по slug
- */
-export function useProductBySlug(slug: string) {
-    return useQuery({
-        queryKey: ['catalog', 'product-by-slug', slug],
-        queryFn: () => apiClient<TProduct>(`${BASE}/product/by-slug/${slug}`),
-        enabled: !!slug,
-    });
-}
-
-/**
  * Товары по ID группы
  */
 export function useProducts(groupId: string) {
