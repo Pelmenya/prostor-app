@@ -2,17 +2,19 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useProduct, useGroupPath, EServiceCategory } from '@/entities/product';
-import { ProductSlider } from '@/features/catalog/ui/product-slider';
-import { ProductTabContent } from '@/features/catalog/ui/product-tab-content';
-import { ProductTotal } from '@/features/catalog/ui/product-total';
-import { useCartActions } from '@/features/catalog/lib/hooks/use-cart-actions';
+import { useProduct, EServiceCategory } from '@/entities/product';
+import {
+    ProductSlider,
+    ProductTabContent,
+    ProductTotal,
+    useCartActions,
+    useCatalogBreadcrumbs,
+} from '@/features/catalog';
 import { Page } from '@/widgets/page';
 import { Header } from '@/widgets/header';
 import { Footer } from '@/widgets/footer';
 import { Breadcrumbs } from '@/shared/ui/breadcrumbs';
 import { ProductTabSwitcher, type TProductTabType } from '@/shared/ui/product-tab-switcher';
-import { MAIN_CATALOG_ID } from '@/shared/config';
 
 type TProductPageProps = {
     productId: string;
@@ -33,25 +35,12 @@ export function ProductPage({ productId }: TProductPageProps) {
         handleCheckboxChange,
     } = useCartActions(product, productId);
 
-    // Хлебные крошки
-    const lastGroupId = product?.groupPath?.[product.groupPath.length - 1]?.id;
-    const { data: categoryPath, isLoading: isLoadingPath } = useGroupPath(lastGroupId ?? '');
-
-    const aquaforIndex = categoryPath
-        ? categoryPath.findIndex((item) => item.id === MAIN_CATALOG_ID)
-        : -1;
-    const filteredPath = aquaforIndex >= 0 ? categoryPath?.slice(aquaforIndex + 1) : categoryPath;
-
-    const breadcrumbs = [
-        { name: 'Каталог', path: '/catalog' },
-        ...(filteredPath
-            ? filteredPath.map((item) => ({
-                  name: item.groupName || '',
-                  path: `/catalog/${item.id}`,
-              }))
-            : []),
-        ...(product ? [{ name: product.name }] : []),
-    ];
+    // Хлебные крошки (через общий хук)
+    const lastGroupId = product?.groupPath?.[product.groupPath.length - 1]?.id ?? '';
+    const { breadcrumbs, isLoading: isLoadingPath } = useCatalogBreadcrumbs(
+        lastGroupId,
+        product?.name,
+    );
 
     // Видимость товара
     const isVisible = product?.attributes?.find(
