@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useApi } from '@/shared/api';
-import type { TUser } from '../model/types/t-user';
+import type { TUser } from '@/shared/model';
 
 export function useCurrentUser() {
     const api = useApi();
