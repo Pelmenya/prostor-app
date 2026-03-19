@@ -1,9 +1,9 @@
-import type { TPlatform, TMessengerAdapter } from './types';
+import type { TPlatform, TPlatformAdapter } from './types';
 import { TelegramAdapter } from './adapters/telegram-adapter';
 import { WebAdapter } from './adapters/web-adapter';
 import { MaxAdapter } from './adapters/max-adapter';
 
-export function createMessengerAdapter(platform: TPlatform): TMessengerAdapter {
+export function createPlatformAdapter(platform: TPlatform): TPlatformAdapter {
     switch (platform) {
         case 'telegram':
             return new TelegramAdapter();

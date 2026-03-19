@@ -1,4 +1,4 @@
-import { useAuth } from '@/shared/lib/messenger';
+import { useAuth } from '@/shared/lib/platform';
 import { apiClient } from './api-client';
 import type { TApiClientOptions } from './api-client';
 

@@ -1,6 +1,6 @@
 export type TPlatform = 'telegram' | 'max' | 'web';
 
-export type TMessengerUser = {
+export type TPlatformUser = {
     id: number;
     firstName?: string;
     lastName?: string;
@@ -10,7 +10,7 @@ export type TMessengerUser = {
 
 export type THapticType = 'light' | 'medium' | 'heavy' | 'soft' | 'rigid';
 
-export type TMessengerAdapter = {
+export type TPlatformAdapter = {
     platform: TPlatform;
     isReady: boolean;
 
@@ -20,7 +20,7 @@ export type TMessengerAdapter = {
 
     // Auth
     getAuthHeader(): string | null;
-    getUser(): TMessengerUser | null;
+    getUser(): TPlatformUser | null;
     isAuthenticated(): boolean;
 
     // Navigation

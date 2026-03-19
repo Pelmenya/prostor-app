@@ -1,29 +1,29 @@
 'use client';
 
 import { createContext, useEffect, useState } from 'react';
-import type { TMessengerAdapter } from './types';
+import type { TPlatformAdapter } from './types';
 import { detectPlatform } from './utils/detect-platform';
-import { createMessengerAdapter } from './factory';
+import { createPlatformAdapter } from './factory';
 
-export const MessengerContext = createContext<TMessengerAdapter | null>(null);
+export const PlatformContext = createContext<TPlatformAdapter | null>(null);
 
-type TMessengerProviderProps = {
+type TPlatformProviderProps = {
     children: React.ReactNode;
 };
 
-export function MessengerProvider({ children }: TMessengerProviderProps) {
-    const [adapter, setAdapter] = useState<TMessengerAdapter | null>(null);
+export function PlatformProvider({ children }: TPlatformProviderProps) {
+    const [adapter, setAdapter] = useState<TPlatformAdapter | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<Error | null>(null);
 
     useEffect(() => {
         const platform = detectPlatform();
-        const messengerAdapter = createMessengerAdapter(platform);
+        const platformAdapter = createPlatformAdapter(platform);
 
-        messengerAdapter
+        platformAdapter
             .init()
             .then(() => {
-                setAdapter(messengerAdapter);
+                setAdapter(platformAdapter);
             })
             .catch((err: unknown) => {
                 setError(err instanceof Error ? err : new Error(String(err)));
@@ -51,5 +51,5 @@ export function MessengerProvider({ children }: TMessengerProviderProps) {
         );
     }
 
-    return <MessengerContext.Provider value={adapter}>{children}</MessengerContext.Provider>;
+    return <PlatformContext.Provider value={adapter}>{children}</PlatformContext.Provider>;
 }

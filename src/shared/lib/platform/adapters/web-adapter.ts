@@ -1,6 +1,6 @@
-import type { TMessengerAdapter, TMessengerUser, TPlatform } from '../types';
+import type { TPlatformAdapter, TPlatformUser, TPlatform } from '../types';
 
-export class WebAdapter implements TMessengerAdapter {
+export class WebAdapter implements TPlatformAdapter {
     platform: TPlatform = 'web';
     isReady = false;
     private devToken: string | null = null;
@@ -23,7 +23,7 @@ export class WebAdapter implements TMessengerAdapter {
         return null;
     }
 
-    getUser(): TMessengerUser | null {
+    getUser(): TPlatformUser | null {
         // TODO: NextAuth — данные пользователя из сессии
         return null;
     }

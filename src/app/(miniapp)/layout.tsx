@@ -1,12 +1,12 @@
 'use client';
 
-import { MessengerProvider } from '@/shared/lib/messenger';
+import { PlatformProvider } from '@/shared/lib/platform';
 import { QueryProvider } from '@/shared/api';
 
 export default function MiniAppLayout({ children }: { children: React.ReactNode }) {
     return (
-        <MessengerProvider>
+        <PlatformProvider>
             <QueryProvider>{children}</QueryProvider>
-        </MessengerProvider>
+        </PlatformProvider>
     );
 }

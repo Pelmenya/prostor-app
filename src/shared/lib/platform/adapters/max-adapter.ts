@@ -1,8 +1,8 @@
-import type { TMessengerAdapter, TMessengerUser, TPlatform } from '../types';
+import type { TPlatformAdapter, TPlatformUser, TPlatform } from '../types';
 
 // TODO: импорт MAX SDK когда появится
 
-export class MaxAdapter implements TMessengerAdapter {
+export class MaxAdapter implements TPlatformAdapter {
     platform: TPlatform = 'max';
     isReady = false;
 
@@ -16,7 +16,7 @@ export class MaxAdapter implements TMessengerAdapter {
         return null;
     }
 
-    getUser(): TMessengerUser | null {
+    getUser(): TPlatformUser | null {
         // TODO: парсинг initData.user (формат аналогичен Telegram)
         return null;
     }

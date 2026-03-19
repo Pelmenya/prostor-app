@@ -1,4 +1,4 @@
-import type { TMessengerAdapter, TMessengerUser, TPlatform } from '../types';
+import type { TPlatformAdapter, TPlatformUser, TPlatform } from '../types';
 import {
     init,
     miniApp,
@@ -12,7 +12,7 @@ import {
     openLink as tmaOpenLink,
 } from '@tma.js/sdk-react';
 
-export class TelegramAdapter implements TMessengerAdapter {
+export class TelegramAdapter implements TPlatformAdapter {
     platform: TPlatform = 'telegram';
     isReady = false;
 
@@ -60,7 +60,7 @@ export class TelegramAdapter implements TMessengerAdapter {
         return `tma ${raw}`;
     }
 
-    getUser(): TMessengerUser | null {
+    getUser(): TPlatformUser | null {
         const user = initData.user();
         if (!user) return null;
         return {
