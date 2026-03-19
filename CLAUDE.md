@@ -585,9 +585,31 @@ PK остаётся bigint — Telegram не ломается. Добавляе�
 | **performance-engineer** | Оптимизация: бандл, рендер, SSR/ISR, lazy loading                |
 | **frontend-developer**   | React, Next.js, Tailwind — реализация UI компонентов             |
 
-**Использование:** Claude Code автоматически подхватывает агентов из `.claude/agents/`. Вызываются через Agent tool при соответствующих задачах.
+### Автоматический code review
 
-**Рекомендация:** запускать `code-reviewer` и `architect-reviewer` перед каждым PR.
+В `.claude/settings.json` настроен хук `PreToolUse` на `git commit`. Перед каждым коммитом агент проверяет:
+
+- FSD violations (прямые импорты вместо public API)
+- Дублирование кода
+- Cross-slice импорты между entities
+- Бизнес-логика в `app/` слое
+- Missing/лишний `'use client'`
+
+Если найдены проблемы — коммит блокируется с описанием.
+
+### Ручной запуск
+
+Попросить Claude: «запусти code-reviewer» или «проверь архитектуру». Рекомендуется перед каждым PR.
+
+### Добавить нового агента
+
+1. Скачать `.md` из [VoltAgent/awesome-claude-code-subagents](https://github.com/VoltAgent/awesome-claude-code-subagents/tree/main/categories)
+2. Положить в `.claude/agents/`
+3. Закоммитить — доступен всей команде
+
+### Локальные настройки
+
+`.claude/settings.local.json` — gitignored, для персональных настроек (env, tunnel origins и т.д.)
 
 ## Документация
 
