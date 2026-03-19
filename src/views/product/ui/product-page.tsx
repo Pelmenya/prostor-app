@@ -10,6 +10,7 @@ import {
     useCartActions,
     useCatalogBreadcrumbs,
 } from '@/features/catalog';
+import { PageContainer } from '@/shared/ui/page-container';
 import { Breadcrumbs } from '@/shared/ui/breadcrumbs';
 import { ProductTabSwitcher, type TProductTabType } from '@/shared/ui/product-tab-switcher';
 
@@ -65,21 +66,21 @@ export function ProductPage({ productId }: TProductPageProps) {
     // ---- Ошибка ----
     if (error) {
         return (
-            <>
+            <PageContainer bg="bg-base-100">
                 <div className="flex flex-col items-center justify-center py-12">
                     <p className="text-lg mb-4">Этот товар больше недоступен или был удалён.</p>
                     <Link href="/catalog" className="btn btn-primary text-lg font-bold">
                         Перейти в каталог
                     </Link>
                 </div>
-            </>
+            </PageContainer>
         );
     }
 
     // ---- Скелетон ----
     if ((isLoading || isFetching) && (!product || product.id !== productId)) {
         return (
-            <>
+            <PageContainer bg="bg-base-100">
                 <div className="flex flex-col gap-4">
                     <div className="skeleton h-4 w-48 mb-4" />
                     <div className="skeleton h-[268px] rounded-none -mx-4 md:-mx-6 xl:-mx-10 w-[calc(100%+2rem)] md:w-[calc(100%+3rem)] xl:w-[calc(100%+5rem)]" />
@@ -95,7 +96,7 @@ export function ProductPage({ productId }: TProductPageProps) {
                         <div className="skeleton h-20 w-full mt-4 rounded-2xl" />
                     </div>
                 </div>
-            </>
+            </PageContainer>
         );
     }
 
@@ -103,7 +104,7 @@ export function ProductPage({ productId }: TProductPageProps) {
 
     // ---- Рендер ----
     return (
-        <>
+        <PageContainer bg="bg-base-100">
             <div
                 className="flex flex-col justify-between"
                 style={
@@ -146,6 +147,6 @@ export function ProductPage({ productId }: TProductPageProps) {
 
                 <ProductTotal cartItem={cartItem} />
             </div>
-        </>
+        </PageContainer>
     );
 }
