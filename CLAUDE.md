@@ -283,6 +283,12 @@ FSD 2.1 — **строгое архитектурное требование**. 
 - **React 19:** НЕ использовать `useMemo`, `useCallback`, `React.memo` — React Compiler делает это автоматически
 - **Haptic / Telegram SDK:** НЕ импортировать в shared UI компоненты. Haptic доступен только через Platform Adapter в `(miniapp)` layout. Shared компоненты должны работать на всех платформах
 - **Компоненты по умолчанию серверные** (без `'use client'`). `'use client'` только когда нужен клиентский JS
+- **Header/Footer в layout, не в views.** `app/(web)/layout.tsx` оборачивает все web-страницы. Views содержат только контент. Не дублировать обрамление в каждом view
+- **ISR/SSR для публичных данных.** Каталог, товары — prefetchQuery на сервере + HydrationBoundary + revalidate. Скелетоны только как fallback, не основной UX
+- **FSD Public API обязательно.** Каждый слайс экспортирует через `index.ts`. Импорт из внутренних файлов (`features/catalog/ui/product-card/product-card.tsx`) запрещён — только через `@/features/catalog`
+- **Бизнес-типы в `shared/model/`.** TProduct, TUser, TGroup — единый источник правды. Entities реэкспортируют, не дублируют
+- **Не дублировать логику.** Общие паттерны (хлебные крошки, форматирование цен) — выносить в хуки/утилиты в features или shared
+- **`h-dvh` вместо `h-screen`** на корневом контейнере — учитывает dynamic viewport на мобилках (адресная строка браузера)
 
 ### Нейминг файлов и папок
 
