@@ -1,20 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-
-// Типы для корзины — не импортируем из entities/product (FSD: нельзя cross-slice)
-// Используем минимальный интерфейс, совместимый с TProduct/TService
-
-type TCartProductInput = {
-    id: string;
-    name: string;
-    description?: string;
-};
-
-type TCartServiceInput = {
-    id: string;
-    rateOfHours?: number;
-    category?: string;
-};
+import type { TProduct, TService, EServiceCategory } from '@/shared/model';
 
 // ---- Типы ----
 
@@ -22,7 +8,7 @@ export type TCartServiceItem = {
     service: {
         id: string;
         rateOfHours?: number;
-        category?: string;
+        category?: EServiceCategory;
     };
     count: number;
     price: number;
@@ -45,17 +31,12 @@ type TCartStore = {
     isGuest: boolean;
 
     // Actions — товары
-    addProduct: (product: TCartProductInput, count: number, price: number) => void;
+    addProduct: (product: TProduct, count: number, price: number) => void;
     updateProductCount: (productId: string, count: number) => void;
     removeProduct: (productId: string) => void;
 
     // Actions — услуги
-    addService: (
-        productId: string,
-        service: TCartServiceInput,
-        count: number,
-        price: number,
-    ) => void;
+    addService: (productId: string, service: TService, count: number, price: number) => void;
     updateServiceCount: (productId: string, serviceId: string, count: number) => void;
 
     // Управление

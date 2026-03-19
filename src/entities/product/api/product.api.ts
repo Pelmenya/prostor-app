@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '@/shared/api';
-import type { TGroup, TGroupPath } from '../model/types/t-group';
-import type { TProduct, TImage } from '../model/types/t-product';
+import type { TGroup, TGroupPath, TProduct, TImage } from '@/shared/model';
 
 const BASE = '/moysklad';
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
