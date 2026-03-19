@@ -4,7 +4,7 @@
 
 | Шаг                  | Описание                                       | Статус      |
 | -------------------- | ---------------------------------------------- | ----------- |
-| 1. Каркас            | messenger adapter + api-слой + dev-токен       | ⬜ Не начат |
+| 1. Каркас            | platform adapter + api-слой + dev-токен        | ✅ Готов    |
 | 2. Web авторизация   | NextAuth (логин/пароль, Яндекс ID, magic link) | ⬜ Не начат |
 | 3. Telegram Mini App | TelegramAdapter + @telegram-apps/sdk-react     | ⬜ Не начат |
 | 4. MAX Mini App      | MaxAdapter (SDK аналогичен Telegram)           | ⬜ Не начат |
@@ -15,7 +15,7 @@
 Entity хук (useProducts, useCurrentUser)
     └── useApi()          — подставляет auth header автоматически
         └── apiClient()   — fetch-обёртка (baseUrl, errors, JSON)
-            └── auth из MessengerAdapter
+            └── auth из PlatformAdapter
                     ├── WebAdapter      — NextAuth JWT (первый)
                     ├── TelegramAdapter — initDataRaw (второй)
                     └── MaxAdapter      — initData (третий)
@@ -43,8 +43,8 @@ features/checkout → adapter.pay(order)
 ### Файловая структура
 
 ```
-src/shared/lib/messenger/
-├── types.ts                            — TPlatform, TMessengerUser, TMessengerAdapter
+src/shared/lib/platform/
+├── types.ts                            — TPlatform, TPlatformUser, TPlatformAdapter
 ├── utils/
 │   ├── detect-platform.ts              — определение платформы (telegram/max/web)
 │   └── detect-platform.test.ts         — SSR, Telegram WebApp, fallback web
@@ -55,11 +55,11 @@ src/shared/lib/messenger/
 │   ├── web-adapter.test.ts             — dev-токен из env, fallback без токена
 │   ├── max-adapter.ts                  — MAX initData (заглушка → шаг 4)
 │   └── max-adapter.test.ts             — заглушка возвращает null/false
-├── factory.ts                          — createMessengerAdapter(platform)
+├── factory.ts                          — createPlatformAdapter(platform)
 ├── factory.test.ts                     — возвращает правильный адаптер по платформе
-├── messenger-provider.tsx              — React Context + init адаптера
+├── platform-provider.tsx              — React Context + init адаптера
 ├── hooks/
-│   ├── use-messenger.ts                — доступ к адаптеру
+│   ├── use-platform.ts                — доступ к адаптеру
 │   └── use-auth.ts                     — authHeader, user, isAuthenticated, platform
 └── index.ts                            — public API
 
@@ -92,7 +92,7 @@ src/shared/api/
 **Фронт (prostor-app):**
 
 - `shared/api/` — apiClient, QueryClient, QueryProvider, useApi
-- `shared/lib/messenger/` — типы, detect-platform, заглушки адаптеров, фабрика, провайдер, хуки
+- `shared/lib/platform/` — типы, detect-platform, заглушки адаптеров, фабрика, провайдер, хуки
 - WebAdapter: dev-токен из `.env.local` для разработки
 - Layout groups: `(web)`, `(miniapp)`
 - Пример: `entities/user` + `useCurrentUser`
@@ -129,7 +129,7 @@ src/shared/api/
 
 - TelegramAdapter: `@telegram-apps/sdk-react`, `retrieveLaunchParams()`
 - `getAuthHeader()` → `tma <initDataRaw>`
-- `(miniapp)` layout с MessengerProvider
+- `(miniapp)` layout с PlatformProvider
 
 **Бэк:** ничего менять не нужно (уже работает)
 

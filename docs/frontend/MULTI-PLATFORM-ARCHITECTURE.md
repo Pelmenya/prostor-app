@@ -29,12 +29,12 @@
 
 ### Поддерживаемые платформы
 
-| Платформа | Статус | Приоритет | Дата релиза |
-|-----------|--------|-----------|-------------|
-| **Telegram Mini Apps** | ✅ Текущая | Высокий | 2024-XX-XX |
-| **MAX Messenger** | 📋 Запланировано | Высокий | 2025-Q1 |
-| **Standalone Web** | 🔄 Исследование | Средний | 2025-Q2 |
-| **VK Mini Apps** | ⏳ Будущее | Низкий | TBD |
+| Платформа              | Статус           | Приоритет | Дата релиза |
+| ---------------------- | ---------------- | --------- | ----------- |
+| **Telegram Mini Apps** | ✅ Текущая       | Высокий   | 2024-XX-XX  |
+| **MAX Messenger**      | 📋 Запланировано | Высокий   | 2025-Q1     |
+| **Standalone Web**     | 🔄 Исследование  | Средний   | 2025-Q2     |
+| **VK Mini Apps**       | ⏳ Будущее       | Низкий    | TBD         |
 
 ---
 
@@ -43,77 +43,88 @@
 ### 1. SOLID принципы
 
 #### Single Responsibility Principle
+
 Каждый адаптер отвечает только за свою платформу:
+
 - `TelegramAdapter` - только Telegram API
 - `MaxAdapter` - только MAX API
 - `WebAdapter` - только Web API
 
 #### Open/Closed Principle
+
 Система открыта для расширения (новые адаптеры), закрыта для модификации (интерфейс не меняется):
 
 ```typescript
 // Добавление новой платформы не требует изменения существующего кода
-export function createMessengerAdapter(): MessengerAdapter {
-  const platform = detectPlatform();
+export function createPlatformAdapter(): PlatformAdapter {
+    const platform = detectPlatform();
 
-  switch (platform) {
-    case 'telegram': return new TelegramAdapter();
-    case 'max': return new MaxAdapter();
-    case 'web': return new WebAdapter();
-    case 'vk': return new VKAdapter(); // ← Новый адаптер
-    default: throw new Error(`Unknown platform: ${platform}`);
-  }
+    switch (platform) {
+        case 'telegram':
+            return new TelegramAdapter();
+        case 'max':
+            return new MaxAdapter();
+        case 'web':
+            return new WebAdapter();
+        case 'vk':
+            return new VKAdapter(); // ← Новый адаптер
+        default:
+            throw new Error(`Unknown platform: ${platform}`);
+    }
 }
 ```
 
 #### Liskov Substitution Principle
+
 Все адаптеры взаимозаменяемы благодаря единому интерфейсу:
 
 ```typescript
 // Бизнес-логика работает с любым адаптером
-function processPayment(messenger: MessengerAdapter, amount: number) {
-  const initData = messenger.getInitData();
-  // ... логика одинакова для всех платформ
+function processPayment(adapter: PlatformAdapter, amount: number) {
+    const initData = adapter.getInitData();
+    // ... логика одинакова для всех платформ
 }
 ```
 
 #### Interface Segregation Principle
+
 Интерфейсы разделены по функциональности:
 
 ```typescript
-interface MessengerAdapter {
-  // Основные интерфейсы
-  backButton: BackButtonController;
-  haptic: HapticFeedback;
-  theme: ThemeParams;
-  viewport: ViewportController;
-  storage: StorageController;
+interface PlatformAdapter {
+    // Основные интерфейсы
+    backButton: BackButtonController;
+    haptic: HapticFeedback;
+    theme: ThemeParams;
+    viewport: ViewportController;
+    storage: StorageController;
 }
 
 // Каждый интерфейс независим
 interface BackButtonController {
-  show(): void;
-  hide(): void;
-  isVisible: boolean;
-  onClick(handler: () => void): void;
-  offClick(handler: () => void): void;
+    show(): void;
+    hide(): void;
+    isVisible: boolean;
+    onClick(handler: () => void): void;
+    offClick(handler: () => void): void;
 }
 ```
 
 #### Dependency Inversion Principle
+
 Бизнес-логика зависит от абстракций, а не от конкретных реализаций:
 
 ```typescript
 // ✅ Правильно - зависимость от интерфейса
 function useAuth() {
-  const messenger = useMessenger(); // MessengerAdapter
-  return messenger.getInitData();
+    const adapter = usePlatform(); // PlatformAdapter
+    return adapter.getInitData();
 }
 
 // ❌ Неправильно - прямая зависимость от Telegram
 function useAuth() {
-  const lp = useLaunchParams(); // Telegram-specific
-  return lp.initDataRaw;
+    const lp = useLaunchParams(); // Telegram-specific
+    return lp.initDataRaw;
 }
 ```
 
@@ -124,11 +135,11 @@ function useAuth() {
 │         Business Logic Layer             │
 │  (Orders, Users, Cart, Real Estate)      │
 │  - Не знает о платформе                  │
-│  - Использует MessengerAdapter interface │
+│  - Использует PlatformAdapter interface  │
 └────────────────┬─────────────────────────┘
                  │
 ┌────────────────▼─────────────────────────┐
-│       Messenger Adapter Layer            │
+│       Platform Adapter Layer             │
 │  - Определяет платформу                  │
 │  - Предоставляет единый API              │
 │  - Изолирует платформенные различия      │
@@ -147,24 +158,24 @@ function useAuth() {
 Платформы могут иметь уникальные возможности:
 
 ```typescript
-interface MessengerAdapter {
-  // Базовый функционал (обязательный)
-  readonly platform: Platform;
-  getInitData(): MessengerInitData;
-  backButton: BackButtonController;
+interface PlatformAdapter {
+    // Базовый функционал (обязательный)
+    readonly platform: Platform;
+    getInitData(): PlatformInitData;
+    backButton: BackButtonController;
 
-  // Опциональные возможности
-  biometric?: BiometricManager;      // Только MAX
-  qrScanner?: QRScannerController;   // Только MAX
-  openInvoice?(url: string): Promise<PaymentStatus>; // Telegram, MAX
+    // Опциональные возможности
+    biometric?: BiometricManager; // Только MAX
+    qrScanner?: QRScannerController; // Только MAX
+    openInvoice?(url: string): Promise<PaymentStatus>; // Telegram, MAX
 }
 
 // Использование
-const messenger = useMessenger();
+const adapter = usePlatform();
 
-if (messenger.biometric) {
-  // MAX поддерживает биометрию
-  await messenger.biometric.authenticate();
+if (adapter.biometric) {
+    // MAX поддерживает биометрию
+    await adapter.biometric.authenticate();
 }
 ```
 
@@ -172,121 +183,119 @@ if (messenger.biometric) {
 
 ## Adapter Pattern
 
-### Интерфейс MessengerAdapter
+### Интерфейс PlatformAdapter
 
 Полный интерфейс описан в [MAX-MIGRATION-PLAN.md](./MAX-MIGRATION-PLAN.md#интерфейс-адаптера).
 
 Ключевые компоненты:
 
 ```typescript
-export interface MessengerAdapter {
-  // Метаданные
-  readonly platform: Platform;
-  readonly isAvailable: boolean;
+export interface PlatformAdapter {
+    // Метаданные
+    readonly platform: Platform;
+    readonly isAvailable: boolean;
 
-  // Жизненный цикл
-  init(): Promise<void>;
-  ready(): void;
+    // Жизненный цикл
+    init(): Promise<void>;
+    ready(): void;
 
-  // Данные
-  getInitData(): MessengerInitData;
-  getUser(): MessengerUser | undefined;
+    // Данные
+    getInitData(): PlatformInitData;
+    getUser(): TPlatformUser | undefined;
 
-  // UI контроллеры
-  backButton: BackButtonController;
-  haptic: HapticFeedback;
-  theme: ThemeParams;
-  viewport: ViewportController;
-  storage: StorageController;
+    // UI контроллеры
+    backButton: BackButtonController;
+    haptic: HapticFeedback;
+    theme: ThemeParams;
+    viewport: ViewportController;
+    storage: StorageController;
 
-  // Утилиты
-  openLink(url: string): void;
-  close(): void;
+    // Утилиты
+    openLink(url: string): void;
+    close(): void;
 
-  // Опциональные возможности
-  openInvoice?(invoiceUrl: string): Promise<PaymentStatus>;
-  biometric?: BiometricManager;
-  qrScanner?: QRScannerController;
+    // Опциональные возможности
+    openInvoice?(invoiceUrl: string): Promise<PaymentStatus>;
+    biometric?: BiometricManager;
+    qrScanner?: QRScannerController;
 
-  // События
-  on(event: string, handler: EventHandler): void;
-  off(event: string, handler: EventHandler): void;
+    // События
+    on(event: string, handler: EventHandler): void;
+    off(event: string, handler: EventHandler): void;
 }
 ```
 
 ### Platform Detection
 
 ```typescript
-// src/shared/lib/messenger/utils/detect-platform.ts
+// src/shared/lib/platform/utils/detect-platform.ts
 
 export function detectPlatform(): Platform {
-  if (typeof window === 'undefined') {
-    return 'web'; // SSR
-  }
+    if (typeof window === 'undefined') {
+        return 'web'; // SSR
+    }
 
-  // Проверка MAX (первым, т.к. может эмулировать другие)
-  if (isMaxPlatform()) {
-    return 'max';
-  }
+    // Проверка MAX (первым, т.к. может эмулировать другие)
+    if (isMaxPlatform()) {
+        return 'max';
+    }
 
-  // Проверка Telegram
-  if (isTelegramPlatform()) {
-    return 'telegram';
-  }
+    // Проверка Telegram
+    if (isTelegramPlatform()) {
+        return 'telegram';
+    }
 
-  // Проверка VK
-  if (isVKPlatform()) {
-    return 'vk';
-  }
+    // Проверка VK
+    if (isVKPlatform()) {
+        return 'vk';
+    }
 
-  // Fallback на standalone web
-  return 'web';
+    // Fallback на standalone web
+    return 'web';
 }
 
 function isMaxPlatform(): boolean {
-  return typeof window !== 'undefined' &&
-         typeof window.WebApp !== 'undefined' &&
-         !window.Telegram;
+    return (
+        typeof window !== 'undefined' && typeof window.WebApp !== 'undefined' && !window.Telegram
+    );
 }
 
 function isTelegramPlatform(): boolean {
-  return typeof window !== 'undefined' &&
-         typeof window.Telegram?.WebApp !== 'undefined';
+    return typeof window !== 'undefined' && typeof window.Telegram?.WebApp !== 'undefined';
 }
 
 function isVKPlatform(): boolean {
-  return typeof window !== 'undefined' &&
-         typeof window.vkBridge !== 'undefined';
+    return typeof window !== 'undefined' && typeof window.vkBridge !== 'undefined';
 }
 ```
 
 ### Adapter Factory
 
 ```typescript
-// src/shared/lib/messenger/factory.ts
+// src/shared/lib/platform/factory.ts
 
 import { TelegramAdapter } from './adapters/telegram-adapter';
 import { MaxAdapter } from './adapters/max-adapter';
 import { WebAdapter } from './adapters/web-adapter';
 import { VKAdapter } from './adapters/vk-adapter';
 
-export function createMessengerAdapter(): MessengerAdapter {
-  const platform = detectPlatform();
+export function createPlatformAdapter(): PlatformAdapter {
+    const platform = detectPlatform();
 
-  const adapters: Record<Platform, () => MessengerAdapter> = {
-    telegram: () => new TelegramAdapter(),
-    max: () => new MaxAdapter(),
-    web: () => new WebAdapter(),
-    vk: () => new VKAdapter(),
-  };
+    const adapters: Record<Platform, () => PlatformAdapter> = {
+        telegram: () => new TelegramAdapter(),
+        max: () => new MaxAdapter(),
+        web: () => new WebAdapter(),
+        vk: () => new VKAdapter(),
+    };
 
-  const createAdapter = adapters[platform];
+    const createAdapter = adapters[platform];
 
-  if (!createAdapter) {
-    throw new Error(`Unsupported platform: ${platform}`);
-  }
+    if (!createAdapter) {
+        throw new Error(`Unsupported platform: ${platform}`);
+    }
 
-  return createAdapter();
+    return createAdapter();
 }
 ```
 
@@ -298,9 +307,9 @@ export function createMessengerAdapter(): MessengerAdapter {
 src/
 ├── shared/
 │   └── lib/
-│       └── messenger/                    # ← Новая директория
+│       └── platform/                     # ← Новая директория
 │           ├── types/
-│           │   ├── messenger.types.ts    # Интерфейсы
+│           │   ├── types.ts              # Интерфейсы
 │           │   ├── user.types.ts
 │           │   ├── platform.types.ts
 │           │   ├── ui.types.ts
@@ -326,7 +335,7 @@ src/
 │           │   └── ...
 │           │
 │           ├── hooks/
-│           │   ├── use-messenger.ts      # Основной хук
+│           │   ├── use-platform.ts       # Основной хук
 │           │   ├── use-auth.ts           # Аутентификация
 │           │   ├── use-back-button.ts    # Back button
 │           │   ├── use-haptic.ts         # Haptic feedback
@@ -334,7 +343,7 @@ src/
 │           │   └── index.ts
 │           │
 │           ├── providers/
-│           │   └── messenger-provider.tsx # React Context
+│           │   └── platform-provider.tsx  # React Context
 │           │
 │           ├── utils/
 │           │   ├── detect-platform.ts    # Определение платформы
@@ -361,13 +370,13 @@ src/
 ```typescript
 // src/app/providers/app-providers.tsx
 
-import { MessengerProvider } from '@/shared/lib/messenger';
+import { PlatformProvider } from '@/shared/lib/platform';
 
 export const AppProviders = ({ children }: PropsWithChildren) => {
   return (
-    <MessengerProvider>
+    <PlatformProvider>
       {children}
-    </MessengerProvider>
+    </PlatformProvider>
   );
 };
 ```
@@ -375,12 +384,12 @@ export const AppProviders = ({ children }: PropsWithChildren) => {
 ### 2. Использование в компонентах
 
 ```typescript
-// src/pages/order-page.tsx
+// src/views/order-page.tsx
 
-import { useMessenger, useAuth, useHaptic } from '@/shared/lib/messenger';
+import { usePlatform, useAuth, useHaptic } from '@/shared/lib/platform';
 
 export const OrderPage = () => {
-  const messenger = useMessenger();
+  const adapter = usePlatform();
   const { authKey, user } = useAuth();
   const haptic = useHaptic();
 
@@ -402,7 +411,7 @@ export const OrderPage = () => {
   return (
     <div>
       <h1>Создание заказа</h1>
-      <p>Платформа: {messenger.platform}</p>
+      <p>Платформа: {adapter.platform}</p>
       <button onClick={handleOrderCreate}>Создать</button>
     </div>
   );
@@ -414,18 +423,18 @@ export const OrderPage = () => {
 ```typescript
 // src/features/biometric-auth/ui/biometric-login.tsx
 
-import { useMessenger } from '@/shared/lib/messenger';
+import { usePlatform } from '@/shared/lib/platform';
 
 export const BiometricLogin = () => {
-  const messenger = useMessenger();
+  const adapter = usePlatform();
 
   // Биометрия доступна только на MAX
-  if (!messenger.biometric) {
+  if (!adapter.biometric) {
     return null;
   }
 
   const handleBiometricAuth = async () => {
-    const result = await messenger.biometric.authenticate({
+    const result = await adapter.biometric.authenticate({
       reason: 'Подтвердите вход',
     });
 
@@ -447,31 +456,31 @@ export const BiometricLogin = () => {
 ```typescript
 // src/components/platform-specific-features.tsx
 
-import { useMessenger } from '@/shared/lib/messenger';
+import { usePlatform } from '@/shared/lib/platform';
 
 export const PlatformSpecificFeatures = () => {
-  const messenger = useMessenger();
+  const adapter = usePlatform();
 
   return (
     <div>
       {/* Показываем только на Telegram */}
-      {messenger.platform === 'telegram' && (
+      {adapter.platform === 'telegram' && (
         <TelegramPremiumFeature />
       )}
 
       {/* Показываем только на MAX */}
-      {messenger.platform === 'max' && (
+      {adapter.platform === 'max' && (
         <MaxSBPPayment />
       )}
 
       {/* Показываем только на Web */}
-      {messenger.platform === 'web' && (
+      {adapter.platform === 'web' && (
         <WebEmailNotifications />
       )}
 
       {/* Показываем везде кроме Web */}
-      {messenger.platform !== 'web' && (
-        <MessengerDeepLinks />
+      {adapter.platform !== 'web' && (
+        <PlatformDeepLinks />
       )}
     </div>
   );
@@ -483,10 +492,10 @@ export const PlatformSpecificFeatures = () => {
 ```typescript
 // src/widgets/navigation/ui/navigation.tsx
 
-import { useMessenger, useBackButton } from '@/shared/lib/messenger';
+import { usePlatform, useBackButton } from '@/shared/lib/platform';
 
 export const Navigation = () => {
-  const messenger = useMessenger();
+  const adapter = usePlatform();
   const navigate = useNavigate();
 
   // На мессенджерах используем нативный back button
@@ -495,7 +504,7 @@ export const Navigation = () => {
   });
 
   // На Web показываем свою кнопку
-  const showWebBackButton = messenger.platform === 'web';
+  const showWebBackButton = adapter.platform === 'web';
 
   return (
     <nav>
@@ -518,38 +527,42 @@ export const Navigation = () => {
 ### 1. Всегда используйте адаптер
 
 ❌ **Неправильно:**
+
 ```typescript
 import { useLaunchParams } from '@telegram-apps/sdk-react';
 
 const MyComponent = () => {
-  const lp = useLaunchParams();
-  const authKey = lp.initDataRaw;
-  // ...
+    const lp = useLaunchParams();
+    const authKey = lp.initDataRaw;
+    // ...
 };
 ```
 
 ✅ **Правильно:**
+
 ```typescript
-import { useAuth } from '@/shared/lib/messenger';
+import { useAuth } from '@/shared/lib/platform';
 
 const MyComponent = () => {
-  const { authKey } = useAuth();
-  // ...
+    const { authKey } = useAuth();
+    // ...
 };
 ```
 
 ### 2. Проверяйте доступность функций
 
 ❌ **Неправильно:**
+
 ```typescript
 // Упадет на платформах без биометрии
-await messenger.biometric.authenticate();
+await adapter.biometric.authenticate();
 ```
 
 ✅ **Правильно:**
+
 ```typescript
-if (messenger.biometric?.isAvailable) {
-  await messenger.biometric.authenticate();
+if (adapter.biometric?.isAvailable) {
+    await adapter.biometric.authenticate();
 }
 ```
 
@@ -559,63 +572,60 @@ if (messenger.biometric?.isAvailable) {
 // src/shared/config/features.ts
 
 export const FEATURES = {
-  biometricAuth: ['max'],
-  qrScanner: ['max'],
-  emailNotifications: ['web'],
-  shareContent: ['max'],
+    biometricAuth: ['max'],
+    qrScanner: ['max'],
+    emailNotifications: ['web'],
+    shareContent: ['max'],
 } as const;
 
-export function isFeatureAvailable(
-  feature: keyof typeof FEATURES,
-  platform: Platform
-): boolean {
-  return FEATURES[feature].includes(platform);
+export function isFeatureAvailable(feature: keyof typeof FEATURES, platform: Platform): boolean {
+    return FEATURES[feature].includes(platform);
 }
 
 // Использование
-const messenger = useMessenger();
-const canUseBiometric = isFeatureAvailable('biometricAuth', messenger.platform);
+const adapter = usePlatform();
+const canUseBiometric = isFeatureAvailable('biometricAuth', adapter.platform);
 ```
 
 ### 4. Типизируйте платформо-специфичный код
 
 ```typescript
-// src/shared/lib/messenger/types/platform-specific.types.ts
+// src/shared/lib/platform/types/platform-specific.types.ts
 
 export type TelegramOnlyFeature = {
-  platform: 'telegram';
-  // ...
+    platform: 'telegram';
+    // ...
 };
 
 export type MaxOnlyFeature = {
-  platform: 'max';
-  // ...
+    platform: 'max';
+    // ...
 };
 
 // Использование в компонентах
 type BiometricAuthProps = MaxOnlyFeature & {
-  onSuccess: () => void;
+    onSuccess: () => void;
 };
 ```
 
 ### 5. Централизуйте platform detection
 
 ```typescript
-// src/shared/lib/messenger/hooks/use-platform.ts
+// src/shared/lib/platform/hooks/use-platform-info.ts
 
-export function usePlatform() {
-  const messenger = useMessenger();
+export function usePlatformInfo() {
+    const adapter = usePlatform();
 
-  return {
-    platform: messenger.platform,
-    isTelegram: messenger.platform === 'telegram',
-    isMax: messenger.platform === 'max',
-    isWeb: messenger.platform === 'web',
-    isVK: messenger.platform === 'vk',
-    isMobile: messenger.platform !== 'web',
-    hasBackButton: messenger.platform !== 'web',
-    hasBiometric: !!messenger.biometric,
-  };
+    return {
+        platform: adapter.platform,
+        isTelegram: adapter.platform === 'telegram',
+        isMax: adapter.platform === 'max',
+        isWeb: adapter.platform === 'web',
+        isVK: adapter.platform === 'vk',
+        isMobile: adapter.platform !== 'web',
+        hasBackButton: adapter.platform !== 'web',
+        hasBiometric: !!adapter.biometric,
+    };
 }
 
 // Использование
@@ -625,25 +635,25 @@ const { isTelegram, hasBiometric } = usePlatform();
 ### 6. Логируйте платформу для отладки
 
 ```typescript
-// src/shared/lib/messenger/utils/logger.ts
+// src/shared/lib/platform/utils/logger.ts
 
-export function logPlatformInfo(messenger: MessengerAdapter) {
-  console.group('🚀 Platform Info');
-  console.log('Platform:', messenger.platform);
-  console.log('Available:', messenger.isAvailable);
-  console.log('User:', messenger.getUser());
-  console.log('Features:', {
-    biometric: !!messenger.biometric,
-    qrScanner: !!messenger.qrScanner,
-    invoice: !!messenger.openInvoice,
-  });
-  console.groupEnd();
+export function logPlatformInfo(adapter: PlatformAdapter) {
+    console.group('🚀 Platform Info');
+    console.log('Platform:', adapter.platform);
+    console.log('Available:', adapter.isAvailable);
+    console.log('User:', adapter.getUser());
+    console.log('Features:', {
+        biometric: !!adapter.biometric,
+        qrScanner: !!adapter.qrScanner,
+        invoice: !!adapter.openInvoice,
+    });
+    console.groupEnd();
 }
 
 // Вызов при инициализации
 useEffect(() => {
-  logPlatformInfo(messenger);
-}, [messenger]);
+    logPlatformInfo(adapter);
+}, [adapter]);
 ```
 
 ---

@@ -47,6 +47,7 @@
 Создание **адаптационного слоя** для поддержки обеих платформ одновременно.
 
 **Обоснование:**
+
 - ✅ Не теряем текущую аудиторию Telegram
 - ✅ Можем постепенно мигрировать пользователей
 - ✅ Возможность A/B тестирования
@@ -61,7 +62,7 @@
 └─────────────────┬───────────────────────────┘
                   │
       ┌───────────▼──────────────┐
-      │   Messenger Adapter      │  ← Новый слой абстракции
+      │   Platform Adapter        │  ← Новый слой абстракции
       │   (Platform Detection)   │
       └───────────┬──────────────┘
                   │
@@ -87,11 +88,13 @@
 ### Фаза 1: Подготовка и исследование (2-3 дня)
 
 **Цели:**
+
 - Настроить окружение для разработки под MAX
 - Создать тестовый бот в MAX
 - Проверить работоспособность базовых функций
 
 **Задачи:**
+
 - [ ] Зарегистрировать бота в MAX через партнерскую платформу
 - [ ] Подключить MAX Bridge в проекте
 - [ ] Установить `@maxhub/max-ui`
@@ -100,6 +103,7 @@
 - [ ] Проверить работу на реальных устройствах (Android, iOS)
 
 **Deliverables:**
+
 - ✅ Работающий тестовый бот в MAX
 - ✅ PoC приложение с базовой функциональностью
 - ✅ Документация по настройке окружения
@@ -109,11 +113,13 @@
 ### Фаза 2: Создание адаптационного слоя (3-5 дней)
 
 **Цели:**
+
 - Создать абстракцию над Telegram и MAX SDK
 - Обеспечить единый API для бизнес-логики
 
 **Задачи:**
-- [ ] Создать интерфейсы для messenger SDK
+
+- [ ] Создать интерфейсы для platform SDK
 - [ ] Реализовать Telegram adapter
 - [ ] Реализовать MAX adapter
 - [ ] Создать platform detection утилиту
@@ -121,10 +127,11 @@
 - [ ] Создать mock адаптер для тестирования
 
 **Структура файлов:**
+
 ```
-src/shared/lib/messenger/
+src/shared/lib/platform/
 ├── types/
-│   ├── messenger.types.ts          # Общие интерфейсы
+│   ├── types.ts                    # Общие интерфейсы
 │   ├── user.types.ts               # Типы пользователя
 │   └── platform.types.ts           # Типы платформ
 ├── adapters/
@@ -132,7 +139,7 @@ src/shared/lib/messenger/
 │   ├── max-adapter.ts              # MAX реализация
 │   └── base-adapter.ts             # Базовый класс
 ├── hooks/
-│   ├── use-messenger.ts            # Основной хук
+│   ├── use-platform.ts             # Основной хук
 │   ├── use-auth.ts                 # Хук аутентификации
 │   ├── use-back-button.ts          # Хук back button
 │   └── use-haptic.ts               # Хук haptic feedback
@@ -143,6 +150,7 @@ src/shared/lib/messenger/
 ```
 
 **Deliverables:**
+
 - ✅ Полностью функциональный адаптационный слой
 - ✅ Тесты с покрытием >80%
 - ✅ Документация API
@@ -152,19 +160,22 @@ src/shared/lib/messenger/
 ### Фаза 3: Миграция компонентов (5-7 дней)
 
 **Цели:**
+
 - Заменить прямые вызовы Telegram SDK на адаптер
 - Обновить UI компоненты
 
 #### 3.1. Аутентификация (2-3 дня)
 
 **Файлы для обновления:**
+
 - `src/shared/lib/hooks/use-app-initialization.ts`
 - Все 32 файла, использующие `lp.initDataRaw`
 - Backend API endpoints (координация)
 
 **Задачи:**
+
 - [ ] Обновить `use-app-initialization` для работы с адаптером
-- [ ] Заменить все `useLaunchParams()` на `useMessenger()`
+- [ ] Заменить все `useLaunchParams()` на `usePlatform()`
 - [ ] Обновить Redux slices для универсальных данных
 - [ ] Протестировать аутентификацию в обеих платформах
 - [ ] Координация с backend для поддержки MAX initData
@@ -172,12 +183,14 @@ src/shared/lib/messenger/
 #### 3.2. UI и навигация (1-2 дня)
 
 **Файлы для обновления:**
+
 - `src/shared/lib/hooks/use-telegram-back-button.ts` → `use-back-button.ts`
 - `src/shared/lib/hooks/use-telegram-fullscreen.ts` → `use-fullscreen.ts`
 - `src/shared/ui/components/tg-glass-btn/` → универсальный компонент
 - `src/components/App.tsx` - theme management
 
 **Задачи:**
+
 - [ ] Обновить хук back button для работы с адаптером
 - [ ] Обновить хук fullscreen
 - [ ] Заменить haptic feedback на универсальный
@@ -188,7 +201,8 @@ src/shared/lib/messenger/
 **Подход:** Используем существующий DaisyUI + Tailwind CSS для обеих платформ
 
 **Задачи:**
-- [ ] Создать `<PlatformProvider>` wrapper для platform-specific логики
+
+- [ ] Создать `<PlatformProvider>` wrapper для платформо-специфичной логики
 - [ ] Обновить корневой компонент `App.tsx`
 - [ ] Убрать зависимость от `@telegram-apps/telegram-ui` (если есть)
 - [ ] Протестировать UI в обеих платформах
@@ -199,10 +213,12 @@ src/shared/lib/messenger/
 ### Фаза 4: Платежная система (3-4 дня)
 
 **Цели:**
+
 - Интегрировать СБП для MAX
 - Сохранить Telegram Payments
 
 **Задачи:**
+
 - [ ] Изучить MAX Payment API
 - [ ] Создать payment adapter
 - [ ] Обновить `use-payment.ts` hook
@@ -211,6 +227,7 @@ src/shared/lib/messenger/
 - [ ] Обработка ошибок и edge cases
 
 **Риски:**
+
 - 🔴 Высокая сложность интеграции СБП
 - 🔴 Требуется тестовый счет для СБП
 - 🔴 Разные flow для Telegram и MAX
@@ -222,6 +239,7 @@ src/shared/lib/messenger/
 #### 5.1. Storage (1 день)
 
 **Задачи:**
+
 - [ ] Создать unified storage adapter
 - [ ] Маппинг CloudStorage (Telegram) → DeviceStorage (MAX)
 - [ ] Опционально: использовать SecureStorage для чувствительных данных
@@ -229,10 +247,12 @@ src/shared/lib/messenger/
 #### 5.2. Редиректы и deep links (1 день)
 
 **Файлы:**
+
 - `src/shared/lib/hooks/use-telegram-redirect.ts`
 - `src/shared/lib/hooks/use-redirect-path.ts`
 
 **Задачи:**
+
 - [ ] Обновить парсинг startParam для MAX
 - [ ] Протестировать deep links в обеих платформах
 - [ ] Обновить генерацию ссылок приглашения
@@ -242,6 +262,7 @@ src/shared/lib/messenger/
 **Стратегия:** Feature flags для platform-specific функций
 
 **Задачи:**
+
 - [ ] Создать систему feature flags
 - [ ] Отключить platform-specific функции где не поддерживается
 - [ ] Обработка ошибок для недоступных фич
@@ -252,12 +273,14 @@ src/shared/lib/messenger/
 ### Фаза 6: Тестирование и отладка (3-5 дней)
 
 **Цели:**
+
 - Обеспечить стабильную работу на обеих платформах
 - Выявить и исправить критичные баги
 
 #### 6.1. Unit тесты (1-2 дня)
 
 **Задачи:**
+
 - [ ] Тесты для всех адаптеров
 - [ ] Тесты для хуков
 - [ ] Тесты для platform detection
@@ -266,6 +289,7 @@ src/shared/lib/messenger/
 #### 6.2. Integration тесты (1-2 дня)
 
 **Задачи:**
+
 - [ ] E2E тесты критичных путей
 - [ ] Тесты аутентификации
 - [ ] Тесты платежей (sandbox)
@@ -274,6 +298,7 @@ src/shared/lib/messenger/
 #### 6.3. Ручное тестирование (1-2 дня)
 
 **Устройства:**
+
 - Android (MAX app)
 - iOS (MAX app)
 - Android (Telegram)
@@ -281,6 +306,7 @@ src/shared/lib/messenger/
 - Desktop (Telegram)
 
 **Сценарии:**
+
 - [ ] Регистрация нового пользователя
 - [ ] Авторизация существующего пользователя
 - [ ] Создание заказа
@@ -295,10 +321,12 @@ src/shared/lib/messenger/
 ### Фаза 7: Деплой и мониторинг (1-2 дня)
 
 **Цели:**
+
 - Безопасный релиз в продакшен
 - Мониторинг метрик
 
 **Задачи:**
+
 - [ ] Создать feature flag для MAX платформы
 - [ ] Деплой на staging
 - [ ] Smoke testing на staging
@@ -311,315 +339,317 @@ src/shared/lib/messenger/
 
 ## Детальные задачи
 
-### Создание Messenger Adapter
+### Создание Platform Adapter
 
 #### Интерфейс адаптера
 
 ```typescript
-// src/shared/lib/messenger/types/messenger.types.ts
+// src/shared/lib/platform/types/types.ts
 
 export type Platform = 'telegram' | 'max' | 'web';
 
-export interface MessengerUser {
-  id: number;
-  firstName: string;
-  lastName?: string;
-  username?: string;
-  photoUrl?: string;
-  languageCode?: string;
+export interface TPlatformUser {
+    id: number;
+    firstName: string;
+    lastName?: string;
+    username?: string;
+    photoUrl?: string;
+    languageCode?: string;
 }
 
-export interface MessengerInitData {
-  authKey: string;      // Для отправки на backend
-  user?: MessengerUser;
-  hash: string;         // Для валидации
-  startParam?: string;  // Параметры запуска
+export interface PlatformInitData {
+    authKey: string; // Для отправки на backend
+    user?: TPlatformUser;
+    hash: string; // Для валидации
+    startParam?: string; // Параметры запуска
 }
 
 export interface BackButtonController {
-  show(): void;
-  hide(): void;
-  isVisible: boolean;
-  onClick(handler: () => void): void;
-  offClick(handler: () => void): void;
+    show(): void;
+    hide(): void;
+    isVisible: boolean;
+    onClick(handler: () => void): void;
+    offClick(handler: () => void): void;
 }
 
 export interface HapticFeedback {
-  impactOccurred(style: 'soft' | 'light' | 'medium' | 'heavy' | 'rigid'): void;
-  selectionChanged(): void;
-  notificationOccurred(type: 'success' | 'warning' | 'error'): void;
+    impactOccurred(style: 'soft' | 'light' | 'medium' | 'heavy' | 'rigid'): void;
+    selectionChanged(): void;
+    notificationOccurred(type: 'success' | 'warning' | 'error'): void;
 }
 
 export interface ThemeParams {
-  isDark: boolean;
-  colorScheme: 'light' | 'dark';
-  backgroundColor: string;
-  textColor: string;
-  buttonColor: string;
-  buttonTextColor: string;
+    isDark: boolean;
+    colorScheme: 'light' | 'dark';
+    backgroundColor: string;
+    textColor: string;
+    buttonColor: string;
+    buttonTextColor: string;
 }
 
 export interface ViewportController {
-  expand(): Promise<void>;
-  isExpanded: boolean;
-  height: number;
-  stableHeight: number;
+    expand(): Promise<void>;
+    isExpanded: boolean;
+    height: number;
+    stableHeight: number;
 }
 
 export interface StorageController {
-  getItem(key: string): Promise<string | null>;
-  setItem(key: string, value: string): Promise<void>;
-  removeItem(key: string): Promise<void>;
-  clear(): Promise<void>;
+    getItem(key: string): Promise<string | null>;
+    setItem(key: string, value: string): Promise<void>;
+    removeItem(key: string): Promise<void>;
+    clear(): Promise<void>;
 }
 
-export interface MessengerAdapter {
-  readonly platform: Platform;
-  readonly isAvailable: boolean;
+export interface PlatformAdapter {
+    readonly platform: Platform;
+    readonly isAvailable: boolean;
 
-  // Инициализация
-  init(): Promise<void>;
-  ready(): void;
+    // Инициализация
+    init(): Promise<void>;
+    ready(): void;
 
-  // Данные
-  getInitData(): MessengerInitData;
-  getUser(): MessengerUser | undefined;
+    // Данные
+    getInitData(): PlatformInitData;
+    getUser(): TPlatformUser | undefined;
 
-  // UI контроллеры
-  backButton: BackButtonController;
-  haptic: HapticFeedback;
-  theme: ThemeParams;
-  viewport: ViewportController;
-  storage: StorageController;
+    // UI контроллеры
+    backButton: BackButtonController;
+    haptic: HapticFeedback;
+    theme: ThemeParams;
+    viewport: ViewportController;
+    storage: StorageController;
 
-  // Утилиты
-  openLink(url: string): void;
-  close(): void;
+    // Утилиты
+    openLink(url: string): void;
+    close(): void;
 
-  // Платежи
-  openInvoice?(invoiceUrl: string): Promise<'paid' | 'cancelled' | 'failed'>;
+    // Платежи
+    openInvoice?(invoiceUrl: string): Promise<'paid' | 'cancelled' | 'failed'>;
 
-  // События
-  on(event: string, handler: (...args: any[]) => void): void;
-  off(event: string, handler: (...args: any[]) => void): void;
+    // События
+    on(event: string, handler: (...args: any[]) => void): void;
+    off(event: string, handler: (...args: any[]) => void): void;
 }
 ```
 
 #### Реализация Telegram Adapter
 
 ```typescript
-// src/shared/lib/messenger/adapters/telegram-adapter.ts
+// src/shared/lib/platform/adapters/telegram-adapter.ts
 
 import {
-  backButton,
-  miniApp,
-  themeParams,
-  viewport,
-  initData,
-  hapticFeedback,
-  cloudStorage,
-  openLink,
-  invoice,
-  useLaunchParams,
+    backButton,
+    miniApp,
+    themeParams,
+    viewport,
+    initData,
+    hapticFeedback,
+    cloudStorage,
+    openLink,
+    invoice,
+    useLaunchParams,
 } from '@telegram-apps/sdk-react';
 
-export class TelegramAdapter implements MessengerAdapter {
-  readonly platform: Platform = 'telegram';
+export class TelegramAdapter implements PlatformAdapter {
+    readonly platform: Platform = 'telegram';
 
-  get isAvailable(): boolean {
-    return typeof window !== 'undefined' &&
-           window.Telegram?.WebApp !== undefined;
-  }
+    get isAvailable(): boolean {
+        return typeof window !== 'undefined' && window.Telegram?.WebApp !== undefined;
+    }
 
-  async init(): Promise<void> {
-    // Уже инициализировано в src/init.ts
-  }
+    async init(): Promise<void> {
+        // Уже инициализировано в src/init.ts
+    }
 
-  ready(): void {
-    miniApp.ready();
-  }
+    ready(): void {
+        miniApp.ready();
+    }
 
-  getInitData(): MessengerInitData {
-    const lp = useLaunchParams();
+    getInitData(): PlatformInitData {
+        const lp = useLaunchParams();
 
-    return {
-      authKey: lp.initDataRaw || '',
-      user: lp.initData?.user ? {
-        id: lp.initData.user.id,
-        firstName: lp.initData.user.firstName,
-        lastName: lp.initData.user.lastName,
-        username: lp.initData.user.username,
-        photoUrl: lp.initData.user.photoUrl,
-        languageCode: lp.initData.user.languageCode,
-      } : undefined,
-      hash: lp.initData?.hash || '',
-      startParam: lp.startParam,
-    };
-  }
+        return {
+            authKey: lp.initDataRaw || '',
+            user: lp.initData?.user
+                ? {
+                      id: lp.initData.user.id,
+                      firstName: lp.initData.user.firstName,
+                      lastName: lp.initData.user.lastName,
+                      username: lp.initData.user.username,
+                      photoUrl: lp.initData.user.photoUrl,
+                      languageCode: lp.initData.user.languageCode,
+                  }
+                : undefined,
+            hash: lp.initData?.hash || '',
+            startParam: lp.startParam,
+        };
+    }
 
-  getUser(): MessengerUser | undefined {
-    return this.getInitData().user;
-  }
+    getUser(): TPlatformUser | undefined {
+        return this.getInitData().user;
+    }
 
-  get backButton(): BackButtonController {
-    return {
-      show: () => backButton.show(),
-      hide: () => backButton.hide(),
-      isVisible: backButton.isVisible(),
-      onClick: (handler) => backButton.onClick(handler),
-      offClick: (handler) => backButton.offClick(handler),
-    };
-  }
+    get backButton(): BackButtonController {
+        return {
+            show: () => backButton.show(),
+            hide: () => backButton.hide(),
+            isVisible: backButton.isVisible(),
+            onClick: (handler) => backButton.onClick(handler),
+            offClick: (handler) => backButton.offClick(handler),
+        };
+    }
 
-  get haptic(): HapticFeedback {
-    return {
-      impactOccurred: (style) => {
-        hapticFeedback.impactOccurred(style);
-      },
-      selectionChanged: () => {
-        hapticFeedback.selectionChanged();
-      },
-      notificationOccurred: (type) => {
-        hapticFeedback.notificationOccurred(type);
-      },
-    };
-  }
+    get haptic(): HapticFeedback {
+        return {
+            impactOccurred: (style) => {
+                hapticFeedback.impactOccurred(style);
+            },
+            selectionChanged: () => {
+                hapticFeedback.selectionChanged();
+            },
+            notificationOccurred: (type) => {
+                hapticFeedback.notificationOccurred(type);
+            },
+        };
+    }
 
-  // ... остальные методы
+    // ... остальные методы
 }
 ```
 
 #### Реализация MAX Adapter
 
 ```typescript
-// src/shared/lib/messenger/adapters/max-adapter.ts
+// src/shared/lib/platform/adapters/max-adapter.ts
 
-export class MaxAdapter implements MessengerAdapter {
-  readonly platform: Platform = 'max';
+export class MaxAdapter implements PlatformAdapter {
+    readonly platform: Platform = 'max';
 
-  private get webApp() {
-    return window.WebApp;
-  }
-
-  get isAvailable(): boolean {
-    return typeof window !== 'undefined' &&
-           window.WebApp !== undefined;
-  }
-
-  async init(): Promise<void> {
-    // MAX Bridge загружается через <script> тег
-    if (!this.isAvailable) {
-      throw new Error('MAX WebApp is not available');
+    private get webApp() {
+        return window.WebApp;
     }
-  }
 
-  ready(): void {
-    // MAX автоматически готов
-  }
+    get isAvailable(): boolean {
+        return typeof window !== 'undefined' && window.WebApp !== undefined;
+    }
 
-  getInitData(): MessengerInitData {
-    return {
-      authKey: this.webApp.initData || '',
-      user: this.webApp.initDataUnsafe?.user ? {
-        id: this.webApp.initDataUnsafe.user.id,
-        firstName: this.webApp.initDataUnsafe.user.first_name,
-        lastName: this.webApp.initDataUnsafe.user.last_name,
-        username: this.webApp.initDataUnsafe.user.username,
-        photoUrl: this.webApp.initDataUnsafe.user.photo_url,
-        languageCode: this.webApp.initDataUnsafe.user.language_code,
-      } : undefined,
-      hash: this.webApp.hash || '',
-      startParam: this.webApp.initDataUnsafe?.start_param,
-    };
-  }
+    async init(): Promise<void> {
+        // MAX Bridge загружается через <script> тег
+        if (!this.isAvailable) {
+            throw new Error('MAX WebApp is not available');
+        }
+    }
 
-  getUser(): MessengerUser | undefined {
-    return this.getInitData().user;
-  }
+    ready(): void {
+        // MAX автоматически готов
+    }
 
-  get backButton(): BackButtonController {
-    return {
-      show: () => this.webApp.BackButton.show(),
-      hide: () => this.webApp.BackButton.hide(),
-      isVisible: this.webApp.BackButton.isVisible || false,
-      onClick: (handler) => {
-        this.webApp.onEvent('WebAppBackButtonPressed', handler);
-      },
-      offClick: (handler) => {
-        this.webApp.offEvent('WebAppBackButtonPressed', handler);
-      },
-    };
-  }
+    getInitData(): PlatformInitData {
+        return {
+            authKey: this.webApp.initData || '',
+            user: this.webApp.initDataUnsafe?.user
+                ? {
+                      id: this.webApp.initDataUnsafe.user.id,
+                      firstName: this.webApp.initDataUnsafe.user.first_name,
+                      lastName: this.webApp.initDataUnsafe.user.last_name,
+                      username: this.webApp.initDataUnsafe.user.username,
+                      photoUrl: this.webApp.initDataUnsafe.user.photo_url,
+                      languageCode: this.webApp.initDataUnsafe.user.language_code,
+                  }
+                : undefined,
+            hash: this.webApp.hash || '',
+            startParam: this.webApp.initDataUnsafe?.start_param,
+        };
+    }
 
-  get haptic(): HapticFeedback {
-    return {
-      impactOccurred: (style) => {
-        this.webApp.HapticFeedback.impactOccurred(style);
-      },
-      selectionChanged: () => {
-        this.webApp.HapticFeedback.selectionChanged();
-      },
-      notificationOccurred: (type) => {
-        this.webApp.HapticFeedback.notificationOccurred(type);
-      },
-    };
-  }
+    getUser(): TPlatformUser | undefined {
+        return this.getInitData().user;
+    }
 
-  // ... остальные методы
+    get backButton(): BackButtonController {
+        return {
+            show: () => this.webApp.BackButton.show(),
+            hide: () => this.webApp.BackButton.hide(),
+            isVisible: this.webApp.BackButton.isVisible || false,
+            onClick: (handler) => {
+                this.webApp.onEvent('WebAppBackButtonPressed', handler);
+            },
+            offClick: (handler) => {
+                this.webApp.offEvent('WebAppBackButtonPressed', handler);
+            },
+        };
+    }
+
+    get haptic(): HapticFeedback {
+        return {
+            impactOccurred: (style) => {
+                this.webApp.HapticFeedback.impactOccurred(style);
+            },
+            selectionChanged: () => {
+                this.webApp.HapticFeedback.selectionChanged();
+            },
+            notificationOccurred: (type) => {
+                this.webApp.HapticFeedback.notificationOccurred(type);
+            },
+        };
+    }
+
+    // ... остальные методы
 }
 ```
 
 #### Platform Detection
 
 ```typescript
-// src/shared/lib/messenger/utils/detect-platform.ts
+// src/shared/lib/platform/utils/detect-platform.ts
 
 export function detectPlatform(): Platform {
-  if (typeof window === 'undefined') {
+    if (typeof window === 'undefined') {
+        return 'web';
+    }
+
+    // Проверка MAX (приоритет, т.к. может эмулировать Telegram)
+    if (window.WebApp && !window.Telegram) {
+        return 'max';
+    }
+
+    // Проверка Telegram
+    if (window.Telegram?.WebApp) {
+        return 'telegram';
+    }
+
+    // Fallback на web
     return 'web';
-  }
-
-  // Проверка MAX (приоритет, т.к. может эмулировать Telegram)
-  if (window.WebApp && !window.Telegram) {
-    return 'max';
-  }
-
-  // Проверка Telegram
-  if (window.Telegram?.WebApp) {
-    return 'telegram';
-  }
-
-  // Fallback на web
-  return 'web';
 }
 
-export function createMessengerAdapter(): MessengerAdapter {
-  const platform = detectPlatform();
+export function createPlatformAdapter(): PlatformAdapter {
+    const platform = detectPlatform();
 
-  switch (platform) {
-    case 'telegram':
-      return new TelegramAdapter();
-    case 'max':
-      return new MaxAdapter();
-    case 'web':
-      return new WebAdapter(); // Для standalone версии
-    default:
-      throw new Error(`Unknown platform: ${platform}`);
-  }
+    switch (platform) {
+        case 'telegram':
+            return new TelegramAdapter();
+        case 'max':
+            return new MaxAdapter();
+        case 'web':
+            return new WebAdapter(); // Для standalone версии
+        default:
+            throw new Error(`Unknown platform: ${platform}`);
+    }
 }
 ```
 
 #### React Hook
 
 ```typescript
-// src/shared/lib/messenger/hooks/use-messenger.ts
+// src/shared/lib/platform/hooks/use-platform.ts
 
 import { createContext, useContext } from 'react';
 
-const MessengerContext = createContext<MessengerAdapter | null>(null);
+const PlatformContext = createContext<PlatformAdapter | null>(null);
 
-export function MessengerProvider({ children }: { children: React.ReactNode }) {
-  const [adapter] = useState(() => createMessengerAdapter());
+export function PlatformProvider({ children }: { children: React.ReactNode }) {
+  const [adapter] = useState(() => createPlatformAdapter());
 
   useEffect(() => {
     adapter.init().then(() => {
@@ -628,17 +658,17 @@ export function MessengerProvider({ children }: { children: React.ReactNode }) {
   }, [adapter]);
 
   return (
-    <MessengerContext.Provider value={adapter}>
+    <PlatformContext.Provider value={adapter}>
       {children}
-    </MessengerContext.Provider>
+    </PlatformContext.Provider>
   );
 }
 
-export function useMessenger(): MessengerAdapter {
-  const adapter = useContext(MessengerContext);
+export function usePlatform(): PlatformAdapter {
+  const adapter = useContext(PlatformContext);
 
   if (!adapter) {
-    throw new Error('useMessenger must be used within MessengerProvider');
+    throw new Error('usePlatform must be used within PlatformProvider');
   }
 
   return adapter;
@@ -646,31 +676,31 @@ export function useMessenger(): MessengerAdapter {
 
 // Специализированные хуки
 export function useAuth() {
-  const messenger = useMessenger();
-  return messenger.getInitData();
+  const adapter = usePlatform();
+  return adapter.getInitData();
 }
 
 export function useBackButton(handler?: () => void) {
-  const messenger = useMessenger();
+  const adapter = usePlatform();
 
   useEffect(() => {
     if (handler) {
-      messenger.backButton.show();
-      messenger.backButton.onClick(handler);
+      adapter.backButton.show();
+      adapter.backButton.onClick(handler);
 
       return () => {
-        messenger.backButton.offClick(handler);
-        messenger.backButton.hide();
+        adapter.backButton.offClick(handler);
+        adapter.backButton.hide();
       };
     }
-  }, [handler, messenger]);
+  }, [handler, adapter]);
 
-  return messenger.backButton;
+  return adapter.backButton;
 }
 
 export function useHaptic() {
-  const messenger = useMessenger();
-  return messenger.haptic;
+  const adapter = usePlatform();
+  return adapter.haptic;
 }
 ```
 
@@ -680,22 +710,22 @@ export function useHaptic() {
 
 ### Технические риски
 
-| Риск | Вероятность | Влияние | Митигация |
-|------|-------------|---------|-----------|
-| MAX API нестабильна | Средняя | Высокое | Версионирование SDK, абстракция, fallback |
-| Проблемы с СБП интеграцией | Средняя | Критическое | Ранее тестирование, sandbox, альтернативы |
-| Backend не готов для MAX | Низкая | Критическое | Ранняя координация, параллельная разработка |
-| UI библиотеки несовместимы | Низкая | Среднее | Wrapper компоненты, постепенная миграция |
-| Performance проблемы | Низкая | Среднее | Профилирование, оптимизация, lazy loading |
+| Риск                       | Вероятность | Влияние     | Митигация                                   |
+| -------------------------- | ----------- | ----------- | ------------------------------------------- |
+| MAX API нестабильна        | Средняя     | Высокое     | Версионирование SDK, абстракция, fallback   |
+| Проблемы с СБП интеграцией | Средняя     | Критическое | Ранее тестирование, sandbox, альтернативы   |
+| Backend не готов для MAX   | Низкая      | Критическое | Ранняя координация, параллельная разработка |
+| UI библиотеки несовместимы | Низкая      | Среднее     | Wrapper компоненты, постепенная миграция    |
+| Performance проблемы       | Низкая      | Среднее     | Профилирование, оптимизация, lazy loading   |
 
 ### Бизнес риски
 
-| Риск | Вероятность | Влияние | Митигация |
-|------|-------------|---------|-----------|
-| Пользователи не примут MAX | Средняя | Высокое | Поддержка Telegram, постепенная миграция |
-| Недостаток функций в MAX | Средняя | Среднее | Feature parity analysis, workarounds |
-| Изменение правил MAX | Низкая | Высокое | Мониторинг новостей, гибкая архитектура |
-| Конкуренты быстрее | Средняя | Среднее | Agile подход, MVP сначала |
+| Риск                       | Вероятность | Влияние | Митигация                                |
+| -------------------------- | ----------- | ------- | ---------------------------------------- |
+| Пользователи не примут MAX | Средняя     | Высокое | Поддержка Telegram, постепенная миграция |
+| Недостаток функций в MAX   | Средняя     | Среднее | Feature parity analysis, workarounds     |
+| Изменение правил MAX       | Низкая      | Высокое | Мониторинг новостей, гибкая архитектура  |
+| Конкуренты быстрее         | Средняя     | Среднее | Agile подход, MVP сначала                |
 
 ---
 
@@ -713,13 +743,15 @@ export function useHaptic() {
 ### Разработка
 
 #### Адаптационный слой
-- [ ] Интерфейсы MessengerAdapter определены
+
+- [ ] Интерфейсы PlatformAdapter определены
 - [ ] TelegramAdapter реализован
 - [ ] MaxAdapter реализован
 - [ ] Platform detection работает
 - [ ] Unit тесты написаны (>80% покрытие)
 
 #### Компоненты
+
 - [ ] Аутентификация обновлена
 - [ ] Back button обновлен
 - [ ] Haptic feedback обновлен
@@ -729,18 +761,21 @@ export function useHaptic() {
 - [ ] Deep links обновлены
 
 #### UI библиотека
+
 - [ ] PlatformProvider создан
 - [ ] Корневой App.tsx обновлен
 - [ ] UI компоненты адаптированы
 - [ ] Стили соответствуют MAX guidelines
 
 #### Платежи
+
 - [ ] Payment adapter создан
 - [ ] СБП интеграция реализована
 - [ ] Backend обновлен
 - [ ] Тестирование в sandbox
 
 #### Дополнительно
+
 - [ ] Platform-specific функции с feature flags
 - [ ] Error handling обновлен
 - [ ] Логирование настроено
