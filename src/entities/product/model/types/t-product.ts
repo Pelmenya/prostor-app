@@ -1,3 +1,5 @@
+import type { TGroupPath } from './t-group';
+
 export type TCurrency = {
     meta: {
         href: string;
@@ -33,15 +35,15 @@ export type TAttribute = {
 };
 
 export enum EServiceCategory {
-    MONTAZH = 'MONTAZH',
-    SERVISNOE_OBSLUZHIVANIE = 'SERVISNOE_OBSLUZHIVANIE',
+    MONTAZH = 'Монтаж',
+    SERVISNOE_OBSLUZHIVANIE = 'Сервисное обслуживание',
 }
 
 export type TService = {
     id: string;
     name: string;
     description?: string;
-    category: EServiceCategory;
+    category?: EServiceCategory;
     rateOfHours?: number;
     salePrices?: TSalePrice[];
 };
@@ -72,5 +74,6 @@ export type TProduct = {
     salePrices?: TSalePrice[];
     services?: TService[];
     images?: TProductImage[];
+    groupPath?: TGroupPath[];
     archived?: boolean;
 };

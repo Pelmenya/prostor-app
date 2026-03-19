@@ -1,10 +1,14 @@
 'use client';
 
 import Link from 'next/link';
+import { ShoppingCartIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '@/shared/lib/platform';
+import { useCartStore, selectTotalItems } from '@/entities/cart';
 
 export function Header() {
     const { isAuthenticated, user } = useAuth();
+    const items = useCartStore((s) => s.items);
+    const totalItems = selectTotalItems(items);
 
     return (
         <header className="navbar bg-base-100 shadow-sm px-4 md:px-6 xl:px-10">
@@ -25,6 +29,15 @@ export function Header() {
             </nav>
 
             <div className="navbar-end gap-2">
+                <Link href="/cart" className="btn btn-ghost btn-sm relative">
+                    <ShoppingCartIcon className="size-5" />
+                    {totalItems > 0 && (
+                        <span className="badge badge-primary badge-sm absolute -top-1 -right-1">
+                            {totalItems}
+                        </span>
+                    )}
+                </Link>
+
                 {isAuthenticated && user ? (
                     <div className="flex items-center gap-2">
                         <div className="avatar placeholder">

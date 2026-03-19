@@ -281,6 +281,7 @@ FSD 2.1 — **строгое архитектурное требование**. 
 - **Отступы:** 4 пробела (табы запрещены)
 - **Никаких `any`** — использовать `unknown`, дженерики, Zod-инференс. ESLint правило `@typescript-eslint/no-explicit-any: "error"`
 - **React 19:** НЕ использовать `useMemo`, `useCallback`, `React.memo` — React Compiler делает это автоматически
+- **Haptic / Telegram SDK:** НЕ импортировать в shared UI компоненты. Haptic доступен только через Platform Adapter в `(miniapp)` layout. Shared компоненты должны работать на всех платформах
 - **Компоненты по умолчанию серверные** (без `'use client'`). `'use client'` только когда нужен клиентский JS
 
 ### Нейминг файлов и папок
