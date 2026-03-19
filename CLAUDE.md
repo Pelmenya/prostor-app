@@ -573,6 +573,22 @@ PK остаётся bigint — Telegram не ломается. Добавляе�
 - Desktop UI для мастеров/кураторов
 - Карта, чат, PWA, SEO
 
+## Субагенты (Code Review)
+
+В `.claude/agents/` установлены субагенты из [VoltAgent/awesome-claude-code-subagents](https://github.com/VoltAgent/awesome-claude-code-subagents):
+
+| Агент                    | Когда использовать                                               |
+| ------------------------ | ---------------------------------------------------------------- |
+| **code-reviewer**        | Ревью кода: качество, безопасность, дублирование, best practices |
+| **architect-reviewer**   | Архитектурные решения: FSD, паттерны, слои, зависимости          |
+| **test-automator**       | Генерация тестов, покрытие, стратегия тестирования               |
+| **performance-engineer** | Оптимизация: бандл, рендер, SSR/ISR, lazy loading                |
+| **frontend-developer**   | React, Next.js, Tailwind — реализация UI компонентов             |
+
+**Использование:** Claude Code автоматически подхватывает агентов из `.claude/agents/`. Вызываются через Agent tool при соответствующих задачах.
+
+**Рекомендация:** запускать `code-reviewer` и `architect-reviewer` перед каждым PR.
+
 ## Документация
 
 ### В этом репозитории
