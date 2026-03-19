@@ -8,13 +8,33 @@ export type TMessengerUser = {
     photo?: string;
 };
 
+export type THapticType = 'light' | 'medium' | 'heavy' | 'soft' | 'rigid';
+
 export type TMessengerAdapter = {
     platform: TPlatform;
     isReady: boolean;
+
+    // Lifecycle
     init(): Promise<void>;
+    close?(): void;
+
+    // Auth
     getAuthHeader(): string | null;
     getUser(): TMessengerUser | null;
     isAuthenticated(): boolean;
-    close?(): void;
+
+    // Navigation
     openLink?(url: string): void;
+    showBackButton?(onClick: () => void): () => void;
+    getStartParam?(): string | undefined;
+
+    // Платежи
+    openInvoice?(url: string): Promise<string>;
+
+    // Haptic
+    haptic?(type?: THapticType): void;
+    hapticSelection?(): void;
+
+    // Тема
+    getIsDark?(): boolean;
 };

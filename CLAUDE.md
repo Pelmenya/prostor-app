@@ -486,6 +486,22 @@ GitHub Actions — будет настроен позже. Планируетс�
 - **description:** детали реализации
 - **stickers:** по типу задачи (FRONTEND, BACKEND, и т.д.)
 
+### ⚠️ Кириллица в YouGile API (Windows)
+
+Передача кириллицы через `-d '...'` в curl на Windows **ломает кодировку**. Всегда использовать файл:
+
+```bash
+cat > /tmp/yg-task.json << 'JSONEOF'
+{"title":"feat: название задачи","columnId":"...","description":"Описание"}
+JSONEOF
+curl -s -X POST "https://yougile.com/api-v2/tasks" \
+  -H "Authorization: Bearer TOKEN" \
+  -H "Content-Type: application/json; charset=utf-8" \
+  --data-binary @/tmp/yg-task.json
+```
+
+**Правило:** JSON тело → heredoc в файл (`<< 'JSONEOF'`), curl → `--data-binary @file`.
+
 ## Что переезжает из старого фронта без изменений
 
 - DaisyUI компоненты + Tailwind стили
