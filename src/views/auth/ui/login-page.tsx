@@ -9,7 +9,7 @@ import { z } from 'zod';
 import { webLogin } from '@/features/auth';
 import { ApiError } from '@/shared/api';
 import { useAuthStore } from '@/shared/lib/auth';
-import { extractErrorMessage } from '@/shared/lib/extract-error-message';
+import { extractErrorMessage } from '@/shared/lib';
 import { PageContainer } from '@/shared/ui';
 
 const loginSchema = z.object({

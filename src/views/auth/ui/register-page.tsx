@@ -9,12 +9,12 @@ import { z } from 'zod';
 import { webRegister } from '@/features/auth';
 import { ApiError } from '@/shared/api';
 import { useAuthStore } from '@/shared/lib/auth';
-import { extractErrorMessage } from '@/shared/lib/extract-error-message';
 import {
+    extractErrorMessage,
     normalizeRuPhone,
     formatRuPhoneForView,
     denormalizeViewToE164,
-} from '@/shared/lib/formatters/phone';
+} from '@/shared/lib';
 import { useCurrentPolicy } from '@/entities/privacy-policy';
 import { PageContainer } from '@/shared/ui';
 import { PrivacyPolicyModal } from './privacy-policy-modal';
