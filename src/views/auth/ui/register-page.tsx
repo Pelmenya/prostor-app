@@ -3,12 +3,13 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { webRegister } from '@/features/auth';
 import { ApiError } from '@/shared/api';
 import { useAuthStore } from '@/shared/lib/auth';
+import { extractErrorMessage } from '@/shared/lib/extract-error-message';
 import { useCurrentPolicy } from '@/entities/privacy-policy';
 import { PageContainer } from '@/shared/ui';
 import { PrivacyPolicyModal } from './privacy-policy-modal';
@@ -16,23 +17,15 @@ import { PrivacyPolicyModal } from './privacy-policy-modal';
 const registerSchema = z.object({
     first_name: z.string().min(1, 'Имя обязательно'),
     last_name: z.string().min(1, 'Фамилия обязательна'),
-    email: z.string().email('Неверный формат email'),
-    phone: z.string().min(1, 'Телефон обязателен'),
+    email: z.string().min(1, 'Введите email').email('Неверный формат email'),
+    phone: z.string().regex(/^(\+7|8|7)\d{10}$/, 'Введите номер в формате +79991234567'),
     password: z.string().min(8, 'Минимум 8 символов'),
-    agree: z.literal(true, { error: 'Необходимо согласие с политикой конфиденциальности' }),
+    agree: z.boolean().refine((v) => v === true, {
+        message: 'Необходимо согласие с политикой конфиденциальности',
+    }),
 });
 
 type TRegisterForm = z.infer<typeof registerSchema>;
-
-function extractErrorMessage(data: unknown, fallback: string): string {
-    if (!data || typeof data !== 'object') return fallback;
-    const d = data as Record<string, unknown>;
-    if (typeof d.message === 'string') return d.message;
-    if (Array.isArray(d.message) && d.message.length > 0) {
-        return typeof d.message[0] === 'string' ? d.message[0] : fallback;
-    }
-    return fallback;
-}
 
 export function RegisterPage() {
     const router = useRouter();
@@ -50,7 +43,7 @@ export function RegisterPage() {
         register,
         handleSubmit,
         setValue,
-        watch,
+        control,
         formState: { errors, isSubmitting },
     } = useForm<TRegisterForm>({
         resolver: zodResolver(registerSchema),
@@ -60,11 +53,11 @@ export function RegisterPage() {
             email: '',
             phone: '',
             password: '',
-            agree: false as never,
+            agree: false,
         },
     });
 
-    const agree = watch('agree');
+    const agree = useWatch({ name: 'agree', control });
 
     const handleAgreeFromModal = () => {
         setValue('agree', true, { shouldValidate: true });
@@ -205,11 +198,9 @@ export function RegisterPage() {
                                         type="checkbox"
                                         checked={agree}
                                         onChange={(e) =>
-                                            setValue(
-                                                'agree',
-                                                e.target.checked ? true : (false as never),
-                                                { shouldValidate: true },
-                                            )
+                                            setValue('agree', e.target.checked, {
+                                                shouldValidate: true,
+                                            })
                                         }
                                         className="checkbox checkbox-primary mt-0.5"
                                     />

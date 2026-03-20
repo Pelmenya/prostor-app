@@ -9,10 +9,11 @@ import { z } from 'zod';
 import { webLogin } from '@/features/auth';
 import { ApiError } from '@/shared/api';
 import { useAuthStore } from '@/shared/lib/auth';
+import { extractErrorMessage } from '@/shared/lib/extract-error-message';
 import { PageContainer } from '@/shared/ui';
 
 const loginSchema = z.object({
-    email: z.string().email('Неверный формат email'),
+    email: z.string().min(1, 'Введите email').email('Неверный формат email'),
     password: z.string().min(1, 'Введите пароль'),
 });
 
@@ -22,16 +23,6 @@ function getSafeRedirect(from: string | null): string {
     if (!from) return '/';
     if (!from.startsWith('/') || from.startsWith('//')) return '/';
     return from;
-}
-
-function extractErrorMessage(data: unknown, fallback: string): string {
-    if (!data || typeof data !== 'object') return fallback;
-    const d = data as Record<string, unknown>;
-    if (typeof d.message === 'string') return d.message;
-    if (Array.isArray(d.message) && d.message.length > 0) {
-        return typeof d.message[0] === 'string' ? d.message[0] : fallback;
-    }
-    return fallback;
 }
 
 function LoginForm() {
