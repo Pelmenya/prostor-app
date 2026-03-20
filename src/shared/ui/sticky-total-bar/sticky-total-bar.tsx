@@ -35,8 +35,8 @@ export function StickyTotalBar({
                 </div>
                 <div className="divider divider-horizontal m-0" />
                 <div className="flex flex-col md:flex-row md:gap-2">
-                    {lines.map((line, index) => (
-                        <div key={index} className="flex gap-2 justify-between">
+                    {lines.map((line) => (
+                        <div key={line.label} className="flex gap-2 justify-between">
                             <span className="opacity-70">
                                 {line.label}
                                 {line.count !== undefined ? ` (${line.count})` : ''}:

@@ -26,4 +26,13 @@ describe('formatPrice', () => {
     it('округляет дробные копейки', () => {
         expect(normalize(formatPrice(99))).toBe('1 ₽');
     });
+
+    it('форматирует отрицательные значения', () => {
+        expect(normalize(formatPrice(-150000))).toBe('-1 500 ₽');
+    });
+
+    it('обрабатывает NaN', () => {
+        // ru-RU Intl выводит «не число» вместо «NaN»
+        expect(normalize(formatPrice(NaN))).toContain('не число');
+    });
 });
