@@ -3,34 +3,21 @@ import type { TPlatformAdapter, TPlatformUser, TPlatform } from '../types';
 export class WebAdapter implements TPlatformAdapter {
     platform: TPlatform = 'web';
     isReady = false;
-    private devToken: string | null = null;
 
     async init(): Promise<void> {
-        // DEV: токен из env для разработки без авторизации (только dev-режим)
-        if (process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_DEV_TOKEN) {
-            this.devToken = process.env.NEXT_PUBLIC_DEV_TOKEN;
-        }
-
-        // TODO: NextAuth — инициализация сессии
         this.isReady = true;
     }
 
     getAuthHeader(): string | null {
-        if (this.devToken) {
-            return `Bearer ${this.devToken}`;
-        }
-        // TODO: NextAuth JWT из сессии
         return null;
     }
 
     getUser(): TPlatformUser | null {
-        // TODO: NextAuth — данные пользователя из сессии
         return null;
     }
 
     isAuthenticated(): boolean {
-        return !!this.devToken;
-        // TODO: NextAuth — проверка сессии
+        return false;
     }
 
     openLink(url: string): void {

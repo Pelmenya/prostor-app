@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '@/shared/lib/platform';
+import { useAuthStore } from '@/shared/lib/auth';
+import { webLogout } from '@/features/auth';
 
 type THeaderProps = {
     back?: boolean;
@@ -13,6 +15,19 @@ type THeaderProps = {
 export function Header({ back = false, backTo }: THeaderProps) {
     const router = useRouter();
     const { isAuthenticated, user } = useAuth();
+    const { accessToken, refreshToken, logout } = useAuthStore();
+
+    const handleLogout = async () => {
+        if (accessToken && refreshToken) {
+            try {
+                await webLogout(accessToken, refreshToken);
+            } catch {
+                // Игнорируем — главное очистить локальное состояние
+            }
+        }
+        logout();
+        router.push('/');
+    };
 
     return (
         <header className="relative z-10 shrink-0 bg-base-100 border-b border-base-content/10 shadow-sm">
@@ -53,10 +68,22 @@ export function Header({ back = false, backTo }: THeaderProps) {
                 </div>
 
                 <div className="navbar-end gap-2 !w-auto">
-                    {!isAuthenticated && (
-                        <Link href="/login" className="btn btn-primary btn-sm">
-                            Войти
-                        </Link>
+                    {isAuthenticated ? (
+                        <button onClick={handleLogout} className="btn btn-ghost btn-sm">
+                            Выйти
+                        </button>
+                    ) : (
+                        <>
+                            <Link href="/login" className="btn btn-primary btn-sm">
+                                Войти
+                            </Link>
+                            <Link
+                                href="/register"
+                                className="btn btn-ghost btn-sm hidden sm:inline-flex"
+                            >
+                                Регистрация
+                            </Link>
+                        </>
                     )}
                 </div>
             </div>
