@@ -49,6 +49,19 @@
 }
 
 @layer utilities {
+    .page-container {
+        --page-padding: 1rem;
+        padding: var(--page-padding);
+
+        @media (width >= 768px) {
+            --page-padding: 1.5rem;
+        }
+
+        @media (width >= 1200px) {
+            --page-padding: 2.5rem;
+        }
+    }
+
     .scrollbar-hidden {
         scrollbar-width: none;
         -ms-overflow-style: none;
@@ -70,19 +83,6 @@
 
     .gradient-bg-grey {
         background: radial-gradient(circle, #d4d4d4, #b4b4b4);
-    }
-}
-
-@utility page-container {
-    --page-padding: 1rem;
-    padding: var(--page-padding);
-
-    @media (width >= theme(--breakpoint-md)) {
-        --page-padding: 1.5rem;
-    }
-
-    @media (width >= theme(--breakpoint-xl)) {
-        --page-padding: 2.5rem;
     }
 }
 
