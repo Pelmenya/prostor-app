@@ -17,20 +17,20 @@ export function ProductSlider({ productId }: TProductSliderProps) {
 
     if (isLoading) {
         return (
-            <div className="skeleton flex justify-center h-[268px] gradient-bg rounded-none overflow-hidden full-bleed" />
+            <div className="skeleton flex justify-center h-67 gradient-bg rounded-none overflow-hidden full-bleed" />
         );
     }
 
     if (!images || images.length === 0) {
         return (
-            <div className="flex justify-center items-center h-[268px] gradient-bg-grey rounded-none overflow-hidden full-bleed">
+            <div className="flex justify-center items-center h-67 gradient-bg-grey rounded-none overflow-hidden full-bleed">
                 <span className="text-sm text-base-content/40">Нет изображений</span>
             </div>
         );
     }
 
     return (
-        <div className="flex justify-center h-[268px] p-5 gradient-bg overflow-hidden full-bleed">
+        <div className="flex justify-center h-67 p-5 gradient-bg overflow-hidden full-bleed">
             <Swiper
                 modules={[Pagination]}
                 spaceBetween={50}
@@ -39,7 +39,7 @@ export function ProductSlider({ productId }: TProductSliderProps) {
             >
                 {images.map((image, index) => (
                     <SwiperSlide key={index}>
-                        <div className="relative flex justify-center items-center h-[228px]">
+                        <div className="relative flex justify-center items-center h-57">
                             <Image
                                 src={getImageProxyUrl(image.meta.downloadHref)}
                                 alt={`Изображение ${index + 1}`}

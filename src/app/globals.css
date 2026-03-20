@@ -48,33 +48,31 @@
     --noise: 0;
 }
 
-@layer utilities {
-    .page-container {
-        --page-padding: 1rem;
-        padding: var(--page-padding);
+@utility page-container {
+    --page-padding: 1rem;
+    padding: var(--page-padding);
 
-        @media (width >= 768px) {
-            --page-padding: 1.5rem;
-        }
-
-        @media (width >= 1200px) {
-            --page-padding: 2.5rem;
-        }
+    @media (width >= 768px) {
+        --page-padding: 1.5rem;
     }
 
-    .scrollbar-hidden {
-        scrollbar-width: none;
-        -ms-overflow-style: none;
+    @media (width >= 1200px) {
+        --page-padding: 2.5rem;
     }
+}
 
-    .scrollbar-hidden::-webkit-scrollbar {
+@utility scrollbar-hidden {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+
+    &::-webkit-scrollbar {
         display: none;
     }
 }
 
 @layer components {
     .gradient-text {
-        @apply bg-gradient-to-r from-primary to-info text-transparent bg-clip-text;
+        @apply bg-linear-to-r from-primary to-info text-transparent bg-clip-text;
     }
 
     .gradient-bg {
