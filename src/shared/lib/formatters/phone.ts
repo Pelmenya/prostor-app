@@ -18,7 +18,7 @@ export const normalizeRuPhone = (raw: string) => {
 
 /** Маска для отображения: "+7 999 999-99-99" */
 export const formatRuPhoneForView = (digitsWithCountry: string) => {
-    if (!digitsWithCountry) return '+7 ';
+    if (!digitsWithCountry) return '+7';
     let d = digitsWithCountry;
     if (!d.startsWith('7')) d = normalizeRuPhone(d);
     const arr = d.split('');
