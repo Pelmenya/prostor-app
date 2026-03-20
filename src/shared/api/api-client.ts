@@ -16,8 +16,9 @@ export type TApiClientOptions = {
     body?: unknown;
     auth?: string | null;
     headers?: Record<string, string>;
-    _retry?: boolean;
 };
+
+type TApiClientInternalOptions = TApiClientOptions & { _retry?: boolean };
 
 let refreshPromise: Promise<void> | null = null;
 
@@ -25,7 +26,9 @@ export async function apiClient<T = unknown>(
     path: string,
     options: TApiClientOptions = {},
 ): Promise<T> {
-    const { method = 'GET', body, auth, headers = {}, _retry = false } = options;
+    const internal = options as TApiClientInternalOptions;
+    const { method = 'GET', body, auth, headers = {} } = options;
+    const _retry = internal._retry ?? false;
 
     const requestHeaders: Record<string, string> = { ...headers };
 
@@ -54,7 +57,7 @@ export async function apiClient<T = unknown>(
                     ...options,
                     auth: newToken ? `Bearer ${newToken}` : null,
                     _retry: true,
-                });
+                } as TApiClientInternalOptions);
             }
         }
 

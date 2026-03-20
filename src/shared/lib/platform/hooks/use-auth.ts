@@ -4,31 +4,14 @@ import { useAuthStore } from '@/shared/lib/auth';
 
 export function useAuth() {
     const adapter = usePlatform();
-    const { accessToken, user: storeUser, isAuthenticated: storeAuth } = useAuthStore();
+    const store = useAuthStore();
 
-    // Miniapp — адаптер есть
-    if (adapter) {
-        return {
-            authHeader: adapter.getAuthHeader(),
-            user: adapter.getUser(),
-            isAuthenticated: adapter.isAuthenticated(),
-            platform: adapter.platform as TPlatform,
-        };
-    }
-
-    // Web — JWT из auth store
     return {
-        authHeader: accessToken ? `Bearer ${accessToken}` : null,
-        user: storeUser
-            ? {
-                  id: storeUser.id,
-                  firstName: storeUser.first_name,
-                  lastName: storeUser.last_name,
-                  username: storeUser.username,
-                  photo: storeUser.photo_url,
-              }
-            : null,
-        isAuthenticated: storeAuth,
-        platform: 'web' as TPlatform,
+        authHeader:
+            adapter?.getAuthHeader() ?? (store.accessToken ? `Bearer ${store.accessToken}` : null),
+        user: adapter?.getUser() ?? null,
+        isAuthenticated: adapter?.isAuthenticated() ?? store.isAuthenticated,
+        platform: (adapter?.platform ?? 'web') as TPlatform,
+        logout: store.logout,
     };
 }

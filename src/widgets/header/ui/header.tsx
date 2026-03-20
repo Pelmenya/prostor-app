@@ -14,8 +14,8 @@ type THeaderProps = {
 
 export function Header({ back = false, backTo }: THeaderProps) {
     const router = useRouter();
-    const { isAuthenticated, user } = useAuth();
-    const { accessToken, refreshToken, logout } = useAuthStore();
+    const { isAuthenticated, user, logout } = useAuth();
+    const { accessToken, refreshToken } = useAuthStore();
 
     const handleLogout = async () => {
         if (accessToken && refreshToken) {

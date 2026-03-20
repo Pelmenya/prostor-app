@@ -20,7 +20,7 @@ type TAuthStore = {
 
 function setCookie(name: string, value: string, days: number) {
     const expires = new Date(Date.now() + days * 864e5).toUTCString();
-    document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/; SameSite=Lax`;
+    document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/; SameSite=Lax; Secure`;
 }
 
 function deleteCookie(name: string) {
@@ -56,6 +56,7 @@ export const useAuthStore = create<TAuthStore>((set) => ({
         const access = localStorage.getItem(ACCESS_TOKEN_KEY);
         const refresh = localStorage.getItem(REFRESH_TOKEN_KEY);
         if (access && refresh) {
+            setCookie(ACCESS_TOKEN_COOKIE, access, 1);
             set({ accessToken: access, refreshToken: refresh, isAuthenticated: true });
         }
     },

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { webRegister } from '@/features/auth';
+import { ApiError } from '@/shared/api';
 import { useAuthStore } from '@/shared/lib/auth';
 import { useCurrentPolicy } from '@/entities/privacy-policy';
 import { PageContainer } from '@/shared/ui';
@@ -30,7 +31,7 @@ export function RegisterPage() {
     const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
 
-    const update = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) =>
+    const update = (field: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
         setForm((prev) => ({ ...prev, [field]: e.target.value }));
 
     const handleAgreeFromModal = () => {
@@ -68,8 +69,11 @@ export function RegisterPage() {
             setUser(data.user);
             router.push('/');
         } catch (err) {
-            const message = (err as { data?: { message?: string } })?.data?.message;
-            setError(message || 'Ошибка регистрации');
+            if (err instanceof ApiError) {
+                setError((err.data as { message?: string })?.message || 'Ошибка регистрации');
+            } else {
+                setError('Ошибка сети');
+            }
         } finally {
             setIsLoading(false);
         }

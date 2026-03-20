@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { webLogin } from '@/features/auth';
+import { ApiError } from '@/shared/api';
 import { useAuthStore } from '@/shared/lib/auth';
 import { PageContainer } from '@/shared/ui';
 
@@ -26,8 +27,13 @@ export function LoginPage() {
             setUser(data.user);
             router.push('/');
         } catch (err) {
-            const message = (err as { data?: { message?: string } })?.data?.message;
-            setError(message || 'Неверный email или пароль');
+            if (err instanceof ApiError) {
+                setError(
+                    (err.data as { message?: string })?.message || 'Неверный email или пароль',
+                );
+            } else {
+                setError('Ошибка сети');
+            }
         } finally {
             setIsLoading(false);
         }

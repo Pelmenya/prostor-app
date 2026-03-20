@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-const PUBLIC_PATHS = ['/', '/catalog', '/product', '/login', '/register'];
+const PRIVATE_PATHS = ['/profile', '/orders', '/checkout'];
 
-function isPublic(pathname: string): boolean {
-    return PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+function isPrivate(pathname: string): boolean {
+    return PRIVATE_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 }
 
 export function proxy(request: NextRequest) {
@@ -16,13 +16,8 @@ export function proxy(request: NextRequest) {
         return NextResponse.redirect(new URL('/', request.url));
     }
 
-    // Публичные пути — пропускаем
-    if (isPublic(pathname)) {
-        return NextResponse.next();
-    }
-
-    // Защищённые пути без токена → на /login
-    if (!token) {
+    // Приватные пути без токена → на /login
+    if (isPrivate(pathname) && !token) {
         const loginUrl = new URL('/login', request.url);
         loginUrl.searchParams.set('from', pathname);
         return NextResponse.redirect(loginUrl);
