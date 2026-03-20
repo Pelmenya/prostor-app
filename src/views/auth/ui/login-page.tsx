@@ -3,47 +3,65 @@
 import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { webLogin } from '@/features/auth';
 import { ApiError } from '@/shared/api';
 import { useAuthStore } from '@/shared/lib/auth';
 import { PageContainer } from '@/shared/ui';
 
+const loginSchema = z.object({
+    email: z.string().email('Неверный формат email'),
+    password: z.string().min(1, 'Введите пароль'),
+});
+
+type TLoginForm = z.infer<typeof loginSchema>;
+
 function getSafeRedirect(from: string | null): string {
     if (!from) return '/';
-    // Защита от open redirect: только относительные пути без //
     if (!from.startsWith('/') || from.startsWith('//')) return '/';
     return from;
+}
+
+function extractErrorMessage(data: unknown, fallback: string): string {
+    if (!data || typeof data !== 'object') return fallback;
+    const d = data as Record<string, unknown>;
+    if (typeof d.message === 'string') return d.message;
+    if (Array.isArray(d.message) && d.message.length > 0) {
+        return typeof d.message[0] === 'string' ? d.message[0] : fallback;
+    }
+    return fallback;
 }
 
 function LoginForm() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { setTokens, setUser } = useAuthStore();
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [error, setError] = useState<string | null>(null);
-    const [isLoading, setIsLoading] = useState(false);
+    const [serverError, setServerError] = useState<string | null>(null);
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setError(null);
-        setIsLoading(true);
+    const {
+        register,
+        handleSubmit,
+        formState: { errors, isSubmitting },
+    } = useForm<TLoginForm>({
+        resolver: zodResolver(loginSchema),
+        defaultValues: { email: '', password: '' },
+    });
 
+    const onSubmit = async (form: TLoginForm) => {
+        setServerError(null);
         try {
-            const data = await webLogin({ email, password });
+            const data = await webLogin(form);
             setTokens(data.accessToken, data.refreshToken);
             setUser(data.user);
             router.push(getSafeRedirect(searchParams.get('from')));
         } catch (err) {
             if (err instanceof ApiError) {
-                setError(
-                    (err.data as { message?: string })?.message || 'Неверный email или пароль',
-                );
+                setServerError(extractErrorMessage(err.data, 'Неверный email или пароль'));
             } else {
-                setError('Ошибка сети');
+                setServerError('Ошибка сети');
             }
-        } finally {
-            setIsLoading(false);
         }
     };
 
@@ -52,35 +70,45 @@ function LoginForm() {
             <div className="card-body">
                 <h1 className="card-title text-2xl gradient-text">Вход</h1>
 
-                <form onSubmit={handleSubmit} className="flex flex-col gap-4 mt-4">
-                    <label className="floating-label">
-                        <span>Email</span>
-                        <input
-                            type="email"
-                            className="input input-bordered w-full"
-                            placeholder="Email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            required
-                        />
-                    </label>
+                <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4 mt-4">
+                    <div className="form-control">
+                        <label className="floating-label">
+                            <span>Email</span>
+                            <input
+                                type="email"
+                                className={`input input-bordered w-full ${errors.email ? 'input-error' : ''}`}
+                                placeholder="Email"
+                                {...register('email')}
+                            />
+                        </label>
+                        {errors.email && (
+                            <p className="text-error text-xs mt-1">{errors.email.message}</p>
+                        )}
+                    </div>
 
-                    <label className="floating-label">
-                        <span>Пароль</span>
-                        <input
-                            type="password"
-                            className="input input-bordered w-full"
-                            placeholder="Пароль"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                        />
-                    </label>
+                    <div className="form-control">
+                        <label className="floating-label">
+                            <span>Пароль</span>
+                            <input
+                                type="password"
+                                className={`input input-bordered w-full ${errors.password ? 'input-error' : ''}`}
+                                placeholder="Пароль"
+                                {...register('password')}
+                            />
+                        </label>
+                        {errors.password && (
+                            <p className="text-error text-xs mt-1">{errors.password.message}</p>
+                        )}
+                    </div>
 
-                    {error && <div className="alert alert-error text-sm">{error}</div>}
+                    {serverError && <div className="alert alert-error text-sm">{serverError}</div>}
 
-                    <button type="submit" className="btn btn-primary w-full" disabled={isLoading}>
-                        {isLoading ? (
+                    <button
+                        type="submit"
+                        className="btn btn-primary w-full"
+                        disabled={isSubmitting}
+                    >
+                        {isSubmitting ? (
                             <span className="loading loading-spinner loading-sm" />
                         ) : (
                             'Войти'

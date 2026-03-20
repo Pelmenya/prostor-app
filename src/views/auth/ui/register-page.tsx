@@ -3,12 +3,36 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { webRegister } from '@/features/auth';
 import { ApiError } from '@/shared/api';
 import { useAuthStore } from '@/shared/lib/auth';
 import { useCurrentPolicy } from '@/entities/privacy-policy';
 import { PageContainer } from '@/shared/ui';
 import { PrivacyPolicyModal } from './privacy-policy-modal';
+
+const registerSchema = z.object({
+    first_name: z.string().min(1, 'Имя обязательно'),
+    last_name: z.string().min(1, 'Фамилия обязательна'),
+    email: z.string().email('Неверный формат email'),
+    phone: z.string().min(1, 'Телефон обязателен'),
+    password: z.string().min(8, 'Минимум 8 символов'),
+    agree: z.literal(true, { error: 'Необходимо согласие с политикой конфиденциальности' }),
+});
+
+type TRegisterForm = z.infer<typeof registerSchema>;
+
+function extractErrorMessage(data: unknown, fallback: string): string {
+    if (!data || typeof data !== 'object') return fallback;
+    const d = data as Record<string, unknown>;
+    if (typeof d.message === 'string') return d.message;
+    if (Array.isArray(d.message) && d.message.length > 0) {
+        return typeof d.message[0] === 'string' ? d.message[0] : fallback;
+    }
+    return fallback;
+}
 
 export function RegisterPage() {
     const router = useRouter();
@@ -19,50 +43,46 @@ export function RegisterPage() {
         isError: isPolicyError,
     } = useCurrentPolicy();
 
-    const [form, setForm] = useState({
-        first_name: '',
-        last_name: '',
-        email: '',
-        phone: '',
-        password: '',
-    });
-    const [agree, setAgree] = useState(false);
     const [isPolicyModalOpen, setIsPolicyModalOpen] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const [isLoading, setIsLoading] = useState(false);
+    const [serverError, setServerError] = useState<string | null>(null);
 
-    const update = (field: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
-        setForm((prev) => ({ ...prev, [field]: e.target.value }));
+    const {
+        register,
+        handleSubmit,
+        setValue,
+        watch,
+        formState: { errors, isSubmitting },
+    } = useForm<TRegisterForm>({
+        resolver: zodResolver(registerSchema),
+        defaultValues: {
+            first_name: '',
+            last_name: '',
+            email: '',
+            phone: '',
+            password: '',
+            agree: false as never,
+        },
+    });
+
+    const agree = watch('agree');
 
     const handleAgreeFromModal = () => {
-        setAgree(true);
+        setValue('agree', true, { shouldValidate: true });
         setIsPolicyModalOpen(false);
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setError(null);
-
-        if (form.password.length < 8) {
-            setError('Пароль должен содержать минимум 8 символов');
-            return;
-        }
-
-        if (!agree) {
-            setError('Необходимо согласие с политикой конфиденциальности');
-            return;
-        }
+    const onSubmit = async (form: TRegisterForm) => {
+        setServerError(null);
 
         if (!currentPolicy?.version) {
-            setError('Не удалось загрузить политику конфиденциальности. Обновите страницу.');
+            setServerError('Не удалось загрузить политику конфиденциальности. Обновите страницу.');
             return;
         }
 
-        setIsLoading(true);
-
         try {
+            const { agree: _, ...payload } = form;
             const data = await webRegister({
-                ...form,
+                ...payload,
                 policyVersion: currentPolicy.version,
             });
             setTokens(data.accessToken, data.refreshToken);
@@ -70,12 +90,10 @@ export function RegisterPage() {
             router.push('/');
         } catch (err) {
             if (err instanceof ApiError) {
-                setError((err.data as { message?: string })?.message || 'Ошибка регистрации');
+                setServerError(extractErrorMessage(err.data, 'Ошибка регистрации'));
             } else {
-                setError('Ошибка сети');
+                setServerError('Ошибка сети');
             }
-        } finally {
-            setIsLoading(false);
         }
     };
 
@@ -92,74 +110,107 @@ export function RegisterPage() {
                             </div>
                         )}
 
-                        <form onSubmit={handleSubmit} className="flex flex-col gap-4 mt-4">
-                            <label className="floating-label">
-                                <span>Имя</span>
-                                <input
-                                    type="text"
-                                    className="input input-bordered w-full"
-                                    placeholder="Имя"
-                                    value={form.first_name}
-                                    onChange={update('first_name')}
-                                    required
-                                />
-                            </label>
+                        <form
+                            onSubmit={handleSubmit(onSubmit)}
+                            className="flex flex-col gap-4 mt-4"
+                        >
+                            <div className="form-control">
+                                <label className="floating-label">
+                                    <span>Имя</span>
+                                    <input
+                                        type="text"
+                                        className={`input input-bordered w-full ${errors.first_name ? 'input-error' : ''}`}
+                                        placeholder="Имя"
+                                        {...register('first_name')}
+                                    />
+                                </label>
+                                {errors.first_name && (
+                                    <p className="text-error text-xs mt-1">
+                                        {errors.first_name.message}
+                                    </p>
+                                )}
+                            </div>
 
-                            <label className="floating-label">
-                                <span>Фамилия</span>
-                                <input
-                                    type="text"
-                                    className="input input-bordered w-full"
-                                    placeholder="Фамилия"
-                                    value={form.last_name}
-                                    onChange={update('last_name')}
-                                    required
-                                />
-                            </label>
+                            <div className="form-control">
+                                <label className="floating-label">
+                                    <span>Фамилия</span>
+                                    <input
+                                        type="text"
+                                        className={`input input-bordered w-full ${errors.last_name ? 'input-error' : ''}`}
+                                        placeholder="Фамилия"
+                                        {...register('last_name')}
+                                    />
+                                </label>
+                                {errors.last_name && (
+                                    <p className="text-error text-xs mt-1">
+                                        {errors.last_name.message}
+                                    </p>
+                                )}
+                            </div>
 
-                            <label className="floating-label">
-                                <span>Email</span>
-                                <input
-                                    type="email"
-                                    className="input input-bordered w-full"
-                                    placeholder="Email"
-                                    value={form.email}
-                                    onChange={update('email')}
-                                    required
-                                />
-                            </label>
+                            <div className="form-control">
+                                <label className="floating-label">
+                                    <span>Email</span>
+                                    <input
+                                        type="email"
+                                        className={`input input-bordered w-full ${errors.email ? 'input-error' : ''}`}
+                                        placeholder="Email"
+                                        {...register('email')}
+                                    />
+                                </label>
+                                {errors.email && (
+                                    <p className="text-error text-xs mt-1">
+                                        {errors.email.message}
+                                    </p>
+                                )}
+                            </div>
 
-                            <label className="floating-label">
-                                <span>Телефон</span>
-                                <input
-                                    type="tel"
-                                    className="input input-bordered w-full"
-                                    placeholder="+79991234567"
-                                    value={form.phone}
-                                    onChange={update('phone')}
-                                    required
-                                />
-                            </label>
+                            <div className="form-control">
+                                <label className="floating-label">
+                                    <span>Телефон</span>
+                                    <input
+                                        type="tel"
+                                        className={`input input-bordered w-full ${errors.phone ? 'input-error' : ''}`}
+                                        placeholder="+79991234567"
+                                        {...register('phone')}
+                                    />
+                                </label>
+                                {errors.phone && (
+                                    <p className="text-error text-xs mt-1">
+                                        {errors.phone.message}
+                                    </p>
+                                )}
+                            </div>
 
-                            <label className="floating-label">
-                                <span>Пароль</span>
-                                <input
-                                    type="password"
-                                    className="input input-bordered w-full"
-                                    placeholder="Минимум 8 символов"
-                                    value={form.password}
-                                    onChange={update('password')}
-                                    required
-                                    minLength={8}
-                                />
-                            </label>
+                            <div className="form-control">
+                                <label className="floating-label">
+                                    <span>Пароль</span>
+                                    <input
+                                        type="password"
+                                        className={`input input-bordered w-full ${errors.password ? 'input-error' : ''}`}
+                                        placeholder="Минимум 8 символов"
+                                        {...register('password')}
+                                    />
+                                </label>
+                                {errors.password && (
+                                    <p className="text-error text-xs mt-1">
+                                        {errors.password.message}
+                                    </p>
+                                )}
+                            </div>
 
                             <div className="flex flex-col w-full">
                                 <label className="flex items-start gap-2 cursor-pointer w-full">
                                     <input
                                         type="checkbox"
                                         checked={agree}
-                                        onChange={(e) => setAgree(e.target.checked)}
+                                        onChange={(e) =>
+                                            setValue(
+                                                'agree',
+                                                e.target.checked ? true : (false as never),
+                                                { shouldValidate: true },
+                                            )
+                                        }
                                         className="checkbox checkbox-primary mt-0.5"
                                     />
                                     <span className="text-sm leading-snug">
@@ -174,16 +225,23 @@ export function RegisterPage() {
                                         </button>
                                     </span>
                                 </label>
+                                {errors.agree && (
+                                    <p className="text-error text-xs mt-1">
+                                        {errors.agree.message}
+                                    </p>
+                                )}
                             </div>
 
-                            {error && <div className="alert alert-error text-sm">{error}</div>}
+                            {serverError && (
+                                <div className="alert alert-error text-sm">{serverError}</div>
+                            )}
 
                             <button
                                 type="submit"
                                 className="btn btn-primary w-full"
-                                disabled={isLoading || isPolicyLoading || isPolicyError}
+                                disabled={isSubmitting || isPolicyLoading || isPolicyError}
                             >
-                                {isLoading ? (
+                                {isSubmitting ? (
                                     <span className="loading loading-spinner loading-sm" />
                                 ) : (
                                     'Создать аккаунт'
