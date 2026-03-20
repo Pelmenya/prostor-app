@@ -1,27 +1,29 @@
 import { describe, it, expect } from 'vitest';
 import { formatPrice } from './format-price';
 
+/** Intl использует narrow no-break space (U+202F) — нормализуем для сравнения */
+function normalize(str: string): string {
+    return str.replace(/\s/g, ' ');
+}
+
 describe('formatPrice', () => {
     it('форматирует копейки в рубли', () => {
-        // Intl использует narrow no-break space (U+202F) как разделитель
-        expect(formatPrice(150000)).toContain('1');
-        expect(formatPrice(150000)).toContain('500');
-        expect(formatPrice(150000)).toContain('₽');
+        expect(normalize(formatPrice(150000))).toBe('1 500 ₽');
     });
 
     it('форматирует 0', () => {
-        expect(formatPrice(0)).toContain('0');
-        expect(formatPrice(0)).toContain('₽');
-    });
-
-    it('форматирует крупные суммы', () => {
-        expect(formatPrice(10000000)).toContain('100');
-        expect(formatPrice(10000000)).toContain('000');
-        expect(formatPrice(10000000)).toContain('₽');
+        expect(normalize(formatPrice(0))).toBe('0 ₽');
     });
 
     it('корректно делит на 100', () => {
-        // 50000 копеек = 500 рублей
-        expect(formatPrice(50000)).toContain('500');
+        expect(normalize(formatPrice(50000))).toBe('500 ₽');
+    });
+
+    it('форматирует крупные суммы с разделителями', () => {
+        expect(normalize(formatPrice(10000000))).toBe('100 000 ₽');
+    });
+
+    it('округляет дробные копейки', () => {
+        expect(normalize(formatPrice(99))).toBe('1 ₽');
     });
 });

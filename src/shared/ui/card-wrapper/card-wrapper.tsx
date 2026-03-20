@@ -1,4 +1,4 @@
-import { cn } from '@/shared/lib/cn';
+import { cn } from '@/shared/lib';
 
 type TCardWrapperVariant = 'default' | 'compact' | 'no-gap';
 

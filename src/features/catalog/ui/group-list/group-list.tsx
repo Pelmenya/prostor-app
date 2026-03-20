@@ -1,6 +1,6 @@
 import type { TGroup } from '@/entities/product';
 import { GroupCard } from '../group-card';
-import { cn } from '@/shared/lib/cn';
+import { cn } from '@/shared/lib';
 
 type TGroupListProps = {
     groups: TGroup[];

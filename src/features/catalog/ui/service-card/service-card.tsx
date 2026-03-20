@@ -1,7 +1,7 @@
 'use client';
 
 import { Counter } from '@/shared/ui/counter';
-import { formatPrice } from '@/shared/lib/format-price';
+import { formatPrice } from '@/shared/lib';
 import type { TService } from '@/entities/product';
 import { getSalePrices } from '../../lib/get-sale-prices';
 

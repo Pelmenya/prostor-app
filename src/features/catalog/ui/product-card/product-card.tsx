@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { CardWrapper } from '@/shared/ui/card-wrapper';
 import { CardImage } from '@/shared/ui/card-image';
-import { formatPrice } from '@/shared/lib/format-price';
+import { formatPrice } from '@/shared/lib';
 import type { TProduct } from '@/entities/product';
 import { useProductImages, getImageProxyUrl } from '@/entities/product';
 

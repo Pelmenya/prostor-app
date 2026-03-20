@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { formatPrice } from '@/shared/lib/format-price';
+import { formatPrice } from '@/shared/lib';
 
 export type TLineItem = {
     label: string;

@@ -5,7 +5,7 @@ import { CardWrapper } from '@/shared/ui/card-wrapper';
 import { CardImage } from '@/shared/ui/card-image';
 import type { TGroup } from '@/entities/product';
 import { useBundleImages, getImageProxyUrl } from '@/entities/product';
-import { cn } from '@/shared/lib/cn';
+import { cn } from '@/shared/lib';
 
 type TGroupCardProps = {
     group: TGroup;

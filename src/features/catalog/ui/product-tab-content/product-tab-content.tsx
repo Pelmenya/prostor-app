@@ -3,7 +3,7 @@
 import { ShoppingCartIcon } from '@heroicons/react/20/solid';
 import { Counter } from '@/shared/ui/counter';
 import type { TProductTabType } from '@/shared/ui/product-tab-switcher';
-import { formatPrice } from '@/shared/lib/format-price';
+import { formatPrice } from '@/shared/lib';
 import type { TProduct, TService, TSalePrice } from '@/entities/product';
 import type { TCartItem } from '@/entities/cart';
 import { ServicesList } from '../service-list';

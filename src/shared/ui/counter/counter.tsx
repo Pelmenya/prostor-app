@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { cn } from '@/shared/lib/cn';
+import { cn } from '@/shared/lib';
 
 type TIconType = 'plus' | 'minus';
 
