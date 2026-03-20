@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { formatPrice } from '@/shared/lib/format-price';
 
 export type TLineItem = {
     label: string;
@@ -30,9 +31,7 @@ export function StickyTotalBar({
             <div className="flex text-xs items-center">
                 <div className="flex flex-col gap-1 text-primary md:flex-row">
                     <span className="uppercase">Итого:</span>
-                    <span className="font-bold">
-                        {(grandTotal / 100).toLocaleString('ru-RU')} ₽
-                    </span>
+                    <span className="font-bold">{formatPrice(grandTotal)}</span>
                 </div>
                 <div className="divider divider-horizontal m-0" />
                 <div className="flex flex-col md:flex-row md:gap-2">
@@ -42,9 +41,7 @@ export function StickyTotalBar({
                                 {line.label}
                                 {line.count !== undefined ? ` (${line.count})` : ''}:
                             </span>
-                            <span className="font-bold">
-                                {(line.total / 100).toLocaleString('ru-RU')} ₽
-                            </span>
+                            <span className="font-bold">{formatPrice(line.total)}</span>
                         </div>
                     ))}
                 </div>
@@ -55,10 +52,13 @@ export function StickyTotalBar({
                     {actionLabel}
                 </button>
             ) : (
-                <Link href={actionLink}>
-                    <button className="btn btn-sm btn-primary" disabled={disabled}>
-                        {actionLabel}
-                    </button>
+                <Link
+                    href={actionLink}
+                    className={`btn btn-sm btn-primary ${disabled ? 'btn-disabled' : ''}`}
+                    aria-disabled={disabled}
+                    tabIndex={disabled ? -1 : undefined}
+                >
+                    {actionLabel}
                 </Link>
             )}
         </div>

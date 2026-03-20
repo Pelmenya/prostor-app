@@ -57,7 +57,7 @@ export function Breadcrumbs({ items, isLoading }: TBreadcrumbsProps) {
     }, [items]);
 
     return (
-        <nav className="breadcrumbs p-0 text-sm scrollbar-hidden">
+        <nav aria-label="Навигация" className="breadcrumbs p-0 text-sm scrollbar-hidden">
             <ul>
                 {isLoading ? (
                     <BreadcrumbSkeleton />

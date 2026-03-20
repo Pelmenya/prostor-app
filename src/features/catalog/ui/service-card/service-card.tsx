@@ -1,6 +1,7 @@
 'use client';
 
 import { Counter } from '@/shared/ui/counter';
+import { formatPrice } from '@/shared/lib/format-price';
 import type { TService } from '@/entities/product';
 import { getSalePrices } from '../../lib/get-sale-prices';
 
@@ -50,9 +51,7 @@ export function ServiceCard({
                         minCount={0}
                     />
                 )}
-                <span className="text-sm text-nowrap">
-                    {(unitPrice / 100).toLocaleString('ru-RU')} ₽
-                </span>
+                <span className="text-sm text-nowrap">{formatPrice(unitPrice)}</span>
             </div>
         </div>
     );

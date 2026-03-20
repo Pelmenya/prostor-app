@@ -1,6 +1,4 @@
-'use client';
-
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 type TFooterItemProps = {
     to: string;
@@ -11,22 +9,19 @@ type TFooterItemProps = {
 };
 
 export function FooterItem({ to, icon, label, isActive, indicator }: TFooterItemProps) {
-    const router = useRouter();
-
-    const handleClick = () => {
-        if (isActive) return;
-        router.push(to);
-    };
-
     return (
-        <li className={`${isActive ? 'dock-active' : ''} transition-none`} onClick={handleClick}>
-            <div className="indicator size-[1.2em]">
-                {icon}
-                {indicator !== undefined && indicator > 0 && (
-                    <span className="indicator-item badge badge-xs badge-warning">{indicator}</span>
-                )}
-            </div>
-            <span className="dock-label">{label}</span>
+        <li className={`${isActive ? 'dock-active' : ''} transition-none`}>
+            <Link href={to} className="flex flex-col items-center gap-0.5">
+                <div className="indicator size-[1.2em]">
+                    {icon}
+                    {indicator !== undefined && indicator > 0 && (
+                        <span className="indicator-item badge badge-xs badge-warning">
+                            {indicator}
+                        </span>
+                    )}
+                </div>
+                <span className="dock-label">{label}</span>
+            </Link>
         </li>
     );
 }

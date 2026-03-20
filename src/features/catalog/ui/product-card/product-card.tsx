@@ -3,20 +3,13 @@
 import { useRouter } from 'next/navigation';
 import { CardWrapper } from '@/shared/ui/card-wrapper';
 import { CardImage } from '@/shared/ui/card-image';
+import { formatPrice } from '@/shared/lib/format-price';
 import type { TProduct } from '@/entities/product';
 import { useProductImages, getImageProxyUrl } from '@/entities/product';
 
 type TProductCardProps = {
     product: TProduct;
 };
-
-function formatPrice(value: number): string {
-    return new Intl.NumberFormat('ru-RU', {
-        style: 'currency',
-        currency: 'RUB',
-        maximumFractionDigits: 0,
-    }).format(value / 100);
-}
 
 export function ProductCard({ product }: TProductCardProps) {
     const router = useRouter();
@@ -30,13 +23,13 @@ export function ProductCard({ product }: TProductCardProps) {
     return (
         <CardWrapper
             onClick={() => router.push(`/product/${product.id}`)}
-            className="flex-col gap-4 min-h-[286px]"
+            className="flex-col gap-4 min-h-71.5"
         >
             <CardImage
                 src={imageUrl}
                 isLoading={isImagesLoading}
                 alt={product.name}
-                className="w-full h-[106px]"
+                className="w-full h-26.5"
                 imgClassName="h-full w-20 object-contain"
             />
             <div className="flex flex-col justify-between size-full">

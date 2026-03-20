@@ -48,7 +48,7 @@ function ButtonWithIcon({
                     viewBox="0 0 24 24"
                     strokeWidth={1.5}
                     stroke="currentColor"
-                    className={size === 'small' ? 'w-[11px] h-[11px]' : 'size-3.5'}
+                    className={size === 'small' ? 'size-2.75' : 'size-3.5'}
                 >
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                 </svg>
@@ -60,7 +60,7 @@ function ButtonWithIcon({
                     viewBox="0 0 24 24"
                     strokeWidth={1.5}
                     stroke="currentColor"
-                    className={size === 'small' ? 'w-[11px] h-[11px]' : 'size-3.5'}
+                    className={size === 'small' ? 'size-2.75' : 'size-3.5'}
                 >
                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14" />
                 </svg>
@@ -90,19 +90,24 @@ export function Counter({
         <div className="flex items-center">
             <ButtonWithIcon
                 onClick={onDecrement}
-                disabled={count <= minCount || count >= maxCount}
+                disabled={count <= minCount}
                 icon="minus"
                 size={size}
             />
             <p
                 className={cn(
                     'text-center',
-                    size === 'small' ? 'w-[23px] text-primary text-sm' : 'w-9',
+                    size === 'small' ? 'w-5.75 text-primary text-sm' : 'w-9',
                 )}
             >
                 {count}
             </p>
-            <ButtonWithIcon onClick={onIncrement} icon="plus" size={size} />
+            <ButtonWithIcon
+                onClick={onIncrement}
+                disabled={count >= maxCount}
+                icon="plus"
+                size={size}
+            />
         </div>
     );
 }
