@@ -17,20 +17,20 @@ export function ProductSlider({ productId }: TProductSliderProps) {
 
     if (isLoading) {
         return (
-            <div className="skeleton flex justify-center h-[268px] gradient-bg rounded-none overflow-hidden -mx-4 md:-mx-6 xl:-mx-10 w-[calc(100%+2rem)] md:w-[calc(100%+3rem)] xl:w-[calc(100%+5rem)]" />
+            <div className="skeleton flex justify-center h-[268px] gradient-bg rounded-none overflow-hidden full-bleed" />
         );
     }
 
     if (!images || images.length === 0) {
         return (
-            <div className="flex justify-center items-center h-[268px] gradient-bg-grey rounded-none overflow-hidden -mx-4 md:-mx-6 xl:-mx-10 w-[calc(100%+2rem)] md:w-[calc(100%+3rem)] xl:w-[calc(100%+5rem)]">
+            <div className="flex justify-center items-center h-[268px] gradient-bg-grey rounded-none overflow-hidden full-bleed">
                 <span className="text-sm text-base-content/40">Нет изображений</span>
             </div>
         );
     }
 
     return (
-        <div className="flex justify-center h-[268px] p-5 gradient-bg overflow-hidden -mx-4 md:-mx-6 xl:-mx-10 w-[calc(100%+2rem)] md:w-[calc(100%+3rem)] xl:w-[calc(100%+5rem)]">
+        <div className="flex justify-center h-[268px] p-5 gradient-bg overflow-hidden full-bleed">
             <Swiper
                 modules={[Pagination]}
                 spaceBetween={50}

@@ -8,9 +8,9 @@
         "start": "next start",
         "lint": "eslint",
         "lint:fsd": "steiger ./src",
-        "test": "vitest run",
-        "test:watch": "vitest",
-        "test:coverage": "vitest run --coverage",
+        "test": "NODE_OPTIONS='--experimental-require-module' vitest run",
+        "test:watch": "NODE_OPTIONS='--experimental-require-module' vitest",
+        "test:coverage": "NODE_OPTIONS='--experimental-require-module' vitest run --coverage",
         "prepare": "husky"
     },
     "dependencies": {
@@ -45,6 +45,7 @@
         "@playwright/test": "^1.58.2",
         "@tailwindcss/postcss": "^4",
         "@tailwindcss/typography": "^0.5.19",
+        "@testing-library/jest-dom": "^6.9.1",
         "@testing-library/react": "^16.3.2",
         "@testing-library/user-event": "^14.6.1",
         "@types/node": "^20",
@@ -61,7 +62,7 @@
         "steiger": "^0.5.11",
         "tailwindcss": "^4",
         "typescript": "^5",
-        "vitest": "^4.1.0"
+        "vitest": "^3.2.4"
     },
     "browserslist": "> 1%",
     "lint-staged": {
