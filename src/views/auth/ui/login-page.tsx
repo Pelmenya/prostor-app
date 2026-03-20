@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { webLogin } from '@/features/auth';
 import { ApiError } from '@/shared/api';
@@ -10,6 +10,7 @@ import { PageContainer } from '@/shared/ui';
 
 export function LoginPage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const { setTokens, setUser } = useAuthStore();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -25,7 +26,7 @@ export function LoginPage() {
             const data = await webLogin({ email, password });
             setTokens(data.accessToken, data.refreshToken);
             setUser(data.user);
-            router.push('/');
+            router.push(searchParams.get('from') || '/');
         } catch (err) {
             if (err instanceof ApiError) {
                 setError(

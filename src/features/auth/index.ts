@@ -1,1 +1,1 @@
-export { webRegister, webLogin, refreshTokens, webLogout } from './api/auth-api';
+export { webRegister, webLogin, webLogout } from './api/auth-api';
