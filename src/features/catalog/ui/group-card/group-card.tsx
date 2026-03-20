@@ -25,7 +25,7 @@ export function GroupCard({ group, variant = 'default' }: TGroupCardProps) {
                 src={imageUrl}
                 isLoading={isImagesLoading}
                 alt={group.groupName ?? 'Категория'}
-                className={cn(variant === 'compact' ? 'w-12 min-h-16' : 'w-20 min-h-[106px]')}
+                className={cn(variant === 'compact' ? 'w-12 min-h-16' : 'w-20 min-h-26.5')}
             />
             <div className="w-full flex flex-col gap-2">
                 <h5

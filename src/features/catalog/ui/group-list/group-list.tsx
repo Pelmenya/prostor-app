@@ -27,7 +27,7 @@ export function GroupListSkeleton({ variant = 'default' }: { variant?: 'default'
                     <div
                         className={cn(
                             'skeleton shrink-0',
-                            variant === 'compact' ? 'w-12 h-16' : 'w-20 h-[106px]',
+                            variant === 'compact' ? 'w-12 h-16' : 'w-20 h-26.5',
                         )}
                     />
                     <div className="flex flex-col gap-2 flex-1">
