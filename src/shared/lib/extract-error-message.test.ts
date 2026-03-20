@@ -18,6 +18,10 @@ describe('extractErrorMessage', () => {
         expect(extractErrorMessage(null, 'fallback')).toBe('fallback');
     });
 
+    it('undefined data → fallback', () => {
+        expect(extractErrorMessage(undefined, 'fallback')).toBe('fallback');
+    });
+
     it('без message → fallback', () => {
         expect(extractErrorMessage({ error: 'Bad Request' }, 'fallback')).toBe('fallback');
     });

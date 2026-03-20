@@ -32,7 +32,7 @@ describe('formatRuPhoneForView', () => {
         expect(formatRuPhoneForView('7999')).toBe('+7 999');
     });
 
-    it('пустая строка → +7 с пробелом', () => {
+    it('пустая строка → +7', () => {
         expect(formatRuPhoneForView('')).toBe('+7');
     });
 });
