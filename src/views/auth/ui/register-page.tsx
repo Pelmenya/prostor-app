@@ -3,22 +3,29 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useForm, useWatch } from 'react-hook-form';
+import { useForm, useWatch, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { webRegister } from '@/features/auth';
 import { ApiError } from '@/shared/api';
 import { useAuthStore } from '@/shared/lib/auth';
 import { extractErrorMessage } from '@/shared/lib/extract-error-message';
+import {
+    normalizeRuPhone,
+    formatRuPhoneForView,
+    denormalizeViewToE164,
+} from '@/shared/lib/formatters/phone';
 import { useCurrentPolicy } from '@/entities/privacy-policy';
 import { PageContainer } from '@/shared/ui';
 import { PrivacyPolicyModal } from './privacy-policy-modal';
+
+const phoneE164Ru = /^\+7\d{10}$/;
 
 const registerSchema = z.object({
     first_name: z.string().min(1, 'Имя обязательно'),
     last_name: z.string().min(1, 'Фамилия обязательна'),
     email: z.string().min(1, 'Введите email').email('Неверный формат email'),
-    phone: z.string().regex(/^(\+7|8|7)\d{10}$/, 'Введите номер в формате +79991234567'),
+    phone: z.string().regex(phoneE164Ru, 'Введите номер в формате +7 999 999-99-99'),
     password: z.string().min(8, 'Минимум 8 символов'),
     agree: z.boolean().refine((v) => v === true, {
         message: 'Необходимо согласие с политикой конфиденциальности',
@@ -158,22 +165,47 @@ export function RegisterPage() {
                                 )}
                             </div>
 
-                            <div className="form-control">
-                                <label className="floating-label">
-                                    <span>Телефон</span>
-                                    <input
-                                        type="tel"
-                                        className={`input input-bordered w-full ${errors.phone ? 'input-error' : ''}`}
-                                        placeholder="+79991234567"
-                                        {...register('phone')}
-                                    />
-                                </label>
-                                {errors.phone && (
-                                    <p className="text-error text-xs mt-1">
-                                        {errors.phone.message}
-                                    </p>
-                                )}
-                            </div>
+                            <Controller
+                                name="phone"
+                                control={control}
+                                render={({ field }) => {
+                                    const rawDigits = normalizeRuPhone(field.value || '');
+                                    const viewMasked = formatRuPhoneForView(rawDigits);
+
+                                    return (
+                                        <div className="form-control">
+                                            <label className="floating-label">
+                                                <span>Телефон</span>
+                                                <input
+                                                    type="tel"
+                                                    className={`input input-bordered w-full ${errors.phone ? 'input-error' : ''}`}
+                                                    placeholder="+7 999 999-99-99"
+                                                    inputMode="tel"
+                                                    autoComplete="tel"
+                                                    maxLength={18}
+                                                    value={viewMasked}
+                                                    onChange={(e) =>
+                                                        field.onChange(
+                                                            denormalizeViewToE164(e.target.value),
+                                                        )
+                                                    }
+                                                    onPaste={(e) => {
+                                                        e.preventDefault();
+                                                        const text =
+                                                            e.clipboardData.getData('text');
+                                                        field.onChange(denormalizeViewToE164(text));
+                                                    }}
+                                                />
+                                            </label>
+                                            {errors.phone && (
+                                                <p className="text-error text-xs mt-1">
+                                                    {errors.phone.message}
+                                                </p>
+                                            )}
+                                        </div>
+                                    );
+                                }}
+                            />
 
                             <div className="form-control">
                                 <label className="floating-label">
