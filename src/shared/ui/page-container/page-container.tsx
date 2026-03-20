@@ -1,4 +1,4 @@
-import { cn } from '@/shared/lib/cn';
+import { cn } from '@/shared/lib';
 
 type TPageContainerBg = 'bg-base-100' | 'bg-base-200' | 'bg-base-300';
 

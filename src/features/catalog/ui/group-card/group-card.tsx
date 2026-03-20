@@ -5,7 +5,7 @@ import { CardWrapper } from '@/shared/ui/card-wrapper';
 import { CardImage } from '@/shared/ui/card-image';
 import type { TGroup } from '@/entities/product';
 import { useBundleImages, getImageProxyUrl } from '@/entities/product';
-import { cn } from '@/shared/lib/cn';
+import { cn } from '@/shared/lib';
 
 type TGroupCardProps = {
     group: TGroup;
@@ -25,7 +25,7 @@ export function GroupCard({ group, variant = 'default' }: TGroupCardProps) {
                 src={imageUrl}
                 isLoading={isImagesLoading}
                 alt={group.groupName ?? 'Категория'}
-                className={cn(variant === 'compact' ? 'w-12 min-h-16' : 'w-20 min-h-[106px]')}
+                className={cn(variant === 'compact' ? 'w-12 min-h-16' : 'w-20 min-h-26.5')}
             />
             <div className="w-full flex flex-col gap-2">
                 <h5

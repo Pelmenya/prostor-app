@@ -1,6 +1,6 @@
 import type { TGroup } from '@/entities/product';
 import { GroupCard } from '../group-card';
-import { cn } from '@/shared/lib/cn';
+import { cn } from '@/shared/lib';
 
 type TGroupListProps = {
     groups: TGroup[];
@@ -27,7 +27,7 @@ export function GroupListSkeleton({ variant = 'default' }: { variant?: 'default'
                     <div
                         className={cn(
                             'skeleton shrink-0',
-                            variant === 'compact' ? 'w-12 h-16' : 'w-20 h-[106px]',
+                            variant === 'compact' ? 'w-12 h-16' : 'w-20 h-26.5',
                         )}
                     />
                     <div className="flex flex-col gap-2 flex-1">

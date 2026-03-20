@@ -34,6 +34,8 @@ export function ProductTabSwitcher({
                         key={tab.id}
                         role="tab"
                         type="button"
+                        aria-selected={activeTab === tab.id}
+                        aria-controls={`tabpanel-${tab.id}`}
                         className={`tab ${activeTab === tab.id ? 'tab-active' : ''}`}
                         onClick={() => onTabChange(tab.id)}
                     >

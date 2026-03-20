@@ -3,6 +3,7 @@
 import { ShoppingCartIcon } from '@heroicons/react/20/solid';
 import { Counter } from '@/shared/ui/counter';
 import type { TProductTabType } from '@/shared/ui/product-tab-switcher';
+import { formatPrice } from '@/shared/lib';
 import type { TProduct, TService, TSalePrice } from '@/entities/product';
 import type { TCartItem } from '@/entities/cart';
 import { ServicesList } from '../service-list';
@@ -38,7 +39,7 @@ function PricesList({ salePrices, size = 'lg' }: { salePrices: TSalePrice[]; siz
                     <p
                         className={`${sizeMap[size] || 'text-lg'} font-semibold tracking-tight text-primary`}
                     >
-                        {(price.value / 100).toLocaleString('ru-RU')} ₽
+                        {formatPrice(price.value)}
                     </p>
                 </li>
             ))}
@@ -59,7 +60,11 @@ export function ProductTabContent({
     onCheckboxChange,
 }: TProductTabContentProps) {
     return (
-        <div className="bg-base-200 border border-base-300 rounded-2xl p-4">
+        <div
+            role="tabpanel"
+            id={`tabpanel-${activeTab}`}
+            className="bg-base-200 border border-base-300 rounded-2xl p-4"
+        >
             {/* Купить */}
             {activeTab === 'buy' && isVisible && (
                 <div className="flex flex-col gap-5">
