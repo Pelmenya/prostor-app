@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { useCurrentPolicy } from '@/entities/privacy-policy';
 
@@ -11,11 +12,34 @@ type TProps = {
 
 export function PrivacyPolicyModal({ isOpen, onClose, onAgree }: TProps) {
     const { data: policy, isLoading, isError } = useCurrentPolicy();
+    const dialogRef = useRef<HTMLDialogElement>(null);
 
-    if (!isOpen) return null;
+    useEffect(() => {
+        const dialog = dialogRef.current;
+        if (!dialog) return;
+
+        if (isOpen && !dialog.open) {
+            dialog.showModal();
+        } else if (!isOpen && dialog.open) {
+            dialog.close();
+        }
+    }, [isOpen]);
+
+    // Обработка закрытия по Escape (native dialog)
+    useEffect(() => {
+        const dialog = dialogRef.current;
+        if (!dialog) return;
+
+        const handleCancel = (e: Event) => {
+            e.preventDefault();
+            onClose();
+        };
+        dialog.addEventListener('cancel', handleCancel);
+        return () => dialog.removeEventListener('cancel', handleCancel);
+    }, [onClose]);
 
     return (
-        <dialog className="modal modal-open">
+        <dialog ref={dialogRef} className="modal">
             <div className="modal-box max-w-2xl max-h-[80vh] flex flex-col">
                 <h3 className="text-lg font-bold mb-4">Политика конфиденциальности</h3>
 
@@ -121,7 +145,11 @@ export function PrivacyPolicyModal({ isOpen, onClose, onAgree }: TProps) {
                     </button>
                 </div>
             </div>
-            <div className="modal-backdrop" onClick={onClose} />
+            <form method="dialog" className="modal-backdrop">
+                <button type="button" onClick={onClose}>
+                    close
+                </button>
+            </form>
         </dialog>
     );
 }

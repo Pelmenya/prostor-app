@@ -65,6 +65,12 @@ export async function apiClient<T = unknown>(
         throw new ApiError(response.status, response.statusText, data);
     }
 
+    // 204 No Content или пустое тело
+    const contentType = response.headers.get('content-type');
+    if (response.status === 204 || !contentType?.includes('application/json')) {
+        return undefined as T;
+    }
+
     return response.json() as Promise<T>;
 }
 

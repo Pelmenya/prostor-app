@@ -5,6 +5,7 @@ import type { TUser } from '@/shared/model';
 
 const ACCESS_TOKEN_KEY = 'prostor_access_token';
 const REFRESH_TOKEN_KEY = 'prostor_refresh_token';
+const USER_KEY = 'prostor_user';
 const ACCESS_TOKEN_COOKIE = 'access_token';
 
 type TAuthStore = {
@@ -18,13 +19,17 @@ type TAuthStore = {
     hydrate(): void;
 };
 
+const isSecure = typeof window !== 'undefined' && window.location.protocol === 'https:';
+
 function setCookie(name: string, value: string, days: number) {
     const expires = new Date(Date.now() + days * 864e5).toUTCString();
-    document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/; SameSite=Lax; Secure`;
+    const secure = isSecure ? '; Secure' : '';
+    document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/; SameSite=Lax${secure}`;
 }
 
 function deleteCookie(name: string) {
-    document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
+    const secure = isSecure ? '; Secure' : '';
+    document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; SameSite=Lax${secure}`;
 }
 
 export const useAuthStore = create<TAuthStore>((set) => ({
@@ -41,12 +46,14 @@ export const useAuthStore = create<TAuthStore>((set) => ({
     },
 
     setUser(user: TUser) {
+        localStorage.setItem(USER_KEY, JSON.stringify(user));
         set({ user });
     },
 
     logout() {
         localStorage.removeItem(ACCESS_TOKEN_KEY);
         localStorage.removeItem(REFRESH_TOKEN_KEY);
+        localStorage.removeItem(USER_KEY);
         deleteCookie(ACCESS_TOKEN_COOKIE);
         set({ accessToken: null, refreshToken: null, user: null, isAuthenticated: false });
     },
@@ -57,7 +64,9 @@ export const useAuthStore = create<TAuthStore>((set) => ({
         const refresh = localStorage.getItem(REFRESH_TOKEN_KEY);
         if (access && refresh) {
             setCookie(ACCESS_TOKEN_COOKIE, access, 1);
-            set({ accessToken: access, refreshToken: refresh, isAuthenticated: true });
+            const userJson = localStorage.getItem(USER_KEY);
+            const user = userJson ? (JSON.parse(userJson) as TUser) : null;
+            set({ accessToken: access, refreshToken: refresh, user, isAuthenticated: true });
         }
     },
 }));

@@ -1,5 +1,6 @@
 'use client';
 
+import { useSyncExternalStore } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
@@ -16,6 +17,16 @@ export function Header({ back = false, backTo }: THeaderProps) {
     const router = useRouter();
     const { isAuthenticated, user, logout } = useAuth();
     const { accessToken, refreshToken } = useAuthStore();
+
+    // Предотвращение hydration mismatch: SSR = false, клиент = true
+    const mounted = useSyncExternalStore(
+        () => () => {},
+        () => true,
+        () => false,
+    );
+
+    const showAuth = mounted && isAuthenticated;
+    const showUser = mounted && isAuthenticated && user;
 
     const handleLogout = async () => {
         if (accessToken && refreshToken) {
@@ -35,6 +46,7 @@ export function Header({ back = false, backTo }: THeaderProps) {
                 <div className="navbar-start gap-2 !w-auto flex-1 min-w-0">
                     {back && (
                         <button
+                            aria-label="Назад"
                             onClick={() => (backTo ? router.push(backTo) : router.back())}
                             className="size-10 flex items-center justify-center cursor-pointer hover:opacity-80"
                         >
@@ -42,7 +54,7 @@ export function Header({ back = false, backTo }: THeaderProps) {
                         </button>
                     )}
 
-                    {isAuthenticated && user ? (
+                    {showUser ? (
                         <>
                             <div className={`avatar placeholder ${!back ? 'ml-1' : ''}`}>
                                 <div className="ring-primary ring-offset-base-100 size-6 rounded-full ring-1 ring-offset-2 bg-primary text-primary-content sm:size-8 md:size-12 lg:size-16">
@@ -68,11 +80,11 @@ export function Header({ back = false, backTo }: THeaderProps) {
                 </div>
 
                 <div className="navbar-end gap-2 !w-auto">
-                    {isAuthenticated ? (
+                    {showAuth ? (
                         <button onClick={handleLogout} className="btn btn-ghost btn-sm">
                             Выйти
                         </button>
-                    ) : (
+                    ) : mounted ? (
                         <>
                             <Link href="/login" className="btn btn-primary btn-sm">
                                 Войти
@@ -84,7 +96,7 @@ export function Header({ back = false, backTo }: THeaderProps) {
                                 Регистрация
                             </Link>
                         </>
-                    )}
+                    ) : null}
                 </div>
             </div>
         </header>
