@@ -7,11 +7,6 @@ type TAuthResponse = {
     refreshToken: string;
 };
 
-type TTokensResponse = {
-    accessToken: string;
-    refreshToken: string;
-};
-
 export async function webRegister(body: {
     first_name: string;
     last_name: string;
@@ -30,13 +25,6 @@ export async function webLogin(body: { email: string; password: string }): Promi
     return apiClient<TAuthResponse>('/auth/web/login', {
         method: 'POST',
         body,
-    });
-}
-
-export async function refreshTokens(refreshToken: string): Promise<TTokensResponse> {
-    return apiClient<TTokensResponse>('/auth/web/refresh', {
-        method: 'POST',
-        body: { refreshToken },
     });
 }
 

@@ -1,5 +1,5 @@
 import type { TPlatformAdapter, TPlatformUser, TPlatform } from '../types';
-import { useAuthStore } from '@/shared/lib/auth';
+import { useAuthStore, mapUserToPlatformUser } from '@/shared/lib/auth';
 
 export class WebAdapter implements TPlatformAdapter {
     platform: TPlatform = 'web';
@@ -16,14 +16,7 @@ export class WebAdapter implements TPlatformAdapter {
 
     getUser(): TPlatformUser | null {
         const { user } = useAuthStore.getState();
-        if (!user) return null;
-        return {
-            id: user.id,
-            firstName: user.first_name,
-            lastName: user.last_name,
-            username: user.username,
-            photo: user.photo_url,
-        };
+        return mapUserToPlatformUser(user);
     }
 
     isAuthenticated(): boolean {

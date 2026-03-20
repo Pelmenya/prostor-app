@@ -64,8 +64,13 @@ export const useAuthStore = create<TAuthStore>((set) => ({
         const refresh = localStorage.getItem(REFRESH_TOKEN_KEY);
         if (access && refresh) {
             setCookie(ACCESS_TOKEN_COOKIE, access, 1);
-            const userJson = localStorage.getItem(USER_KEY);
-            const user = userJson ? (JSON.parse(userJson) as TUser) : null;
+            let user: TUser | null = null;
+            try {
+                const userJson = localStorage.getItem(USER_KEY);
+                user = userJson ? (JSON.parse(userJson) as TUser) : null;
+            } catch {
+                /* corrupted localStorage data */
+            }
             set({ accessToken: access, refreshToken: refresh, user, isAuthenticated: true });
         }
     },
