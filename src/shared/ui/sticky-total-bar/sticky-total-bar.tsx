@@ -27,7 +27,7 @@ export function StickyTotalBar({
     if (lines.length === 0) return null;
 
     return (
-        <div className="absolute w-full h-19 flex justify-between items-center py-2 px-4 bg-base-100 left-0 z-12 border-t border-base-content/10 shadow-sm-top lg:justify-end lg:gap-4 bottom-0">
+        <div className="sticky bottom-0 h-19 flex justify-between items-center py-2 px-4 bg-base-100 z-12 border-t border-base-content/10 shadow-sm-top lg:justify-end lg:gap-4">
             <div className="flex text-xs items-center">
                 <div className="flex flex-col gap-1 text-primary md:flex-row">
                     <span className="uppercase">Итого:</span>

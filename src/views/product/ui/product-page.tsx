@@ -23,7 +23,6 @@ export function ProductPage({ productId }: TProductPageProps) {
     // Корзина (логика вынесена в хук)
     const {
         cartItem,
-        hasCartItems,
         handleProductIncrement,
         handleProductDecrement,
         handleServiceIncrement,
@@ -102,15 +101,8 @@ export function ProductPage({ productId }: TProductPageProps) {
 
     // ---- Рендер ----
     return (
-        <PageContainer bg="bg-base-100">
-            <div
-                className="flex flex-col justify-between"
-                style={
-                    hasCartItems
-                        ? { paddingBottom: 'calc(4.75rem + env(safe-area-inset-bottom))' }
-                        : {}
-                }
-            >
+        <>
+            <PageContainer bg="bg-base-100">
                 <div className="pb-4">
                     <Breadcrumbs items={breadcrumbs} isLoading={isLoadingPath} />
                 </div>
@@ -142,9 +134,9 @@ export function ProductPage({ productId }: TProductPageProps) {
                         />
                     </div>
                 </div>
+            </PageContainer>
 
-                <ProductTotal cartItem={cartItem} />
-            </div>
-        </PageContainer>
+            <ProductTotal cartItem={cartItem} />
+        </>
     );
 }
