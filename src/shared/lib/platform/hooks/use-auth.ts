@@ -1,16 +1,20 @@
 import type { TPlatform } from '../types';
 import { usePlatform } from './use-platform';
+import { useAuthStore, mapUserToPlatformUser } from '@/shared/lib/auth';
 
-// TODO: когда появится NextAuth — добавить fallback на сессию для (web) layout.
-// Сейчас без PlatformProvider authHeader = null → запросы без авторизации.
-// Web-авторизация: useAuth() должен проверять NextAuth session если adapter === null.
 export function useAuth() {
     const adapter = usePlatform();
+    const store = useAuthStore();
+
+    const adapterUser = adapter?.getUser() ?? null;
+    const storeUser = mapUserToPlatformUser(store.user);
 
     return {
-        authHeader: adapter?.getAuthHeader() ?? null,
-        user: adapter?.getUser() ?? null,
-        isAuthenticated: adapter?.isAuthenticated() ?? false,
+        authHeader:
+            adapter?.getAuthHeader() ?? (store.accessToken ? `Bearer ${store.accessToken}` : null),
+        user: adapterUser ?? storeUser,
+        isAuthenticated: adapter?.isAuthenticated() ?? store.isAuthenticated,
         platform: (adapter?.platform ?? 'web') as TPlatform,
+        logout: store.logout,
     };
 }

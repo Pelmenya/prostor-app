@@ -1,0 +1,2 @@
+export { useCurrentPolicy } from './api/privacy-policy.api';
+export type { TPrivacyPolicy } from './api/privacy-policy.api';
