@@ -73,6 +73,24 @@
     }
 }
 
+@utility page-container {
+    --page-padding: 1rem;
+    padding: var(--page-padding);
+
+    @media (width >= theme(--breakpoint-md)) {
+        --page-padding: 1.5rem;
+    }
+
+    @media (width >= theme(--breakpoint-xl)) {
+        --page-padding: 2.5rem;
+    }
+}
+
+@utility full-bleed {
+    margin-inline: calc(-1 * var(--page-padding));
+    width: calc(100% + 2 * var(--page-padding));
+}
+
 @utility text-trim {
     text-box-trim: both;
     text-box-edge: cap alphabetic;

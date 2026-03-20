@@ -81,7 +81,7 @@ export function ProductPage({ productId }: TProductPageProps) {
             <PageContainer bg="bg-base-100">
                 <div className="flex flex-col gap-4">
                     <div className="skeleton h-4 w-48 mb-4" />
-                    <div className="skeleton h-[268px] rounded-none -mx-4 md:-mx-6 xl:-mx-10 w-[calc(100%+2rem)] md:w-[calc(100%+3rem)] xl:w-[calc(100%+5rem)]" />
+                    <div className="skeleton h-[268px] rounded-none full-bleed" />
                     <div className="skeleton h-6 w-3/4 mt-4" />
                     <div className="flex gap-2 mt-4">
                         <div className="skeleton h-10 w-24 rounded-lg" />
