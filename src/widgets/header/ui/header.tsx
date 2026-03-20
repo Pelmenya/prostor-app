@@ -43,7 +43,7 @@ export function Header({ back = false, backTo }: THeaderProps) {
     return (
         <header className="relative z-10 shrink-0 bg-base-100 border-b border-base-content/10 shadow-sm">
             <div className="navbar px-4 py-2">
-                <div className="navbar-start gap-2 !w-auto flex-1 min-w-0">
+                <div className="navbar-start gap-2 w-auto flex-1 min-w-0">
                     {back && (
                         <button
                             aria-label="Назад"
@@ -56,10 +56,11 @@ export function Header({ back = false, backTo }: THeaderProps) {
 
                     {showUser ? (
                         <>
-                            <div className={`avatar placeholder ${!back ? 'ml-1' : ''}`}>
+                            <div className={`avatar avatar-placeholder ${!back ? 'ml-1' : ''}`}>
                                 <div className="ring-primary ring-offset-base-100 size-6 rounded-full ring-1 ring-offset-2 bg-primary text-primary-content sm:size-8 md:size-12 lg:size-16">
-                                    <span className="text-xs sm:text-sm md:text-base">
-                                        {user.firstName?.charAt(0) ?? '?'}
+                                    <span className="font-semibold text-xs sm:text-sm md:text-base">
+                                        {(user.firstName?.charAt(0) ?? '?') +
+                                            (user.lastName?.charAt(0) ?? '')}
                                     </span>
                                 </div>
                             </div>
@@ -79,7 +80,7 @@ export function Header({ back = false, backTo }: THeaderProps) {
                     )}
                 </div>
 
-                <div className="navbar-end gap-2 !w-auto">
+                <div className="navbar-end gap-2 w-auto">
                     {showAuth ? (
                         <button onClick={handleLogout} className="btn btn-ghost btn-sm">
                             Выйти
