@@ -16,8 +16,10 @@ import {
     denormalizeViewToE164,
 } from '@/shared/lib';
 import { useCurrentPolicy } from '@/entities/privacy-policy';
+import { useCurrentAgreement } from '@/entities/personal-data-agreement';
 import { PageContainer } from '@/shared/ui';
 import { PrivacyPolicyModal } from './privacy-policy-modal';
+import { PersonalDataModal } from './personal-data-modal';
 
 const phoneE164Ru = /^\+7\d{10}$/;
 
@@ -27,8 +29,11 @@ const registerSchema = z.object({
     email: z.string().min(1, 'Введите email').email('Неверный формат email'),
     phone: z.string().regex(phoneE164Ru, 'Введите номер в формате +7 999 999-99-99'),
     password: z.string().min(8, 'Минимум 8 символов'),
-    agree: z.boolean().refine((v) => v === true, {
+    agreePolicy: z.boolean().refine((v) => v === true, {
         message: 'Необходимо согласие с политикой конфиденциальности',
+    }),
+    agreePd: z.boolean().refine((v) => v === true, {
+        message: 'Необходимо согласие на обработку персональных данных',
     }),
 });
 
@@ -42,8 +47,14 @@ export function RegisterPage() {
         isLoading: isPolicyLoading,
         isError: isPolicyError,
     } = useCurrentPolicy();
+    const {
+        data: currentAgreement,
+        isLoading: isAgreementLoading,
+        isError: isAgreementError,
+    } = useCurrentAgreement();
 
     const [isPolicyModalOpen, setIsPolicyModalOpen] = useState(false);
+    const [isPdModalOpen, setIsPdModalOpen] = useState(false);
     const [serverError, setServerError] = useState<string | null>(null);
 
     const {
@@ -60,30 +71,38 @@ export function RegisterPage() {
             email: '',
             phone: '',
             password: '',
-            agree: false,
+            agreePolicy: false,
+            agreePd: false,
         },
     });
 
-    const agree = useWatch({ name: 'agree', control });
+    const agreePolicy = useWatch({ name: 'agreePolicy', control });
+    const agreePd = useWatch({ name: 'agreePd', control });
 
-    const handleAgreeFromModal = () => {
-        setValue('agree', true, { shouldValidate: true });
+    const handleAgreePolicyFromModal = () => {
+        setValue('agreePolicy', true, { shouldValidate: true });
         setIsPolicyModalOpen(false);
+    };
+
+    const handleAgreePdFromModal = () => {
+        setValue('agreePd', true, { shouldValidate: true });
+        setIsPdModalOpen(false);
     };
 
     const onSubmit = async (form: TRegisterForm) => {
         setServerError(null);
 
-        if (!currentPolicy?.version) {
-            setServerError('Не удалось загрузить политику конфиденциальности. Обновите страницу.');
+        if (!currentPolicy?.version || !currentAgreement?.version) {
+            setServerError('Не удалось загрузить документы. Обновите страницу.');
             return;
         }
 
         try {
-            const { agree: _, ...payload } = form;
+            const { agreePolicy: _, agreePd: __, ...payload } = form;
             const data = await webRegister({
                 ...payload,
                 policyVersion: currentPolicy.version,
+                pdAgreementVersion: currentAgreement.version,
             });
             setTokens(data.accessToken, data.refreshToken);
             setUser(data.user);
@@ -104,9 +123,9 @@ export function RegisterPage() {
                     <div className="card-body">
                         <h1 className="card-title text-2xl gradient-text">Регистрация</h1>
 
-                        {isPolicyError && (
+                        {(isPolicyError || isAgreementError) && (
                             <div className="alert alert-error text-sm">
-                                Не удалось загрузить политику конфиденциальности. Обновите страницу.
+                                Не удалось загрузить документы. Обновите страницу.
                             </div>
                         )}
 
@@ -224,21 +243,20 @@ export function RegisterPage() {
                                 )}
                             </div>
 
-                            <div className="flex flex-col w-full">
+                            <div className="flex flex-col w-full gap-3">
                                 <label className="flex items-start gap-2 cursor-pointer w-full">
                                     <input
                                         type="checkbox"
-                                        checked={agree}
+                                        checked={agreePolicy}
                                         onChange={(e) =>
-                                            setValue('agree', e.target.checked, {
+                                            setValue('agreePolicy', e.target.checked, {
                                                 shouldValidate: true,
                                             })
                                         }
                                         className="checkbox checkbox-primary mt-0.5"
                                     />
                                     <span className="text-sm leading-snug">
-                                        Нажимая на кнопку «Создать аккаунт», вы даёте согласие на
-                                        обработку персональных данных и соглашаетесь с{' '}
+                                        Соглашаюсь с{' '}
                                         <button
                                             type="button"
                                             className="link text-primary underline"
@@ -248,9 +266,37 @@ export function RegisterPage() {
                                         </button>
                                     </span>
                                 </label>
-                                {errors.agree && (
+                                {errors.agreePolicy && (
                                     <p className="text-error text-xs mt-1">
-                                        {errors.agree.message}
+                                        {errors.agreePolicy.message}
+                                    </p>
+                                )}
+
+                                <label className="flex items-start gap-2 cursor-pointer w-full">
+                                    <input
+                                        type="checkbox"
+                                        checked={agreePd}
+                                        onChange={(e) =>
+                                            setValue('agreePd', e.target.checked, {
+                                                shouldValidate: true,
+                                            })
+                                        }
+                                        className="checkbox checkbox-primary mt-0.5"
+                                    />
+                                    <span className="text-sm leading-snug">
+                                        Даю{' '}
+                                        <button
+                                            type="button"
+                                            className="link text-primary underline"
+                                            onClick={() => setIsPdModalOpen(true)}
+                                        >
+                                            согласие на обработку персональных данных
+                                        </button>
+                                    </span>
+                                </label>
+                                {errors.agreePd && (
+                                    <p className="text-error text-xs mt-1">
+                                        {errors.agreePd.message}
                                     </p>
                                 )}
                             </div>
@@ -262,7 +308,13 @@ export function RegisterPage() {
                             <button
                                 type="submit"
                                 className="btn btn-primary w-full"
-                                disabled={isSubmitting || isPolicyLoading || isPolicyError}
+                                disabled={
+                                    isSubmitting ||
+                                    isPolicyLoading ||
+                                    isPolicyError ||
+                                    isAgreementLoading ||
+                                    isAgreementError
+                                }
                             >
                                 {isSubmitting ? (
                                     <span className="loading loading-spinner loading-sm" />
@@ -285,7 +337,13 @@ export function RegisterPage() {
             <PrivacyPolicyModal
                 isOpen={isPolicyModalOpen}
                 onClose={() => setIsPolicyModalOpen(false)}
-                onAgree={handleAgreeFromModal}
+                onAgree={handleAgreePolicyFromModal}
+            />
+
+            <PersonalDataModal
+                isOpen={isPdModalOpen}
+                onClose={() => setIsPdModalOpen(false)}
+                onAgree={handleAgreePdFromModal}
             />
         </PageContainer>
     );
