@@ -10,3 +10,7 @@ export { ProductTabSwitcher } from './product-tab-switcher';
 export type { TProductTabType } from './product-tab-switcher';
 export { StickyTotalBar } from './sticky-total-bar';
 export type { TLineItem } from './sticky-total-bar';
+export { LegalDocumentModal } from './legal-document-modal';
+export { LegalMarkdown } from './legal-markdown';
+export { LegalDocumentMeta } from './legal-document-meta';
+export { FormField } from './form-field';

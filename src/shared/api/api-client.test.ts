@@ -1,19 +1,23 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { apiClient, ApiError } from './api-client';
 
+function mockFetchJson(data: unknown, extra: Record<string, unknown> = {}) {
+    return vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: () => Promise.resolve(data),
+        ...extra,
+    });
+}
+
 describe('apiClient', () => {
     afterEach(() => {
         vi.restoreAllMocks();
     });
 
     it('отправляет GET-запрос на правильный URL', async () => {
-        vi.stubGlobal(
-            'fetch',
-            vi.fn().mockResolvedValue({
-                ok: true,
-                json: () => Promise.resolve({ id: 1 }),
-            }),
-        );
+        vi.stubGlobal('fetch', mockFetchJson({ id: 1 }));
 
         const result = await apiClient('/test');
 
@@ -25,13 +29,7 @@ describe('apiClient', () => {
     });
 
     it('добавляет Authorization при наличии auth', async () => {
-        vi.stubGlobal(
-            'fetch',
-            vi.fn().mockResolvedValue({
-                ok: true,
-                json: () => Promise.resolve({}),
-            }),
-        );
+        vi.stubGlobal('fetch', mockFetchJson({}));
 
         await apiClient('/test', { auth: 'tma test-data' });
 
@@ -46,13 +44,7 @@ describe('apiClient', () => {
     });
 
     it('не добавляет Authorization без auth', async () => {
-        vi.stubGlobal(
-            'fetch',
-            vi.fn().mockResolvedValue({
-                ok: true,
-                json: () => Promise.resolve({}),
-            }),
-        );
+        vi.stubGlobal('fetch', mockFetchJson({}));
 
         await apiClient('/test');
 
@@ -61,13 +53,7 @@ describe('apiClient', () => {
     });
 
     it('добавляет Content-Type только при наличии body', async () => {
-        vi.stubGlobal(
-            'fetch',
-            vi.fn().mockResolvedValue({
-                ok: true,
-                json: () => Promise.resolve({}),
-            }),
-        );
+        vi.stubGlobal('fetch', mockFetchJson({}));
 
         // GET без body — нет Content-Type
         await apiClient('/test');
@@ -96,13 +82,7 @@ describe('apiClient', () => {
     });
 
     it('отправляет POST с JSON body', async () => {
-        vi.stubGlobal(
-            'fetch',
-            vi.fn().mockResolvedValue({
-                ok: true,
-                json: () => Promise.resolve({ success: true }),
-            }),
-        );
+        vi.stubGlobal('fetch', mockFetchJson({ success: true }));
 
         await apiClient('/test', { method: 'POST', body: { name: 'test' } });
 

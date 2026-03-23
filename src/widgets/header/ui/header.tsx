@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '@/shared/lib/platform';
-import { useAuthStore } from '@/shared/lib/auth';
+import { useAuthStore } from '@/shared/lib';
 import { webLogout } from '@/features/auth';
 
 type THeaderProps = {

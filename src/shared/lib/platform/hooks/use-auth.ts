@@ -1,6 +1,6 @@
 import type { TPlatform } from '../types';
 import { usePlatform } from './use-platform';
-import { useAuthStore, mapUserToPlatformUser } from '@/shared/lib/auth';
+import { useAuthStore, mapUserToPlatformUser } from '@/shared/lib';
 
 export function useAuth() {
     const adapter = usePlatform();

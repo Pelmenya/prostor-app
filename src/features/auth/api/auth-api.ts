@@ -14,6 +14,7 @@ export async function webRegister(body: {
     phone: string;
     password: string;
     policyVersion: string;
+    pdAgreementVersion: string;
 }): Promise<TAuthResponse> {
     return apiClient<TAuthResponse>('/auth/web/register', {
         method: 'POST',
