@@ -47,3 +47,11 @@ export async function pushTest(): Promise<{ sent: boolean }> {
         auth: getAuth(),
     });
 }
+
+export async function pushBroadcast(title: string, body: string): Promise<{ sent: number }> {
+    return apiClient<{ sent: number }>('/push/broadcast', {
+        method: 'POST',
+        body: { title, body },
+        auth: getAuth(),
+    });
+}
