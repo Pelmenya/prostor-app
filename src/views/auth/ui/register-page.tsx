@@ -47,7 +47,7 @@ function ConsentCheckboxes() {
     return (
         <div className="flex flex-col w-full gap-3">
             <div>
-                <label className="flex items-center gap-2 cursor-pointer w-full">
+                <label className="flex items-start gap-2 cursor-pointer w-full">
                     <input
                         type="checkbox"
                         className="checkbox checkbox-primary mt-0.5"
@@ -71,7 +71,7 @@ function ConsentCheckboxes() {
             </div>
 
             <div>
-                <label className="flex items-center gap-2 cursor-pointer w-full">
+                <label className="flex items-start gap-2 cursor-pointer w-full">
                     <input
                         type="checkbox"
                         className="checkbox checkbox-primary mt-0.5"

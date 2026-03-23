@@ -2,7 +2,8 @@
 
 import { useEffect, useRef } from 'react';
 import type { TLegalDocument } from '@/shared/model';
-import { LegalMarkdown } from '../legal-markdown';
+import { LegalMarkdown } from '@/shared/ui/legal-markdown';
+import { LegalDocumentMeta } from '@/shared/ui/legal-document-meta';
 
 // Для miniapp layout — модалка с юридическим документом
 type TProps = {
@@ -68,24 +69,7 @@ export function LegalDocumentModal({
                     {isError && <div className="alert alert-error">{errorMessage}</div>}
                     {document && (
                         <>
-                            <div className="alert alert-info mb-4">
-                                <div className="flex flex-col gap-1">
-                                    <span className="font-semibold">
-                                        Версия: {document.version}
-                                    </span>
-                                    <span className="text-xs">
-                                        Действует с:{' '}
-                                        {new Date(document.effectiveDate).toLocaleDateString(
-                                            'ru-RU',
-                                            {
-                                                year: 'numeric',
-                                                month: 'long',
-                                                day: 'numeric',
-                                            },
-                                        )}
-                                    </span>
-                                </div>
-                            </div>
+                            <LegalDocumentMeta document={document} className="mb-4" />
                             <LegalMarkdown content={document.content} compact />
                         </>
                     )}

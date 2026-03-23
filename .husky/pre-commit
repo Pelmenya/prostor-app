@@ -1,4 +1,4 @@
 npx lint-staged
 npx steiger ./src
 npx tsc --noEmit
-npx vitest run
+npx vitest run --changed
