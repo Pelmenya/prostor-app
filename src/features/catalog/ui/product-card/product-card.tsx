@@ -6,6 +6,7 @@ import { CardImage } from '@/shared/ui/card-image';
 import { formatPrice } from '@/shared/lib';
 import type { TProduct } from '@/entities/product';
 import { useProductImages, getImageProxyUrl } from '@/entities/product';
+import { getSalePrices } from '../../lib/get-sale-prices';
 
 type TProductCardProps = {
     product: TProduct;
@@ -18,7 +19,7 @@ export function ProductCard({ product }: TProductCardProps) {
     const mainImage = images?.[0];
     const imageUrl = mainImage ? getImageProxyUrl(mainImage.meta.downloadHref) : null;
 
-    const price = product.salePrices?.[0]?.value;
+    const price = getSalePrices(product.salePrices)[0]?.value;
 
     return (
         <CardWrapper
