@@ -4,6 +4,9 @@ import {
     selectTotalItems,
     selectTotalPrice,
     selectTotalRateOfHours,
+    selectAreAllSelected,
+    selectHasSelectedItems,
+    selectSelectedItems,
 } from './cart.store';
 import type { TProduct, TService, TSalePrice } from '@/shared/model';
 import { EServiceCategory } from '@/shared/model';
@@ -179,6 +182,166 @@ describe('cart.store', () => {
 
             const hours = selectTotalRateOfHours(useCartStore.getState().items);
             expect(hours).toBe(4); // 2 * rateOfHours(2)
+        });
+    });
+
+    describe('selectedForCheckout', () => {
+        it('addProduct добавляет с selectedForCheckout: true', () => {
+            useCartStore.getState().addProduct(mockProduct, 1, 1500000);
+
+            expect(useCartStore.getState().items['prod-1'].selectedForCheckout).toBe(true);
+        });
+
+        it('addService добавляет с selectedForCheckout: true', () => {
+            useCartStore.getState().addProduct(mockProduct, 1, 1500000);
+            useCartStore.getState().addService('prod-1', mockService, 1, 150000);
+
+            expect(
+                useCartStore.getState().items['prod-1'].services['svc-1'].selectedForCheckout,
+            ).toBe(true);
+        });
+    });
+
+    describe('toggleProductSelected', () => {
+        it('переключает selectedForCheckout товара', () => {
+            useCartStore.getState().addProduct(mockProduct, 1, 1500000);
+            useCartStore.getState().toggleProductSelected('prod-1');
+
+            expect(useCartStore.getState().items['prod-1'].selectedForCheckout).toBe(false);
+
+            useCartStore.getState().toggleProductSelected('prod-1');
+            expect(useCartStore.getState().items['prod-1'].selectedForCheckout).toBe(true);
+        });
+    });
+
+    describe('toggleServiceSelected', () => {
+        it('переключает selectedForCheckout услуги', () => {
+            useCartStore.getState().addProduct(mockProduct, 1, 1500000);
+            useCartStore.getState().addService('prod-1', mockService, 1, 150000);
+            useCartStore.getState().toggleServiceSelected('prod-1', 'svc-1');
+
+            expect(
+                useCartStore.getState().items['prod-1'].services['svc-1'].selectedForCheckout,
+            ).toBe(false);
+        });
+    });
+
+    describe('toggleAllSelected', () => {
+        it('устанавливает selectedForCheckout для всех товаров и услуг', () => {
+            useCartStore.getState().addProduct(mockProduct, 1, 1500000);
+            useCartStore.getState().addService('prod-1', mockService, 1, 150000);
+            useCartStore.getState().toggleAllSelected(false);
+
+            const items = useCartStore.getState().items;
+            expect(items['prod-1'].selectedForCheckout).toBe(false);
+            expect(items['prod-1'].services['svc-1'].selectedForCheckout).toBe(false);
+
+            useCartStore.getState().toggleAllSelected(true);
+            const items2 = useCartStore.getState().items;
+            expect(items2['prod-1'].selectedForCheckout).toBe(true);
+            expect(items2['prod-1'].services['svc-1'].selectedForCheckout).toBe(true);
+        });
+    });
+
+    describe('removeSelected', () => {
+        it('удаляет выбранные товары', () => {
+            useCartStore.getState().addProduct(mockProduct, 1, 1500000);
+            useCartStore.getState().removeSelected();
+
+            expect(useCartStore.getState().items['prod-1']).toBeUndefined();
+        });
+
+        it('не удаляет невыбранные товары', () => {
+            useCartStore.getState().addProduct(mockProduct, 1, 1500000);
+            useCartStore.getState().toggleProductSelected('prod-1');
+            useCartStore.getState().removeSelected();
+
+            expect(useCartStore.getState().items['prod-1']).toBeDefined();
+        });
+
+        it('удаляет выбранные услуги, оставляя невыбранные', () => {
+            const mockService2: TService = {
+                ...mockService,
+                id: 'svc-2',
+                name: 'Сервис DWM-101S',
+                category: EServiceCategory.SERVISNOE_OBSLUZHIVANIE,
+            };
+
+            useCartStore.getState().addProduct(mockProduct, 1, 1500000);
+            useCartStore.getState().addService('prod-1', mockService, 1, 150000);
+            useCartStore.getState().addService('prod-1', mockService2, 1, 100000);
+            // Снимаем товар и svc-2 с выбора, svc-1 остаётся selected
+            useCartStore.getState().toggleProductSelected('prod-1');
+            useCartStore.getState().toggleServiceSelected('prod-1', 'svc-2');
+            // removeSelected удалит svc-1 (selected=true), оставит svc-2 (selected=false)
+            useCartStore.getState().removeSelected();
+
+            const item = useCartStore.getState().items['prod-1'];
+            expect(item).toBeDefined();
+            expect(item.services['svc-1']).toBeUndefined();
+            expect(item.services['svc-2']).toBeDefined();
+        });
+    });
+
+    describe('selectAreAllSelected', () => {
+        it('true когда все выбраны', () => {
+            useCartStore.getState().addProduct(mockProduct, 1, 1500000);
+            useCartStore.getState().addService('prod-1', mockService, 1, 150000);
+
+            expect(selectAreAllSelected(useCartStore.getState().items)).toBe(true);
+        });
+
+        it('false когда товар не выбран', () => {
+            useCartStore.getState().addProduct(mockProduct, 1, 1500000);
+            useCartStore.getState().toggleProductSelected('prod-1');
+
+            expect(selectAreAllSelected(useCartStore.getState().items)).toBe(false);
+        });
+
+        it('false для пустой корзины', () => {
+            expect(selectAreAllSelected(useCartStore.getState().items)).toBe(false);
+        });
+    });
+
+    describe('selectHasSelectedItems', () => {
+        it('true когда хотя бы один выбран', () => {
+            useCartStore.getState().addProduct(mockProduct, 1, 1500000);
+
+            expect(selectHasSelectedItems(useCartStore.getState().items)).toBe(true);
+        });
+
+        it('false когда ничего не выбрано', () => {
+            useCartStore.getState().addProduct(mockProduct, 1, 1500000);
+            useCartStore.getState().toggleProductSelected('prod-1');
+
+            expect(selectHasSelectedItems(useCartStore.getState().items)).toBe(false);
+        });
+    });
+
+    describe('selectSelectedItems', () => {
+        it('возвращает только выбранные товары', () => {
+            const mockProduct2: TProduct = { ...mockProduct, id: 'prod-2', name: 'Второй товар' };
+            useCartStore.getState().addProduct(mockProduct, 1, 1500000);
+            useCartStore.getState().addProduct(mockProduct2, 1, 2000000);
+            useCartStore.getState().toggleProductSelected('prod-2');
+
+            const selected = selectSelectedItems(useCartStore.getState().items);
+            expect(Object.keys(selected)).toEqual(['prod-1']);
+        });
+
+        it('фильтрует услуги внутри товара', () => {
+            const mockService2: TService = {
+                ...mockService,
+                id: 'svc-2',
+                name: 'Сервис',
+            };
+            useCartStore.getState().addProduct(mockProduct, 1, 1500000);
+            useCartStore.getState().addService('prod-1', mockService, 1, 150000);
+            useCartStore.getState().addService('prod-1', mockService2, 1, 100000);
+            useCartStore.getState().toggleServiceSelected('prod-1', 'svc-2');
+
+            const selected = selectSelectedItems(useCartStore.getState().items);
+            expect(Object.keys(selected['prod-1'].services)).toEqual(['svc-1']);
         });
     });
 });

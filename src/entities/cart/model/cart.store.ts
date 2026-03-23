@@ -13,6 +13,7 @@ export type TCartServiceItem = {
     count: number;
     price: number;
     checked: boolean;
+    selectedForCheckout: boolean;
 };
 
 export type TCartItem = {
@@ -23,6 +24,7 @@ export type TCartItem = {
     };
     count: number;
     price: number;
+    selectedForCheckout: boolean;
     services: Record<string, TCartServiceItem>;
 };
 
@@ -38,6 +40,12 @@ type TCartStore = {
     // Actions — услуги
     addService: (productId: string, service: TService, count: number, price: number) => void;
     updateServiceCount: (productId: string, serviceId: string, count: number) => void;
+
+    // Actions — selectedForCheckout
+    toggleProductSelected: (productId: string) => void;
+    toggleServiceSelected: (productId: string, serviceId: string) => void;
+    toggleAllSelected: (selected: boolean) => void;
+    removeSelected: () => void;
 
     // Управление
     clear: () => void;
@@ -91,6 +99,45 @@ export function selectTotalRateOfHours(items: Record<string, TCartItem>): number
     }, 0);
 }
 
+export function selectAreAllSelected(items: Record<string, TCartItem>): boolean {
+    const entries = Object.values(items);
+    if (entries.length === 0) return false;
+
+    return entries.every((item) => {
+        if (!item.selectedForCheckout) return false;
+        return Object.values(item.services).every((svc) => !svc.checked || svc.selectedForCheckout);
+    });
+}
+
+export function selectHasSelectedItems(items: Record<string, TCartItem>): boolean {
+    return Object.values(items).some((item) => {
+        if (item.selectedForCheckout) return true;
+        return Object.values(item.services).some((svc) => svc.checked && svc.selectedForCheckout);
+    });
+}
+
+export function selectSelectedItems(items: Record<string, TCartItem>): Record<string, TCartItem> {
+    const result: Record<string, TCartItem> = {};
+
+    for (const [productId, item] of Object.entries(items)) {
+        const selectedServices: Record<string, TCartServiceItem> = {};
+        for (const [svcId, svc] of Object.entries(item.services)) {
+            if (svc.checked && svc.selectedForCheckout) {
+                selectedServices[svcId] = svc;
+            }
+        }
+
+        if (item.selectedForCheckout || Object.keys(selectedServices).length > 0) {
+            result[productId] = {
+                ...item,
+                services: selectedServices,
+            };
+        }
+    }
+
+    return result;
+}
+
 // ---- Store ----
 
 export const useCartStore = create<TCartStore>()(
@@ -124,6 +171,7 @@ export const useCartStore = create<TCartStore>()(
                                 },
                                 count,
                                 price,
+                                selectedForCheckout: true,
                                 services: {},
                             },
                         },
@@ -168,6 +216,7 @@ export const useCartStore = create<TCartStore>()(
                                         count,
                                         price,
                                         checked: count > 0,
+                                        selectedForCheckout: true,
                                     },
                                 },
                             },
@@ -200,6 +249,83 @@ export const useCartStore = create<TCartStore>()(
                     return {
                         items: { ...state.items, [productId]: updatedItem },
                     };
+                }),
+
+            toggleProductSelected: (productId) =>
+                set((state) => {
+                    const item = state.items[productId];
+                    if (!item) return state;
+
+                    return {
+                        items: {
+                            ...state.items,
+                            [productId]: {
+                                ...item,
+                                selectedForCheckout: !item.selectedForCheckout,
+                            },
+                        },
+                    };
+                }),
+
+            toggleServiceSelected: (productId, serviceId) =>
+                set((state) => {
+                    const item = state.items[productId];
+                    const svc = item?.services?.[serviceId];
+                    if (!item || !svc) return state;
+
+                    return {
+                        items: {
+                            ...state.items,
+                            [productId]: {
+                                ...item,
+                                services: {
+                                    ...item.services,
+                                    [serviceId]: {
+                                        ...svc,
+                                        selectedForCheckout: !svc.selectedForCheckout,
+                                    },
+                                },
+                            },
+                        },
+                    };
+                }),
+
+            toggleAllSelected: (selected) =>
+                set((state) => {
+                    const updated: Record<string, TCartItem> = {};
+                    for (const [id, item] of Object.entries(state.items)) {
+                        const updatedServices: Record<string, TCartServiceItem> = {};
+                        for (const [svcId, svc] of Object.entries(item.services)) {
+                            updatedServices[svcId] = { ...svc, selectedForCheckout: selected };
+                        }
+                        updated[id] = {
+                            ...item,
+                            selectedForCheckout: selected,
+                            services: updatedServices,
+                        };
+                    }
+                    return { items: updated };
+                }),
+
+            removeSelected: () =>
+                set((state) => {
+                    const updated: Record<string, TCartItem> = {};
+                    for (const [id, item] of Object.entries(state.items)) {
+                        if (item.selectedForCheckout) continue;
+
+                        const remainingServices: Record<string, TCartServiceItem> = {};
+                        for (const [svcId, svc] of Object.entries(item.services)) {
+                            if (!svc.selectedForCheckout) {
+                                remainingServices[svcId] = svc;
+                            }
+                        }
+
+                        const updatedItem = { ...item, services: remainingServices };
+                        if (!shouldRemoveProduct(updatedItem)) {
+                            updated[id] = updatedItem;
+                        }
+                    }
+                    return { items: updated };
                 }),
 
             clear: () => set({ items: {} }),
