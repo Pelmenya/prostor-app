@@ -9,3 +9,5 @@ export {
 } from './model/cart.store';
 
 export type { TCartItem, TCartServiceItem } from './model/cart.store';
+
+export { CartEmpty } from './ui/cart-empty';
