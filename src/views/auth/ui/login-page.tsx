@@ -8,12 +8,11 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { webLogin } from '@/features/auth';
 import { ApiError } from '@/shared/api';
-import { useAuthStore } from '@/shared/lib/auth';
-import { extractErrorMessage, getSafeRedirect } from '@/shared/lib';
+import { useAuthStore, extractErrorMessage, getSafeRedirect } from '@/shared/lib';
 import { PageContainer, FormField } from '@/shared/ui';
 
 const loginSchema = z.object({
-    email: z.string().min(1, 'Введите email').email('Неверный формат email'),
+    email: z.string().min(1, 'Введите email').email('Неверный формат email').trim().toLowerCase(),
     password: z.string().min(1, 'Введите пароль'),
 });
 

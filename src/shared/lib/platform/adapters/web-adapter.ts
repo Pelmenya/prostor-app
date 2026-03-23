@@ -1,5 +1,5 @@
 import type { TPlatformAdapter, TPlatformUser, TPlatform } from '../types';
-import { useAuthStore, mapUserToPlatformUser } from '@/shared/lib/auth';
+import { useAuthStore, mapUserToPlatformUser } from '@/shared/lib';
 
 export class WebAdapter implements TPlatformAdapter {
     platform: TPlatform = 'web';

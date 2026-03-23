@@ -8,8 +8,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { webRegister } from '@/features/auth';
 import { ApiError } from '@/shared/api';
-import { useAuthStore } from '@/shared/lib/auth';
 import {
+    useAuthStore,
     extractErrorMessage,
     normalizeRuPhone,
     formatRuPhoneForView,
@@ -61,13 +61,13 @@ function ConsentCheckboxes() {
                             {...register('agreePolicy')}
                         />
                         <span className="text-sm leading-snug">
-                            Я согласен с{' '}
+                            Принимаю{' '}
                             <button
                                 type="button"
                                 className="link text-primary underline"
                                 onClick={() => setIsPolicyModalOpen(true)}
                             >
-                                политикой конфиденциальности
+                                политику конфиденциальности
                             </button>
                         </span>
                     </label>
@@ -84,7 +84,7 @@ function ConsentCheckboxes() {
                             {...register('agreePd')}
                         />
                         <span className="text-sm leading-snug">
-                            Я согласен на{' '}
+                            Даю согласие на{' '}
                             <button
                                 type="button"
                                 className="link text-primary underline"

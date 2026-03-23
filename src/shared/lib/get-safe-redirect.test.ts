@@ -29,4 +29,16 @@ describe('getSafeRedirect', () => {
     it('относительный путь без / → /', () => {
         expect(getSafeRedirect('evil.com')).toBe('/');
     });
+
+    it('/\\ (backslash open redirect) → /', () => {
+        expect(getSafeRedirect('/\\evil.com')).toBe('/');
+    });
+
+    it('javascript: URI → /', () => {
+        expect(getSafeRedirect('javascript:alert(1)')).toBe('/');
+    });
+
+    it('JavaScript: URI (mixed case) → /', () => {
+        expect(getSafeRedirect('JavaScript:alert(1)')).toBe('/');
+    });
 });
