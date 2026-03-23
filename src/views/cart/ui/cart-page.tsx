@@ -9,25 +9,81 @@ import {
     selectAreAllSelected,
     selectHasSelectedItems,
     CartEmpty,
+    CartItemList,
 } from '@/entities/cart';
+import { CartTotal } from '@/features/cart';
 import { PageContainer, PageTitle, ConfirmDialog } from '@/shared/ui';
+
+type TDialogType = 'removeSelected' | 'product' | 'service';
 
 export function CartPage() {
     const items = useCartStore((s) => s.items);
     const toggleAllSelected = useCartStore((s) => s.toggleAllSelected);
     const removeSelected = useCartStore((s) => s.removeSelected);
+    const toggleProductSelected = useCartStore((s) => s.toggleProductSelected);
+    const toggleServiceSelected = useCartStore((s) => s.toggleServiceSelected);
+    const updateProductCount = useCartStore((s) => s.updateProductCount);
+    const updateServiceCount = useCartStore((s) => s.updateServiceCount);
+    const removeProduct = useCartStore((s) => s.removeProduct);
 
     const cartIsFull = Object.keys(items).length > 0;
     const totalCount = selectTotalItems(items);
     const allSelected = selectAreAllSelected(items);
     const hasSelected = selectHasSelectedItems(items);
 
+    // ConfirmDialog
     const [isDialogOpen, setDialogOpen] = useState(false);
+    const [dialogType, setDialogType] = useState<TDialogType | null>(null);
+    const [pendingProductId, setPendingProductId] = useState<string | null>(null);
+    const [pendingProductName, setPendingProductName] = useState<string | null>(null);
+    const [pendingServiceId, setPendingServiceId] = useState<string | null>(null);
 
-    const handleRemoveSelected = () => {
-        removeSelected();
+    const resetDialog = () => {
         setDialogOpen(false);
+        setDialogType(null);
+        setPendingProductId(null);
+        setPendingProductName(null);
+        setPendingServiceId(null);
     };
+
+    const handleRemoveProduct = (productId: string, productName: string) => {
+        setPendingProductId(productId);
+        setPendingProductName(productName);
+        setDialogType('product');
+        setDialogOpen(true);
+    };
+
+    const handleRemoveService = (productId: string, serviceId: string) => {
+        setPendingProductId(productId);
+        setPendingServiceId(serviceId);
+        setDialogType('service');
+        setDialogOpen(true);
+    };
+
+    const handleConfirm = () => {
+        if (dialogType === 'removeSelected') {
+            removeSelected();
+        } else if (dialogType === 'product' && pendingProductId) {
+            removeProduct(pendingProductId);
+        } else if (dialogType === 'service' && pendingProductId && pendingServiceId) {
+            updateServiceCount(pendingProductId, pendingServiceId, 0);
+        }
+        resetDialog();
+    };
+
+    const dialogTitle =
+        dialogType === 'removeSelected'
+            ? 'Удалить выбранные товары?'
+            : dialogType === 'product'
+              ? 'Удалить товар'
+              : 'Удалить услугу';
+
+    const dialogMessage =
+        dialogType === 'removeSelected'
+            ? 'Вы точно хотите удалить выбранные товары? Отменить действие будет невозможно.'
+            : dialogType === 'product' && pendingProductName
+              ? `Вы точно хотите удалить «${pendingProductName}»? Отменить действие будет невозможно.`
+              : 'Вы точно хотите удалить выбранную услугу? Отменить действие будет невозможно.';
 
     return (
         <PageContainer>
@@ -60,35 +116,41 @@ export function CartPage() {
                             </label>
                             <button
                                 className="btn btn-outline btn-xs"
-                                onClick={() => setDialogOpen(true)}
+                                onClick={() => {
+                                    setDialogType('removeSelected');
+                                    setDialogOpen(true);
+                                }}
                                 disabled={!hasSelected}
                             >
-                                <ArchiveBoxXMarkIcon className="size-[11px]" />
+                                <ArchiveBoxXMarkIcon className="size-2.75" />
                             </button>
                         </div>
                     )}
                 </div>
 
                 {cartIsFull ? (
-                    <div className="flex flex-col gap-4">
-                        {/* CartItemList будет здесь */}
-                        <p className="text-center text-sm text-base-content/50">
-                            Список товаров (следующий этап)
-                        </p>
-                    </div>
+                    <CartItemList
+                        items={items}
+                        onToggleProduct={toggleProductSelected}
+                        onToggleService={toggleServiceSelected}
+                        onUpdateProductCount={updateProductCount}
+                        onUpdateServiceCount={updateServiceCount}
+                        onRemoveProduct={handleRemoveProduct}
+                        onRemoveService={handleRemoveService}
+                    />
                 ) : (
                     <CartEmpty />
                 )}
             </div>
 
-            {/* CartTotal будет здесь */}
+            <CartTotal />
 
             <ConfirmDialog
                 isOpen={isDialogOpen}
-                onClose={() => setDialogOpen(false)}
-                onConfirm={handleRemoveSelected}
-                title="Удалить выбранные товары?"
-                message="Вы точно хотите удалить выбранные товары? Отменить действие будет невозможно."
+                onClose={resetDialog}
+                onConfirm={handleConfirm}
+                title={dialogTitle}
+                message={dialogMessage}
                 confirmText="Удалить"
             />
         </PageContainer>

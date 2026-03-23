@@ -7,6 +7,7 @@ import type { TProduct, TService, EServiceCategory } from '@/shared/model';
 export type TCartServiceItem = {
     service: {
         id: string;
+        name: string;
         rateOfHours?: number;
         category?: EServiceCategory;
     };
@@ -210,6 +211,7 @@ export const useCartStore = create<TCartStore>()(
                                     [service.id]: {
                                         service: {
                                             id: service.id,
+                                            name: service.name,
                                             rateOfHours: service.rateOfHours,
                                             category: service.category,
                                         },
