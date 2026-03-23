@@ -11,3 +11,7 @@ export function useCurrentPolicy() {
         staleTime: 30 * 60 * 1000,
     });
 }
+
+export function fetchCurrentPolicy(): Promise<TPrivacyPolicy> {
+    return apiClient<TPrivacyPolicy>('/privacy-policy/current');
+}

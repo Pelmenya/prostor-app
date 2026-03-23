@@ -31,6 +31,9 @@ function MdLi(props: React.ComponentProps<'li'>) {
 function MdStrong(props: React.ComponentProps<'strong'>) {
     return <strong className="font-semibold text-primary" {...props} />;
 }
+function MdA(props: React.ComponentProps<'a'>) {
+    return <a className="link text-primary" target="_blank" rel="noopener noreferrer" {...props} />;
+}
 
 const MARKDOWN_COMPONENTS: React.ComponentProps<typeof ReactMarkdown>['components'] = {
     h1: MdH1,
@@ -41,6 +44,7 @@ const MARKDOWN_COMPONENTS: React.ComponentProps<typeof ReactMarkdown>['component
     ol: MdOl,
     li: MdLi,
     strong: MdStrong,
+    a: MdA,
 };
 
 type TProps = {

@@ -19,8 +19,6 @@ import {
 import { useCurrentPolicy } from '@/entities/privacy-policy';
 import { useCurrentAgreement } from '@/entities/personal-data-agreement';
 import { PageContainer, FormField } from '@/shared/ui';
-import { PrivacyPolicyModal } from './privacy-policy-modal';
-import { PersonalDataModal } from './personal-data-modal';
 
 const phoneE164Ru = /^\+7\d{10}$/;
 
@@ -43,81 +41,59 @@ type TRegisterForm = z.infer<typeof registerSchema>;
 function ConsentCheckboxes() {
     const {
         register,
-        setValue,
         formState: { errors },
     } = useFormContext<TRegisterForm>();
 
-    const [isPolicyModalOpen, setIsPolicyModalOpen] = useState(false);
-    const [isPdModalOpen, setIsPdModalOpen] = useState(false);
-
     return (
-        <>
-            <div className="flex flex-col w-full gap-3">
-                <div>
-                    <label className="flex items-center gap-2 cursor-pointer w-full">
-                        <input
-                            type="checkbox"
-                            className="checkbox checkbox-primary"
-                            {...register('agreePolicy')}
-                        />
-                        <span className="text-sm leading-snug">
-                            Принимаю{' '}
-                            <button
-                                type="button"
-                                className="link text-primary underline"
-                                onClick={() => setIsPolicyModalOpen(true)}
-                            >
-                                политику конфиденциальности
-                            </button>
-                        </span>
-                    </label>
-                    {errors.agreePolicy && (
-                        <p className="text-error text-xs mt-1">{errors.agreePolicy.message}</p>
-                    )}
-                </div>
-
-                <div>
-                    <label className="flex items-center gap-2 cursor-pointer w-full">
-                        <input
-                            type="checkbox"
-                            className="checkbox checkbox-primary"
-                            {...register('agreePd')}
-                        />
-                        <span className="text-sm leading-snug">
-                            Даю согласие на{' '}
-                            <button
-                                type="button"
-                                className="link text-primary underline"
-                                onClick={() => setIsPdModalOpen(true)}
-                            >
-                                обработку персональных данных
-                            </button>
-                        </span>
-                    </label>
-                    {errors.agreePd && (
-                        <p className="text-error text-xs mt-1">{errors.agreePd.message}</p>
-                    )}
-                </div>
+        <div className="flex flex-col w-full gap-3">
+            <div>
+                <label className="flex items-start gap-2 cursor-pointer w-full">
+                    <input
+                        type="checkbox"
+                        className="checkbox checkbox-primary mt-0.5"
+                        {...register('agreePolicy')}
+                    />
+                    <span className="text-sm leading-snug">
+                        Принимаю{' '}
+                        <a
+                            href="/privacy-policy"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="link text-primary underline"
+                        >
+                            политику конфиденциальности
+                        </a>
+                    </span>
+                </label>
+                {errors.agreePolicy && (
+                    <p className="text-error text-xs mt-1">{errors.agreePolicy.message}</p>
+                )}
             </div>
 
-            <PrivacyPolicyModal
-                isOpen={isPolicyModalOpen}
-                onClose={() => setIsPolicyModalOpen(false)}
-                onAgree={() => {
-                    setValue('agreePolicy', true, { shouldValidate: true });
-                    setIsPolicyModalOpen(false);
-                }}
-            />
-
-            <PersonalDataModal
-                isOpen={isPdModalOpen}
-                onClose={() => setIsPdModalOpen(false)}
-                onAgree={() => {
-                    setValue('agreePd', true, { shouldValidate: true });
-                    setIsPdModalOpen(false);
-                }}
-            />
-        </>
+            <div>
+                <label className="flex items-start gap-2 cursor-pointer w-full">
+                    <input
+                        type="checkbox"
+                        className="checkbox checkbox-primary mt-0.5"
+                        {...register('agreePd')}
+                    />
+                    <span className="text-sm leading-snug">
+                        Даю согласие на{' '}
+                        <a
+                            href="/personal-data-agreement"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="link text-primary underline"
+                        >
+                            обработку персональных данных
+                        </a>
+                    </span>
+                </label>
+                {errors.agreePd && (
+                    <p className="text-error text-xs mt-1">{errors.agreePd.message}</p>
+                )}
+            </div>
+        </div>
     );
 }
 

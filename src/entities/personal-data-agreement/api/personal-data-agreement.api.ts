@@ -11,3 +11,7 @@ export function useCurrentAgreement() {
         staleTime: 30 * 60 * 1000,
     });
 }
+
+export function fetchCurrentAgreement(): Promise<TPersonalDataAgreement> {
+    return apiClient<TPersonalDataAgreement>('/personal-data-agreement/current');
+}

@@ -12,7 +12,7 @@ import { useAuthStore, extractErrorMessage, getSafeRedirect } from '@/shared/lib
 import { PageContainer, FormField } from '@/shared/ui';
 
 const loginSchema = z.object({
-    email: z.string().min(1, 'Введите email').email('Неверный формат email').trim().toLowerCase(),
+    email: z.string().trim().toLowerCase().min(1, 'Введите email').email('Неверный формат email'),
     password: z.string().min(1, 'Введите пароль'),
 });
 
