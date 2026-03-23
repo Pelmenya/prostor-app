@@ -8,12 +8,21 @@ import { formatPrice } from '@/shared/lib';
 
 type TCartItemProps = {
     item: TCartItem;
+    imageUrl?: string;
+    isImageLoading?: boolean;
     onToggleSelected: (productId: string) => void;
     onUpdateCount: (productId: string, count: number) => void;
     onRemove: (productId: string, productName: string) => void;
 };
 
-export function CartItem({ item, onToggleSelected, onUpdateCount, onRemove }: TCartItemProps) {
+export function CartItem({
+    item,
+    imageUrl,
+    isImageLoading,
+    onToggleSelected,
+    onUpdateCount,
+    onRemove,
+}: TCartItemProps) {
     const { product, count, price, selectedForCheckout } = item;
 
     const handleDecrement = () => {
@@ -36,6 +45,8 @@ export function CartItem({ item, onToggleSelected, onUpdateCount, onRemove }: TC
                     className="flex cursor-pointer items-center gap-2"
                 >
                     <CardImage
+                        src={imageUrl}
+                        isLoading={isImageLoading}
                         className="h-16 w-12 shrink-0 rounded-2xl"
                         imgClassName="size-full object-contain"
                         alt={product.name}
@@ -56,7 +67,9 @@ export function CartItem({ item, onToggleSelected, onUpdateCount, onRemove }: TC
             <div className="divider m-0" />
 
             <div className="flex items-center justify-between">
-                <span className="font-semibold">{formatPrice(price)}</span>
+                <span className="font-semibold text-primary leading-[110%]">
+                    {formatPrice(price)}
+                </span>
                 <Counter
                     count={count}
                     onDecrement={handleDecrement}

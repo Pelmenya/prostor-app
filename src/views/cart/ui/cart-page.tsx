@@ -11,7 +11,7 @@ import {
     CartEmpty,
     CartItemList,
 } from '@/entities/cart';
-import { CartTotal } from '@/features/cart';
+import { CartTotal, useCartImages } from '@/features/cart';
 import { PageContainer, PageTitle, ConfirmDialog } from '@/shared/ui';
 
 type TDialogType = 'removeSelected' | 'product' | 'service';
@@ -26,7 +26,9 @@ export function CartPage() {
     const updateServiceCount = useCartStore((s) => s.updateServiceCount);
     const removeProduct = useCartStore((s) => s.removeProduct);
 
-    const cartIsFull = Object.keys(items).length > 0;
+    const productIds = Object.keys(items);
+    const cartIsFull = productIds.length > 0;
+    const { imageUrls, loadingIds } = useCartImages(productIds);
     const totalCount = selectTotalItems(items);
     const allSelected = selectAreAllSelected(items);
     const hasSelected = selectHasSelectedItems(items);
@@ -88,14 +90,7 @@ export function CartPage() {
     return (
         <>
             <PageContainer>
-                <div
-                    className="flex flex-col gap-4 lg:gap-6"
-                    style={
-                        hasSelected
-                            ? { paddingBottom: 'calc(4.75rem + env(safe-area-inset-bottom))' }
-                            : {}
-                    }
-                >
+                <div className="flex flex-col gap-4 lg:gap-6">
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                         <div className="flex items-center gap-4">
                             <PageTitle>Корзина</PageTitle>
@@ -132,6 +127,8 @@ export function CartPage() {
                     {cartIsFull ? (
                         <CartItemList
                             items={items}
+                            imageUrls={imageUrls}
+                            imageLoadingIds={loadingIds}
                             onToggleProduct={toggleProductSelected}
                             onToggleService={toggleServiceSelected}
                             onUpdateProductCount={updateProductCount}
