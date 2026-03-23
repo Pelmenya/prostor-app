@@ -52,7 +52,7 @@ export function CartServiceItem({
                 </div>
 
                 <div className="flex items-center justify-between">
-                    <p className="text-sm font-semibold tracking-tight text-primary">
+                    <p className="text-sm font-semibold tracking-tight text-primary leading-[110%]">
                         {formatPrice(price)}
                     </p>
                     <Counter

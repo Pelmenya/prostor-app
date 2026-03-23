@@ -40,12 +40,8 @@ export function CartPage() {
     const [pendingProductName, setPendingProductName] = useState<string | null>(null);
     const [pendingServiceId, setPendingServiceId] = useState<string | null>(null);
 
-    const resetDialog = () => {
+    const closeDialog = () => {
         setDialogOpen(false);
-        setDialogType(null);
-        setPendingProductId(null);
-        setPendingProductName(null);
-        setPendingServiceId(null);
     };
 
     const handleRemoveProduct = (productId: string, productName: string) => {
@@ -70,7 +66,7 @@ export function CartPage() {
         } else if (dialogType === 'service' && pendingProductId && pendingServiceId) {
             updateServiceCount(pendingProductId, pendingServiceId, 0);
         }
-        resetDialog();
+        closeDialog();
     };
 
     const dialogTitle =
@@ -143,7 +139,7 @@ export function CartPage() {
 
                 <ConfirmDialog
                     isOpen={isDialogOpen}
-                    onClose={resetDialog}
+                    onClose={closeDialog}
                     onConfirm={handleConfirm}
                     title={dialogTitle}
                     message={dialogMessage}
