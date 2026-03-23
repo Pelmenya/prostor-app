@@ -86,73 +86,75 @@ export function CartPage() {
               : 'Вы точно хотите удалить выбранную услугу? Отменить действие будет невозможно.';
 
     return (
-        <PageContainer>
-            <div
-                className="flex flex-col gap-4 lg:gap-6"
-                style={
-                    hasSelected
-                        ? { paddingBottom: 'calc(4.75rem + env(safe-area-inset-bottom))' }
-                        : {}
-                }
-            >
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="flex items-center gap-4">
-                        <PageTitle>Корзина</PageTitle>
-                        {totalCount > 0 && (
-                            <span className="badge badge-sm badge-primary">{totalCount}</span>
+        <>
+            <PageContainer>
+                <div
+                    className="flex flex-col gap-4 lg:gap-6"
+                    style={
+                        hasSelected
+                            ? { paddingBottom: 'calc(4.75rem + env(safe-area-inset-bottom))' }
+                            : {}
+                    }
+                >
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="flex items-center gap-4">
+                            <PageTitle>Корзина</PageTitle>
+                            {totalCount > 0 && (
+                                <span className="badge badge-sm badge-primary">{totalCount}</span>
+                            )}
+                        </div>
+
+                        {cartIsFull && (
+                            <div className="flex items-center justify-between gap-6">
+                                <label className="flex cursor-pointer items-center gap-2">
+                                    <input
+                                        type="checkbox"
+                                        className="checkbox checkbox-sm"
+                                        checked={allSelected}
+                                        onChange={(e) => toggleAllSelected(e.target.checked)}
+                                    />
+                                    <span className="text-sm">Выбрать все</span>
+                                </label>
+                                <button
+                                    className="btn btn-outline btn-xs"
+                                    onClick={() => {
+                                        setDialogType('removeSelected');
+                                        setDialogOpen(true);
+                                    }}
+                                    disabled={!hasSelected}
+                                >
+                                    <ArchiveBoxXMarkIcon className="size-2.75" />
+                                </button>
+                            </div>
                         )}
                     </div>
 
-                    {cartIsFull && (
-                        <div className="flex items-center justify-between gap-6">
-                            <label className="flex cursor-pointer items-center gap-2">
-                                <input
-                                    type="checkbox"
-                                    className="checkbox checkbox-sm"
-                                    checked={allSelected}
-                                    onChange={(e) => toggleAllSelected(e.target.checked)}
-                                />
-                                <span className="text-sm">Выбрать все</span>
-                            </label>
-                            <button
-                                className="btn btn-outline btn-xs"
-                                onClick={() => {
-                                    setDialogType('removeSelected');
-                                    setDialogOpen(true);
-                                }}
-                                disabled={!hasSelected}
-                            >
-                                <ArchiveBoxXMarkIcon className="size-2.75" />
-                            </button>
-                        </div>
+                    {cartIsFull ? (
+                        <CartItemList
+                            items={items}
+                            onToggleProduct={toggleProductSelected}
+                            onToggleService={toggleServiceSelected}
+                            onUpdateProductCount={updateProductCount}
+                            onUpdateServiceCount={updateServiceCount}
+                            onRemoveProduct={handleRemoveProduct}
+                            onRemoveService={handleRemoveService}
+                        />
+                    ) : (
+                        <CartEmpty />
                     )}
                 </div>
 
-                {cartIsFull ? (
-                    <CartItemList
-                        items={items}
-                        onToggleProduct={toggleProductSelected}
-                        onToggleService={toggleServiceSelected}
-                        onUpdateProductCount={updateProductCount}
-                        onUpdateServiceCount={updateServiceCount}
-                        onRemoveProduct={handleRemoveProduct}
-                        onRemoveService={handleRemoveService}
-                    />
-                ) : (
-                    <CartEmpty />
-                )}
-            </div>
+                <ConfirmDialog
+                    isOpen={isDialogOpen}
+                    onClose={resetDialog}
+                    onConfirm={handleConfirm}
+                    title={dialogTitle}
+                    message={dialogMessage}
+                    confirmText="Удалить"
+                />
+            </PageContainer>
 
             <CartTotal />
-
-            <ConfirmDialog
-                isOpen={isDialogOpen}
-                onClose={resetDialog}
-                onConfirm={handleConfirm}
-                title={dialogTitle}
-                message={dialogMessage}
-                confirmText="Удалить"
-            />
-        </PageContainer>
+        </>
     );
 }
