@@ -1,4 +1,5 @@
 import { apiClient } from '@/shared/api';
+import { useAuthStore } from '@/shared/lib/auth';
 
 type TPushSubscriptionKeys = {
     p256dh: string;
@@ -15,29 +16,34 @@ type TPushStatusResponse = {
     isSubscribed: boolean;
 };
 
-export async function pushSubscribe(body: TPushSubscribeBody, auth: string): Promise<unknown> {
+function getAuth(): string | null {
+    const token = useAuthStore.getState().accessToken;
+    return token ? `Bearer ${token}` : null;
+}
+
+export async function pushSubscribe(body: TPushSubscribeBody): Promise<unknown> {
     return apiClient('/push/subscribe', {
         method: 'POST',
         body,
-        auth,
+        auth: getAuth(),
     });
 }
 
-export async function pushUnsubscribe(endpoint: string, auth: string): Promise<void> {
+export async function pushUnsubscribe(endpoint: string): Promise<void> {
     await apiClient('/push/unsubscribe', {
         method: 'DELETE',
         body: { endpoint },
-        auth,
+        auth: getAuth(),
     });
 }
 
-export async function pushStatus(auth: string): Promise<TPushStatusResponse> {
-    return apiClient<TPushStatusResponse>('/push/status', { auth });
+export async function pushStatus(): Promise<TPushStatusResponse> {
+    return apiClient<TPushStatusResponse>('/push/status', { auth: getAuth() });
 }
 
-export async function pushTest(auth: string): Promise<{ sent: boolean }> {
+export async function pushTest(): Promise<{ sent: boolean }> {
     return apiClient<{ sent: boolean }>('/push/test', {
         method: 'POST',
-        auth,
+        auth: getAuth(),
     });
 }

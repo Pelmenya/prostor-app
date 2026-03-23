@@ -20,17 +20,16 @@ type TPushState = {
 };
 
 export function usePushNotifications() {
-    const accessToken = useAuthStore((s) => s.accessToken);
-    const authHeader = accessToken ? `Bearer ${accessToken}` : '';
+    const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
 
     const [state, setState] = useState<TPushState>({
         permission: IS_SUPPORTED ? Notification.permission : 'default',
         isSubscribed: false,
-        isLoading: IS_SUPPORTED && !!accessToken,
+        isLoading: IS_SUPPORTED && isAuthenticated,
     });
 
     async function subscribe() {
-        if (!VAPID_PUBLIC_KEY || !authHeader) return;
+        if (!VAPID_PUBLIC_KEY) return;
 
         setState((prev) => ({ ...prev, isLoading: true }));
 
@@ -51,16 +50,15 @@ export function usePushNotifications() {
 
             const json = sub.toJSON();
 
-            await pushSubscribe(
-                {
-                    endpoint: json.endpoint!,
-                    keys: json.keys as { p256dh: string; auth: string },
-                },
-                authHeader,
-            );
+            await pushSubscribe({
+                endpoint: json.endpoint!,
+                keys: json.keys as { p256dh: string; auth: string },
+            });
 
+            console.log('[Push] subscribed OK');
             setState((prev) => ({ ...prev, isSubscribed: true, isLoading: false }));
-        } catch {
+        } catch (err) {
+            console.error('[Push] subscribe error:', err);
             setState((prev) => ({ ...prev, isLoading: false }));
         }
     }
@@ -73,7 +71,7 @@ export function usePushNotifications() {
             const sub = await reg.pushManager.getSubscription();
 
             if (sub) {
-                await pushUnsubscribe(sub.endpoint, authHeader);
+                await pushUnsubscribe(sub.endpoint);
                 await sub.unsubscribe();
             }
 
@@ -84,11 +82,11 @@ export function usePushNotifications() {
     }
 
     useEffect(() => {
-        if (!IS_SUPPORTED || !authHeader) return;
+        if (!IS_SUPPORTED || !isAuthenticated) return;
 
         let cancelled = false;
 
-        pushStatus(authHeader)
+        pushStatus()
             .then(({ isSubscribed }) => {
                 if (!cancelled) {
                     setState((prev) => ({ ...prev, isSubscribed, isLoading: false }));
@@ -103,7 +101,7 @@ export function usePushNotifications() {
         return () => {
             cancelled = true;
         };
-    }, [authHeader]);
+    }, [isAuthenticated]);
 
     return {
         isSupported: IS_SUPPORTED,
