@@ -9,8 +9,8 @@ import { z } from 'zod';
 import { webLogin } from '@/features/auth';
 import { ApiError } from '@/shared/api';
 import { useAuthStore } from '@/shared/lib/auth';
-import { extractErrorMessage } from '@/shared/lib';
-import { PageContainer } from '@/shared/ui';
+import { extractErrorMessage, getSafeRedirect } from '@/shared/lib';
+import { PageContainer, FormField } from '@/shared/ui';
 
 const loginSchema = z.object({
     email: z.string().min(1, 'Введите email').email('Неверный формат email'),
@@ -18,12 +18,6 @@ const loginSchema = z.object({
 });
 
 type TLoginForm = z.infer<typeof loginSchema>;
-
-function getSafeRedirect(from: string | null): string {
-    if (!from) return '/';
-    if (!from.startsWith('/') || from.startsWith('//')) return '/';
-    return from;
-}
 
 function LoginForm() {
     const router = useRouter();
@@ -62,35 +56,23 @@ function LoginForm() {
                 <h1 className="card-title text-2xl gradient-text">Вход</h1>
 
                 <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4 mt-4">
-                    <div className="form-control">
-                        <label className="floating-label">
-                            <span>Email</span>
-                            <input
-                                type="email"
-                                className={`input input-bordered w-full ${errors.email ? 'input-error' : ''}`}
-                                placeholder="Email"
-                                {...register('email')}
-                            />
-                        </label>
-                        {errors.email && (
-                            <p className="text-error text-xs mt-1">{errors.email.message}</p>
-                        )}
-                    </div>
+                    <FormField label="Email" error={errors.email?.message}>
+                        <input
+                            type="email"
+                            className={`input input-bordered w-full ${errors.email ? 'input-error' : ''}`}
+                            placeholder="Email"
+                            {...register('email')}
+                        />
+                    </FormField>
 
-                    <div className="form-control">
-                        <label className="floating-label">
-                            <span>Пароль</span>
-                            <input
-                                type="password"
-                                className={`input input-bordered w-full ${errors.password ? 'input-error' : ''}`}
-                                placeholder="Пароль"
-                                {...register('password')}
-                            />
-                        </label>
-                        {errors.password && (
-                            <p className="text-error text-xs mt-1">{errors.password.message}</p>
-                        )}
-                    </div>
+                    <FormField label="Пароль" error={errors.password?.message}>
+                        <input
+                            type="password"
+                            className={`input input-bordered w-full ${errors.password ? 'input-error' : ''}`}
+                            placeholder="Пароль"
+                            {...register('password')}
+                        />
+                    </FormField>
 
                     {serverError && <div className="alert alert-error text-sm">{serverError}</div>}
 

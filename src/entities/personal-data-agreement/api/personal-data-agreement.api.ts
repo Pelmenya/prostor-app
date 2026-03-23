@@ -1,11 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '@/shared/api';
+import type { TLegalDocument } from '@/shared/model';
 
-export type TPersonalDataAgreement = {
-    version: string;
-    content: string;
-    effectiveDate: string;
-};
+export type TPersonalDataAgreement = TLegalDocument;
 
 export function useCurrentAgreement() {
     return useQuery({

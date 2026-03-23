@@ -1,11 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '@/shared/api';
+import type { TLegalDocument } from '@/shared/model';
 
-export type TPrivacyPolicy = {
-    version: string;
-    content: string;
-    effectiveDate: string;
-};
+export type TPrivacyPolicy = TLegalDocument;
 
 export function useCurrentPolicy() {
     return useQuery({
