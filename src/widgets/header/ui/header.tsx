@@ -7,6 +7,7 @@ import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '@/shared/lib/platform';
 import { useAuthStore } from '@/shared/lib';
 import { webLogout } from '@/features/auth';
+import { PushToggle } from '@/features/push-notifications';
 
 type THeaderProps = {
     back?: boolean;
@@ -82,9 +83,12 @@ export function Header({ back = false, backTo }: THeaderProps) {
 
                 <div className="navbar-end gap-2 w-auto">
                     {showAuth ? (
-                        <button onClick={handleLogout} className="btn btn-ghost btn-sm">
-                            Выйти
-                        </button>
+                        <>
+                            <PushToggle />
+                            <button onClick={handleLogout} className="btn btn-ghost btn-sm">
+                                Выйти
+                            </button>
+                        </>
                     ) : mounted ? (
                         <>
                             <Link href="/login" className="btn btn-primary btn-sm">
