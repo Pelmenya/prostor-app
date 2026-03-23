@@ -194,7 +194,25 @@ export const useCartStore = create<TCartStore>()(
                 }),
 
             removeProduct: (productId) =>
-                set((state) => ({ items: omitKey(state.items, productId) })),
+                set((state) => {
+                    const item = state.items[productId];
+                    if (!item) return state;
+
+                    const hasActiveServices = Object.values(item.services).some(
+                        (s) => s.checked && s.count > 0,
+                    );
+
+                    if (hasActiveServices) {
+                        return {
+                            items: {
+                                ...state.items,
+                                [productId]: { ...item, count: 0 },
+                            },
+                        };
+                    }
+
+                    return { items: omitKey(state.items, productId) };
+                }),
 
             addService: (productId, service, count, price) =>
                 set((state) => {

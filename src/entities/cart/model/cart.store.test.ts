@@ -89,8 +89,29 @@ describe('cart.store', () => {
     });
 
     describe('removeProduct', () => {
-        it('полностью удаляет товар', () => {
+        it('полностью удаляет товар без услуг', () => {
             useCartStore.getState().addProduct(mockProduct, 3, 1500000);
+            useCartStore.getState().removeProduct('prod-1');
+
+            expect(useCartStore.getState().items['prod-1']).toBeUndefined();
+        });
+
+        it('обнуляет count товара, но сохраняет активные услуги', () => {
+            useCartStore.getState().addProduct(mockProduct, 2, 1500000);
+            useCartStore.getState().addService('prod-1', mockService, 1, 150000);
+            useCartStore.getState().removeProduct('prod-1');
+
+            const item = useCartStore.getState().items['prod-1'];
+            expect(item).toBeDefined();
+            expect(item.count).toBe(0);
+            expect(item.services['svc-1']).toBeDefined();
+            expect(item.services['svc-1'].count).toBe(1);
+        });
+
+        it('полностью удаляет товар если все услуги неактивны', () => {
+            useCartStore.getState().addProduct(mockProduct, 1, 1500000);
+            useCartStore.getState().addService('prod-1', mockService, 1, 150000);
+            useCartStore.getState().updateServiceCount('prod-1', 'svc-1', 0);
             useCartStore.getState().removeProduct('prod-1');
 
             expect(useCartStore.getState().items['prod-1']).toBeUndefined();
