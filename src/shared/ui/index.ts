@@ -16,3 +16,4 @@ export { LegalDocumentMeta } from './legal-document-meta';
 export { FormField } from './form-field';
 export { ConfirmDialog } from './confirm-dialog';
 export type { TConfirmDialogProps } from './confirm-dialog';
+export { CardBadge } from './card-badge';

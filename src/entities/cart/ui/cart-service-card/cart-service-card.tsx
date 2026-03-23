@@ -1,0 +1,43 @@
+'use client';
+
+import type { TCartServiceItem } from '@/entities/cart';
+import { CartCardWrapper } from '@/entities/cart/ui/cart-card-wrapper';
+import { CartServiceItem } from '@/entities/cart/ui/cart-service-item';
+
+type TCardBadgeVariant = 'service' | 'installation' | 'maintenance';
+
+type TCartServiceCardProps = {
+    variant: TCardBadgeVariant;
+    productName: string;
+    productId: string;
+    services: [string, TCartServiceItem][];
+    onToggleSelected: (productId: string, serviceId: string) => void;
+    onUpdateCount: (productId: string, serviceId: string, count: number) => void;
+    onRemove: (productId: string, serviceId: string) => void;
+};
+
+export function CartServiceCard({
+    variant,
+    productName,
+    productId,
+    services,
+    onToggleSelected,
+    onUpdateCount,
+    onRemove,
+}: TCartServiceCardProps) {
+    return (
+        <CartCardWrapper variant={variant} subtitle={`Для товара: ${productName}`}>
+            {services.map(([svcId, svc], idx) => (
+                <CartServiceItem
+                    key={svcId}
+                    service={svc}
+                    productId={productId}
+                    isLast={idx === services.length - 1}
+                    onToggleSelected={onToggleSelected}
+                    onUpdateCount={onUpdateCount}
+                    onRemove={onRemove}
+                />
+            ))}
+        </CartCardWrapper>
+    );
+}

@@ -4,6 +4,7 @@ import Link from 'next/link';
 
 import type { TCartItem } from '@/entities/cart';
 import { CardImage, Counter } from '@/shared/ui';
+import { CartCardWrapper } from '@/entities/cart/ui/cart-card-wrapper';
 import { formatPrice } from '@/shared/lib';
 
 type TCartItemProps = {
@@ -38,11 +39,54 @@ export function CartItem({
     };
 
     return (
-        <div className="card bg-base-100 p-4">
-            <div className="flex items-center justify-between">
+        <CartCardWrapper variant="product">
+            {/* Мобилка: 2 строки */}
+            <div className="flex flex-col gap-4 md:hidden">
+                <div className="flex items-center justify-between">
+                    <Link
+                        href={`/product/${product.id}`}
+                        className="flex cursor-pointer items-center gap-2"
+                    >
+                        <CardImage
+                            src={imageUrl}
+                            isLoading={isImageLoading}
+                            className="h-16 w-12 shrink-0 rounded-2xl"
+                            imgClassName="size-full object-contain"
+                            alt={product.name}
+                        />
+                        <h5 className="line-clamp-2 text-sm leading-[110%]">{product.name}</h5>
+                    </Link>
+                    <label className="flex cursor-pointer items-center justify-center p-2 -mr-2">
+                        <input
+                            type="checkbox"
+                            className="checkbox checkbox-sm"
+                            checked={selectedForCheckout}
+                            onChange={() => onToggleSelected(product.id)}
+                        />
+                    </label>
+                </div>
+
+                <hr className="h-px text-base-300" />
+
+                <div className="flex items-center justify-between">
+                    <span className="font-semibold text-primary leading-[110%]">
+                        {formatPrice(price)}
+                    </span>
+                    <Counter
+                        count={count}
+                        onDecrement={handleDecrement}
+                        onIncrement={handleIncrement}
+                        minCount={0}
+                        size="small"
+                    />
+                </div>
+            </div>
+
+            {/* Десктоп: 1 строка */}
+            <div className="hidden md:flex md:items-center md:gap-4">
                 <Link
                     href={`/product/${product.id}`}
-                    className="flex cursor-pointer items-center gap-2"
+                    className="flex cursor-pointer items-center gap-2 flex-1 min-w-0"
                 >
                     <CardImage
                         src={imageUrl}
@@ -53,21 +97,7 @@ export function CartItem({
                     />
                     <h5 className="line-clamp-2 text-sm leading-[110%]">{product.name}</h5>
                 </Link>
-
-                <label className="-mr-2 flex cursor-pointer items-center justify-center p-2">
-                    <input
-                        type="checkbox"
-                        className="checkbox checkbox-sm"
-                        checked={selectedForCheckout}
-                        onChange={() => onToggleSelected(product.id)}
-                    />
-                </label>
-            </div>
-
-            <div className="divider m-0" />
-
-            <div className="flex items-center justify-between">
-                <span className="font-semibold text-primary leading-[110%]">
+                <span className="shrink-0 font-semibold text-primary leading-[110%]">
                     {formatPrice(price)}
                 </span>
                 <Counter
@@ -77,7 +107,15 @@ export function CartItem({
                     minCount={0}
                     size="small"
                 />
+                <label className="flex cursor-pointer items-center justify-center p-2">
+                    <input
+                        type="checkbox"
+                        className="checkbox checkbox-sm"
+                        checked={selectedForCheckout}
+                        onChange={() => onToggleSelected(product.id)}
+                    />
+                </label>
             </div>
-        </div>
+        </CartCardWrapper>
     );
 }

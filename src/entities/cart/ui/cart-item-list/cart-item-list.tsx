@@ -1,8 +1,9 @@
 'use client';
 
-import type { TCartItem } from '@/entities/cart';
+import type { TCartItem, TCartServiceItem } from '@/entities/cart';
 import { CartItem } from '@/entities/cart/ui/cart-item';
-import { CartServiceItem } from '@/entities/cart/ui/cart-service-item';
+import { CartServiceCard } from '@/entities/cart/ui/cart-service-card';
+import { EServiceCategory } from '@/shared/model';
 
 type TCartItemListProps = {
     items: Record<string, TCartItem>;
@@ -16,6 +17,50 @@ type TCartItemListProps = {
     onRemoveService: (productId: string, serviceId: string) => void;
 };
 
+type TServiceGroup = {
+    variant: 'installation' | 'maintenance' | 'service';
+    productId: string;
+    productName: string;
+    services: [string, TCartServiceItem][];
+};
+
+function getVariant(category?: EServiceCategory): 'installation' | 'maintenance' | 'service' {
+    if (category === EServiceCategory.MONTAZH) return 'installation';
+    if (category === EServiceCategory.SERVISNOE_OBSLUZHIVANIE) return 'maintenance';
+    return 'service';
+}
+
+function groupServicesByCategory(entries: [string, TCartItem][]): TServiceGroup[] {
+    const groups: TServiceGroup[] = [];
+
+    for (const [productId, item] of entries) {
+        const activeServices = Object.entries(item.services).filter(
+            ([, svc]) => svc.checked && svc.count > 0,
+        );
+        if (activeServices.length === 0) continue;
+
+        const byVariant = new Map<string, [string, TCartServiceItem][]>();
+
+        for (const [svcId, svc] of activeServices) {
+            const variant = getVariant(svc.service.category);
+            const list = byVariant.get(variant) ?? [];
+            list.push([svcId, svc]);
+            byVariant.set(variant, list);
+        }
+
+        for (const [variant, services] of byVariant) {
+            groups.push({
+                variant: variant as TServiceGroup['variant'],
+                productId,
+                productName: item.product.name,
+                services,
+            });
+        }
+    }
+
+    return groups;
+}
+
 export function CartItemList({
     items,
     imageUrls,
@@ -28,11 +73,8 @@ export function CartItemList({
     onRemoveService,
 }: TCartItemListProps) {
     const entries = Object.entries(items);
-
     const productsWithItems = entries.filter(([, item]) => item.count > 0);
-    const entriesWithServices = entries.filter(([, item]) =>
-        Object.values(item.services).some((svc) => svc.checked && svc.count > 0),
-    );
+    const serviceGroups = groupServicesByCategory(entries);
 
     return (
         <div className="flex flex-col gap-4 lg:gap-6">
@@ -48,30 +90,18 @@ export function CartItemList({
                 />
             ))}
 
-            {entriesWithServices.map(([productId, item]) => {
-                const activeServices = Object.entries(item.services).filter(
-                    ([, svc]) => svc.checked && svc.count > 0,
-                );
-
-                return (
-                    <div key={`services-${productId}`} className="card bg-base-100 p-4">
-                        <p className="mb-2 text-xs font-medium text-base-content/50">
-                            Услуги к «{item.product.name}»
-                        </p>
-                        {activeServices.map(([svcId, svc], idx) => (
-                            <CartServiceItem
-                                key={svcId}
-                                service={svc}
-                                productId={productId}
-                                isLast={idx === activeServices.length - 1}
-                                onToggleSelected={onToggleService}
-                                onUpdateCount={onUpdateServiceCount}
-                                onRemove={onRemoveService}
-                            />
-                        ))}
-                    </div>
-                );
-            })}
+            {serviceGroups.map((group) => (
+                <CartServiceCard
+                    key={`${group.variant}-${group.productId}`}
+                    variant={group.variant}
+                    productName={group.productName}
+                    productId={group.productId}
+                    services={group.services}
+                    onToggleSelected={onToggleService}
+                    onUpdateCount={onUpdateServiceCount}
+                    onRemove={onRemoveService}
+                />
+            ))}
         </div>
     );
 }
