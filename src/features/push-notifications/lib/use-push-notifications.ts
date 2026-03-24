@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '@/shared/lib/auth';
 import { urlBase64ToUint8Array } from './vapid-key';
-import { pushSubscribe, pushUnsubscribe, pushStatus } from '../api/push-api';
+import { pushSubscribe, pushUnsubscribe, pushStatus } from '../api/push.api';
 
 const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? '';
 
@@ -29,7 +29,12 @@ export function usePushNotifications() {
     });
 
     async function subscribe() {
-        if (!VAPID_PUBLIC_KEY) return;
+        if (!VAPID_PUBLIC_KEY) {
+            if (process.env.NODE_ENV === 'development') {
+                console.warn('[Push] NEXT_PUBLIC_VAPID_PUBLIC_KEY не задан в .env.local');
+            }
+            return;
+        }
 
         setState((prev) => ({ ...prev, isLoading: true }));
 
@@ -42,8 +47,7 @@ export function usePushNotifications() {
                 return;
             }
 
-            const reg = await navigator.serviceWorker.register('/sw.js');
-            await navigator.serviceWorker.ready;
+            const reg = await navigator.serviceWorker.ready;
             const sub = await reg.pushManager.subscribe({
                 userVisibleOnly: true,
                 applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY).buffer as ArrayBuffer,
@@ -51,9 +55,13 @@ export function usePushNotifications() {
 
             const json = sub.toJSON();
 
+            if (!json.endpoint || !json.keys?.p256dh || !json.keys?.auth) {
+                throw new Error('Invalid push subscription: missing required fields');
+            }
+
             await pushSubscribe({
-                endpoint: json.endpoint!,
-                keys: json.keys as { p256dh: string; auth: string },
+                endpoint: json.endpoint,
+                keys: { p256dh: json.keys.p256dh, auth: json.keys.auth },
             });
 
             setState((prev) => ({ ...prev, isSubscribed: true, isLoading: false }));
@@ -86,9 +94,6 @@ export function usePushNotifications() {
 
         let cancelled = false;
 
-        // Проверяем подписку и в браузере, и на бэкенде —
-        // оба должны быть true, иначе toggle OFF
-        // getRegistration() не зависает если SW не зарегистрирован (возвращает undefined)
         navigator.serviceWorker
             .getRegistration()
             .then((reg) => {

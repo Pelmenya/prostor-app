@@ -1,8 +1,6 @@
-'use client';
-
 const IS_CLIENT = typeof window !== 'undefined';
 
-export function usePwaDetect() {
+export function detectPwa() {
     if (!IS_CLIENT) {
         return { isIos: false, isStandalone: false, showInstallHint: false };
     }

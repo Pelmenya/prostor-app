@@ -9,7 +9,6 @@ type TPushSubscriptionKeys = {
 type TPushSubscribeBody = {
     endpoint: string;
     keys: TPushSubscriptionKeys;
-    platform?: string;
 };
 
 type TPushStatusResponse = {
@@ -21,8 +20,8 @@ function getAuth(): string | null {
     return token ? `Bearer ${token}` : null;
 }
 
-export async function pushSubscribe(body: TPushSubscribeBody): Promise<unknown> {
-    return apiClient('/push/subscribe', {
+export async function pushSubscribe(body: TPushSubscribeBody): Promise<void> {
+    await apiClient('/push/subscribe', {
         method: 'POST',
         body,
         auth: getAuth(),
@@ -39,19 +38,4 @@ export async function pushUnsubscribe(endpoint: string): Promise<void> {
 
 export async function pushStatus(): Promise<TPushStatusResponse> {
     return apiClient<TPushStatusResponse>('/push/status', { auth: getAuth() });
-}
-
-export async function pushTest(): Promise<{ sent: boolean }> {
-    return apiClient<{ sent: boolean }>('/push/test', {
-        method: 'POST',
-        auth: getAuth(),
-    });
-}
-
-export async function pushBroadcast(title: string, body: string): Promise<{ sent: number }> {
-    return apiClient<{ sent: number }>('/push/broadcast', {
-        method: 'POST',
-        body: { title, body },
-        auth: getAuth(),
-    });
 }

@@ -24,18 +24,20 @@
 ### Frontend (`.env.local`)
 
 ```env
-NEXT_PUBLIC_VAPID_PUBLIC_KEY=BDsAkRZ95Rnm4ZuZvc7FEe91HvBIc6a9ABGu1uyUuTdQiJwSsKFjs1BfuLJuXOVt5z4WZ45IZ_LaPr0gWNOPTi0
+NEXT_PUBLIC_VAPID_PUBLIC_KEY=<публичный VAPID ключ>
 ```
 
 ### Backend (`.env`)
 
 ```env
-VAPID_PUBLIC_KEY=BDsAkRZ95Rnm4ZuZvc7FEe91HvBIc6a9ABGu1uyUuTdQiJwSsKFjs1BfuLJuXOVt5z4WZ45IZ_LaPr0gWNOPTi0
-VAPID_PRIVATE_KEY=cSyFX9LjgHc4gj_1vxtPasSQg4iDGlwHkjemfF6Mwbw
-VAPID_SUBJECT=mailto:pro.store@aquaphor.email
+VAPID_PUBLIC_KEY=<тот же публичный ключ>
+VAPID_PRIVATE_KEY=<приватный ключ — только в .env, никогда в git>
+VAPID_SUBJECT=mailto:pro.store@aquaphor.store
 ```
 
-**Важно:** `NEXT_PUBLIC_VAPID_PUBLIC_KEY` на фронте = `VAPID_PUBLIC_KEY` на бэкенде. Это один и тот же ключ. Если пересоздать ключи (`npx web-push generate-vapid-keys`) — старые подписки перестанут работать.
+**Генерация ключей:** `npx web-push generate-vapid-keys`
+
+**Важно:** `NEXT_PUBLIC_VAPID_PUBLIC_KEY` на фронте = `VAPID_PUBLIC_KEY` на бэкенде. Приватный ключ — секрет, хранится только в `.env` бэкенда. При пересоздании ключей старые подписки перестанут работать.
 
 ## Как это работает
 

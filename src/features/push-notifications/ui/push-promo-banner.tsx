@@ -2,7 +2,7 @@
 
 import { useState, useSyncExternalStore } from 'react';
 import { usePushNotifications } from '../lib/use-push-notifications';
-import { usePwaDetect } from '../lib/use-pwa-detect';
+import { detectPwa } from '../lib/detect-pwa';
 
 export function PushPromoBanner() {
     const mounted = useSyncExternalStore(
@@ -11,7 +11,7 @@ export function PushPromoBanner() {
         () => false,
     );
     const { isSubscribed, isLoading, isSupported, subscribe } = usePushNotifications();
-    const { isIos, showInstallHint } = usePwaDetect();
+    const { isIos, showInstallHint } = detectPwa();
     const [dismissed, setDismissed] = useState(false);
 
     if (!mounted || dismissed || isSubscribed) return null;
