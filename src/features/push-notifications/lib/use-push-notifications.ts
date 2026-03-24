@@ -86,15 +86,17 @@ export function usePushNotifications() {
 
         let cancelled = false;
 
-        // Проверяем подписку в браузере, а не на бэкенде —
-        // на другом устройстве может быть подписка, но здесь нет
-        navigator.serviceWorker.ready
-            .then((reg) => reg.pushManager.getSubscription())
-            .then((sub) => {
+        // Проверяем подписку и в браузере, и на бэкенде —
+        // оба должны быть true, иначе toggle OFF
+        Promise.all([
+            navigator.serviceWorker.ready.then((reg) => reg.pushManager.getSubscription()),
+            pushStatus().catch(() => ({ isSubscribed: false })),
+        ])
+            .then(([browserSub, serverStatus]) => {
                 if (!cancelled) {
                     setState((prev) => ({
                         ...prev,
-                        isSubscribed: !!sub,
+                        isSubscribed: !!browserSub && serverStatus.isSubscribed,
                         isLoading: false,
                     }));
                 }
