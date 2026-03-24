@@ -39,3 +39,18 @@ export async function pushUnsubscribe(endpoint: string): Promise<void> {
 export async function pushStatus(): Promise<TPushStatusResponse> {
     return apiClient<TPushStatusResponse>('/push/status', { auth: getAuth() });
 }
+
+export async function pushTest(): Promise<{ sent: boolean }> {
+    return apiClient<{ sent: boolean }>('/push/test', {
+        method: 'POST',
+        auth: getAuth(),
+    });
+}
+
+export async function pushBroadcast(title: string, body: string): Promise<{ sent: number }> {
+    return apiClient<{ sent: number }>('/push/broadcast', {
+        method: 'POST',
+        body: { title, body },
+        auth: getAuth(),
+    });
+}
