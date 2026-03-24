@@ -88,11 +88,17 @@ export function usePushNotifications() {
 
         // Проверяем подписку и в браузере, и на бэкенде —
         // оба должны быть true, иначе toggle OFF
-        Promise.all([
-            navigator.serviceWorker.ready.then((reg) => reg.pushManager.getSubscription()),
-            pushStatus().catch(() => ({ isSubscribed: false })),
-        ])
-            .then(([browserSub, serverStatus]) => {
+        // getRegistration() не зависает если SW не зарегистрирован (возвращает undefined)
+        navigator.serviceWorker
+            .getRegistration()
+            .then((reg) => {
+                if (!reg) return { browserSub: null, serverStatus: { isSubscribed: false } };
+                return Promise.all([
+                    reg.pushManager.getSubscription(),
+                    pushStatus().catch(() => ({ isSubscribed: false })),
+                ]).then(([browserSub, serverStatus]) => ({ browserSub, serverStatus }));
+            })
+            .then(({ browserSub, serverStatus }) => {
                 if (!cancelled) {
                     setState((prev) => ({
                         ...prev,
