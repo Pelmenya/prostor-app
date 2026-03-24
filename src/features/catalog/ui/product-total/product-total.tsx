@@ -1,7 +1,7 @@
 'use client';
 
 import type { TCartItem } from '@/entities/cart';
-import { StickyTotalBar, type TLineItem } from '@/shared/ui/sticky-total-bar';
+import { StickyTotalBar, type TLineItem } from '@/shared/ui';
 import { EServiceCategory } from '@/entities/product';
 
 function calculateCartItemTotals(cartItem: TCartItem | undefined) {

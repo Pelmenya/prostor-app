@@ -4,8 +4,7 @@ import { useState } from 'react';
 
 import { useCartStore } from '@/entities/cart';
 
-type TDialogState =
-    | { type: null }
+type TDialogData =
     | { type: 'removeSelected' }
     | { type: 'product'; productId: string; productName: string }
     | { type: 'service'; productId: string; serviceId: string };
@@ -15,43 +14,51 @@ export function useCartConfirmDialog() {
     const removeProduct = useCartStore((s) => s.removeProduct);
     const removeService = useCartStore((s) => s.removeService);
 
-    const [dialog, setDialog] = useState<TDialogState>({ type: null });
+    // isOpen и data разделены: close() только скрывает диалог, не сбрасывая data.
+    // Это предотвращает мигание title/message во время анимации закрытия.
+    const [isOpen, setIsOpen] = useState(false);
+    const [data, setData] = useState<TDialogData>({ type: 'removeSelected' });
 
-    const isOpen = dialog.type !== null;
+    const requestRemoveSelected = () => {
+        setData({ type: 'removeSelected' });
+        setIsOpen(true);
+    };
 
-    const requestRemoveSelected = () => setDialog({ type: 'removeSelected' });
+    const requestRemoveProduct = (productId: string, productName: string) => {
+        setData({ type: 'product', productId, productName });
+        setIsOpen(true);
+    };
 
-    const requestRemoveProduct = (productId: string, productName: string) =>
-        setDialog({ type: 'product', productId, productName });
+    const requestRemoveService = (productId: string, serviceId: string) => {
+        setData({ type: 'service', productId, serviceId });
+        setIsOpen(true);
+    };
 
-    const requestRemoveService = (productId: string, serviceId: string) =>
-        setDialog({ type: 'service', productId, serviceId });
-
-    const close = () => setDialog({ type: null });
+    const close = () => setIsOpen(false);
 
     const confirm = () => {
-        if (dialog.type === 'removeSelected') {
+        if (data.type === 'removeSelected') {
             removeSelected();
-        } else if (dialog.type === 'product') {
-            removeProduct(dialog.productId);
-        } else if (dialog.type === 'service') {
-            removeService(dialog.productId, dialog.serviceId);
+        } else if (data.type === 'product') {
+            removeProduct(data.productId);
+        } else if (data.type === 'service') {
+            removeService(data.productId, data.serviceId);
         }
         close();
     };
 
     const title =
-        dialog.type === 'removeSelected'
+        data.type === 'removeSelected'
             ? 'Удалить выбранные товары?'
-            : dialog.type === 'product'
+            : data.type === 'product'
               ? 'Удалить товар'
               : 'Удалить услугу';
 
     const message =
-        dialog.type === 'removeSelected'
+        data.type === 'removeSelected'
             ? 'Вы точно хотите удалить выбранные товары? Отменить действие будет невозможно.'
-            : dialog.type === 'product'
-              ? `Вы точно хотите удалить «${dialog.productName}»? Отменить действие будет невозможно.`
+            : data.type === 'product'
+              ? `Вы точно хотите удалить «${data.productName}»? Отменить действие будет невозможно.`
               : 'Вы точно хотите удалить выбранную услугу? Отменить действие будет невозможно.';
 
     return {

@@ -13,17 +13,17 @@ export function CartTotal() {
 
     const lines: TLineItem[] = [];
 
-    if (totals.productsTotal > 0) {
+    if (totals.productsCount > 0) {
         lines.push({ label: 'Товары', count: totals.productsCount, total: totals.productsTotal });
     }
-    if (totals.installationTotal > 0) {
+    if (totals.installationCount > 0) {
         lines.push({
             label: 'Монтаж',
             count: totals.installationCount,
             total: totals.installationTotal,
         });
     }
-    if (totals.serviceTotal > 0) {
+    if (totals.serviceCount > 0) {
         lines.push({ label: 'Сервис', count: totals.serviceCount, total: totals.serviceTotal });
     }
 

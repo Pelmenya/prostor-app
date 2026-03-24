@@ -13,7 +13,9 @@ export type TCartServiceItem = {
     };
     count: number;
     price: number;
+    /** true — услуга активна (count > 0); false — услуга добавлена, но деактивирована (count = 0) */
     checked: boolean;
+    /** true — услуга включена в оформление заказа (галочка выбора) */
     selectedForCheckout: boolean;
 };
 
