@@ -1,7 +1,7 @@
 'use client';
 
 import type { TCartItem } from '@/entities/cart';
-import { StickyTotalBar, type TLineItem } from '@/shared/ui/sticky-total-bar';
+import { StickyTotalBar, type TLineItem } from '@/shared/ui';
 import { EServiceCategory } from '@/entities/product';
 
 function calculateCartItemTotals(cartItem: TCartItem | undefined) {
@@ -31,10 +31,10 @@ function calculateCartItemTotals(cartItem: TCartItem | undefined) {
 
         const servicePrice = (svc.price ?? 0) * svc.count;
 
-        if (svc.service.category === EServiceCategory.MONTAZH) {
+        if (svc.serviceInfo.category === EServiceCategory.MONTAZH) {
             installationTotal += servicePrice;
             installationCount += svc.count;
-        } else if (svc.service.category === EServiceCategory.SERVISNOE_OBSLUZHIVANIE) {
+        } else if (svc.serviceInfo.category === EServiceCategory.SERVISNOE_OBSLUZHIVANIE) {
             serviceTotal += servicePrice;
             serviceCount += svc.count;
         }

@@ -14,3 +14,7 @@ export { LegalDocumentModal } from './legal-document-modal';
 export { LegalMarkdown } from './legal-markdown';
 export { LegalDocumentMeta } from './legal-document-meta';
 export { FormField } from './form-field';
+export { ConfirmDialog } from './confirm-dialog';
+export type { TConfirmDialogProps } from './confirm-dialog';
+export { CardBadge } from './card-badge';
+export type { TCardBadgeVariant } from './card-badge';
