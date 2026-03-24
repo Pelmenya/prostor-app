@@ -1,15 +1,20 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useSyncExternalStore } from 'react';
 import { usePushNotifications } from '../lib/use-push-notifications';
 import { usePwaDetect } from '../lib/use-pwa-detect';
 
 export function PushPromoBanner() {
+    const mounted = useSyncExternalStore(
+        () => () => {},
+        () => true,
+        () => false,
+    );
     const { isSubscribed, isLoading, isSupported, subscribe } = usePushNotifications();
     const { isIos, showInstallHint } = usePwaDetect();
     const [dismissed, setDismissed] = useState(false);
 
-    if (dismissed || isSubscribed) return null;
+    if (!mounted || dismissed || isSubscribed) return null;
 
     // iOS но не PWA — показать инструкцию установки
     if (showInstallHint) {
