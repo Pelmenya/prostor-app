@@ -66,7 +66,7 @@ describe('RegisterPage', () => {
         expect(screen.getByPlaceholderText('Фамилия')).toBeInTheDocument();
         expect(screen.getByPlaceholderText('Email')).toBeInTheDocument();
         expect(screen.getByPlaceholderText('+7 999 999-99-99')).toBeInTheDocument();
-        expect(screen.getByPlaceholderText('Минимум 8 символов')).toBeInTheDocument();
+        expect(screen.getByPlaceholderText('Пароль (минимум 8 символов)')).toBeInTheDocument();
     });
 
     it('рендерит два чекбокса согласий со ссылками', () => {
@@ -109,7 +109,7 @@ describe('RegisterPage', () => {
         await user.type(screen.getByPlaceholderText('Фамилия'), 'Тестов');
         await user.type(screen.getByPlaceholderText('Email'), 'test@mail.ru');
         await user.type(screen.getByPlaceholderText('+7 999 999-99-99'), '9991234567');
-        await user.type(screen.getByPlaceholderText('Минимум 8 символов'), 'password123');
+        await user.type(screen.getByPlaceholderText('Пароль (минимум 8 символов)'), 'password123');
 
         await user.click(screen.getByRole('button', { name: 'Создать аккаунт' }));
 

@@ -241,7 +241,7 @@ function RegisterForm() {
                             <input
                                 type="password"
                                 className={`input input-bordered w-full ${errors.password ? 'input-error' : ''}`}
-                                placeholder="Минимум 8 символов"
+                                placeholder="Пароль (минимум 8 символов)"
                                 {...register('password')}
                             />
                         </FormField>
