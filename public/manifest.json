@@ -1,8 +1,10 @@
 {
+    "id": "/",
     "name": "PROSTOR — водоочистка и обслуживание",
     "short_name": "PROSTOR",
     "description": "Монтаж и обслуживание систем водоочистки, продажа оборудования",
     "start_url": "/catalog",
+    "scope": "/",
     "display": "standalone",
     "background_color": "#ffffff",
     "theme_color": "#4338ca",

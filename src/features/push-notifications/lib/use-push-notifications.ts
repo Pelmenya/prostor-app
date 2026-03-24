@@ -55,7 +55,6 @@ export function usePushNotifications() {
                 keys: json.keys as { p256dh: string; auth: string },
             });
 
-            console.log('[Push] subscribed OK');
             setState((prev) => ({ ...prev, isSubscribed: true, isLoading: false }));
         } catch (err) {
             console.error('[Push] subscribe error:', err);
