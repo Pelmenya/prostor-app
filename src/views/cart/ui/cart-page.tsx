@@ -21,8 +21,10 @@ export function CartPage() {
     const updateProductCount = useCartStore((s) => s.updateProductCount);
     const updateServiceCount = useCartStore((s) => s.updateServiceCount);
 
-    const productIds = Object.keys(items);
-    const hasItems = productIds.length > 0;
+    const hasItems = Object.keys(items).length > 0;
+    const productIds = Object.entries(items)
+        .filter(([, item]) => item.count > 0)
+        .map(([id]) => id);
     const { imageUrls, loadingIds } = useCartImages(productIds);
     const totalCount = selectTotalItems(items);
     const allSelected = selectAreAllSelected(items);

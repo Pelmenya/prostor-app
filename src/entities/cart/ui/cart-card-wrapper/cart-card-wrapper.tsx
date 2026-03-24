@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react';
 import { CardBadge } from '@/shared/ui';
-
-type TCardBadgeVariant = 'product' | 'service' | 'installation' | 'maintenance';
+import type { TCardBadgeVariant } from '@/shared/ui';
 
 type TCartCardWrapperProps = {
     variant: TCardBadgeVariant;

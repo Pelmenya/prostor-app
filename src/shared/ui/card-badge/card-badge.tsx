@@ -1,7 +1,7 @@
 import { CubeIcon, UserIcon } from '@heroicons/react/20/solid';
 import { WrenchScrewdriverIcon, ArrowPathRoundedSquareIcon } from '@heroicons/react/16/solid';
 
-type TCardBadgeVariant = 'product' | 'service' | 'installation' | 'maintenance';
+export type TCardBadgeVariant = 'product' | 'service' | 'installation' | 'maintenance';
 
 type TCardBadgeProps = {
     variant: TCardBadgeVariant;

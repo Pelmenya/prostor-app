@@ -23,7 +23,7 @@ function makeService(
     overrides?: Partial<TCartItem['services'][string]>,
 ): TCartItem['services'][string] {
     return {
-        service: { id: 'svc-1', name: 'Услуга', category },
+        serviceInfo: { id: 'svc-1', name: 'Услуга', category },
         count: 1,
         price: 100000,
         checked: true,
@@ -147,7 +147,7 @@ describe('calculateSelectedTotals', () => {
                 services: {
                     'svc-montazh': makeService(EServiceCategory.MONTAZH, { price: 200000 }),
                     'svc-servis': makeService(EServiceCategory.SERVISNOE_OBSLUZHIVANIE, {
-                        service: {
+                        serviceInfo: {
                             id: 'svc-servis',
                             name: 'Сервис',
                             category: EServiceCategory.SERVISNOE_OBSLUZHIVANIE,

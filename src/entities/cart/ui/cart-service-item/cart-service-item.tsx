@@ -21,18 +21,18 @@ export function CartServiceItem({
     onUpdateCount,
     onRemove,
 }: TCartServiceItemProps) {
-    const { service: svc, count, price, selectedForCheckout } = service;
+    const { serviceInfo, count, price, selectedForCheckout } = service;
 
     const handleDecrement = () => {
         if (count - 1 <= 0) {
-            onRemove(productId, svc.id);
+            onRemove(productId, serviceInfo.id);
         } else {
-            onUpdateCount(productId, svc.id, count - 1);
+            onUpdateCount(productId, serviceInfo.id, count - 1);
         }
     };
 
     const handleIncrement = () => {
-        onUpdateCount(productId, svc.id, count + 1);
+        onUpdateCount(productId, serviceInfo.id, count + 1);
     };
 
     return (
@@ -40,13 +40,13 @@ export function CartServiceItem({
             {/* Мобилка: 2 строки */}
             <div className="flex flex-col gap-2 md:hidden">
                 <div className="flex items-center justify-between">
-                    <p className="line-clamp-2 text-sm leading-[110%]">{svc.name}</p>
+                    <p className="line-clamp-2 text-sm leading-[110%]">{serviceInfo.name}</p>
                     <label className="flex cursor-pointer items-center justify-center p-2 -mr-2">
                         <input
                             type="checkbox"
                             className="checkbox checkbox-sm"
                             checked={selectedForCheckout}
-                            onChange={() => onToggleSelected(productId, svc.id)}
+                            onChange={() => onToggleSelected(productId, serviceInfo.id)}
                         />
                     </label>
                 </div>
@@ -66,7 +66,9 @@ export function CartServiceItem({
 
             {/* Десктоп: 1 строка */}
             <div className="hidden md:flex md:items-center md:gap-4">
-                <p className="line-clamp-2 flex-1 min-w-0 text-sm leading-[110%]">{svc.name}</p>
+                <p className="line-clamp-2 flex-1 min-w-0 text-sm leading-[110%]">
+                    {serviceInfo.name}
+                </p>
                 <p className="shrink-0 text-sm font-semibold tracking-tight text-primary leading-[110%]">
                     {formatPrice(price)}
                 </p>
@@ -82,7 +84,7 @@ export function CartServiceItem({
                         type="checkbox"
                         className="checkbox checkbox-sm"
                         checked={selectedForCheckout}
-                        onChange={() => onToggleSelected(productId, svc.id)}
+                        onChange={() => onToggleSelected(productId, serviceInfo.id)}
                     />
                 </label>
             </div>

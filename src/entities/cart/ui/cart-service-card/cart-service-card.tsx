@@ -2,11 +2,12 @@
 
 import type { TCartServiceItem } from '@/entities/cart';
 import { CartCardWrapper, CartServiceItem } from '@/entities/cart';
+import type { TCardBadgeVariant } from '@/shared/ui';
 
-type TCardBadgeVariant = 'service' | 'installation' | 'maintenance';
+type TCartServiceCardVariant = Exclude<TCardBadgeVariant, 'product'>;
 
 type TCartServiceCardProps = {
-    variant: TCardBadgeVariant;
+    variant: TCartServiceCardVariant;
     productName: string;
     productId: string;
     services: [string, TCartServiceItem][];

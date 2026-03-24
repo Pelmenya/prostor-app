@@ -41,7 +41,7 @@ function groupServicesByCategory(entries: [string, TCartItem][]): TServiceGroup[
         const byVariant = new Map<string, [string, TCartServiceItem][]>();
 
         for (const [svcId, svc] of activeServices) {
-            const variant = getVariant(svc.service.category);
+            const variant = getVariant(svc.serviceInfo.category);
             const list = byVariant.get(variant) ?? [];
             list.push([svcId, svc]);
             byVariant.set(variant, list);

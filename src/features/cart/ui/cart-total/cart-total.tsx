@@ -3,7 +3,7 @@
 import { useCartStore } from '@/entities/cart';
 import { StickyTotalBar } from '@/shared/ui';
 import type { TLineItem } from '@/shared/ui';
-import { calculateSelectedTotals } from '@/features/cart';
+import { calculateSelectedTotals } from '../../lib/calculate-selected-totals';
 
 export function CartTotal() {
     const items = useCartStore((s) => s.items);

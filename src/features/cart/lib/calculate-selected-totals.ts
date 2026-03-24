@@ -31,7 +31,7 @@ export function calculateSelectedTotals(items: Record<string, TCartItem>): TSele
 
             const price = svc.price * svc.count;
 
-            if (svc.service.category === EServiceCategory.MONTAZH) {
+            if (svc.serviceInfo.category === EServiceCategory.MONTAZH) {
                 installationTotal += price;
                 installationCount += svc.count;
             } else {

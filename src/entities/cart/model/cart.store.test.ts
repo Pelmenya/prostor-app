@@ -128,7 +128,7 @@ describe('cart.store', () => {
             expect(svc.count).toBe(1);
             expect(svc.price).toBe(150000);
             expect(svc.checked).toBe(true);
-            expect(svc.service.category).toBe(EServiceCategory.MONTAZH);
+            expect(svc.serviceInfo.category).toBe(EServiceCategory.MONTAZH);
         });
     });
 

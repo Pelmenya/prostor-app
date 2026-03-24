@@ -13,7 +13,7 @@ type TDialogState =
 export function useCartConfirmDialog() {
     const removeSelected = useCartStore((s) => s.removeSelected);
     const removeProduct = useCartStore((s) => s.removeProduct);
-    const updateServiceCount = useCartStore((s) => s.updateServiceCount);
+    const removeService = useCartStore((s) => s.removeService);
 
     const [dialog, setDialog] = useState<TDialogState>({ type: null });
 
@@ -35,7 +35,7 @@ export function useCartConfirmDialog() {
         } else if (dialog.type === 'product') {
             removeProduct(dialog.productId);
         } else if (dialog.type === 'service') {
-            updateServiceCount(dialog.productId, dialog.serviceId, 0);
+            removeService(dialog.productId, dialog.serviceId);
         }
         close();
     };

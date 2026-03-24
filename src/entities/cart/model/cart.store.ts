@@ -5,7 +5,7 @@ import type { TProduct, TService, EServiceCategory } from '@/shared/model';
 // ---- Типы ----
 
 export type TCartServiceItem = {
-    service: {
+    serviceInfo: {
         id: string;
         name: string;
         rateOfHours?: number;
@@ -41,6 +41,7 @@ type TCartStore = {
     // Actions — услуги
     addService: (productId: string, service: TService, count: number, price: number) => void;
     updateServiceCount: (productId: string, serviceId: string, count: number) => void;
+    removeService: (productId: string, serviceId: string) => void;
 
     // Actions — selectedForCheckout
     toggleProductSelected: (productId: string) => void;
@@ -93,7 +94,7 @@ export function selectTotalPrice(items: Record<string, TCartItem>): number {
 export function selectTotalRateOfHours(items: Record<string, TCartItem>): number {
     return Object.values(items).reduce((total, item) => {
         const servicesTotal = Object.values(item.services).reduce(
-            (sum, svc) => sum + svc.count * (svc.service.rateOfHours || 0),
+            (sum, svc) => sum + svc.count * (svc.serviceInfo.rateOfHours || 0),
             0,
         );
         return total + servicesTotal;
@@ -227,7 +228,7 @@ export const useCartStore = create<TCartStore>()(
                                 services: {
                                     ...item.services,
                                     [service.id]: {
-                                        service: {
+                                        serviceInfo: {
                                             id: service.id,
                                             name: service.name,
                                             rateOfHours: service.rateOfHours,
@@ -269,6 +270,21 @@ export const useCartStore = create<TCartStore>()(
                     return {
                         items: { ...state.items, [productId]: updatedItem },
                     };
+                }),
+
+            removeService: (productId, serviceId) =>
+                set((state) => {
+                    const item = state.items[productId];
+                    if (!item) return state;
+
+                    const { [serviceId]: _, ...remainingServices } = item.services;
+                    const updatedItem = { ...item, services: remainingServices };
+
+                    if (shouldRemoveProduct(updatedItem)) {
+                        return { items: omitKey(state.items, productId) };
+                    }
+
+                    return { items: { ...state.items, [productId]: updatedItem } };
                 }),
 
             toggleProductSelected: (productId) =>
