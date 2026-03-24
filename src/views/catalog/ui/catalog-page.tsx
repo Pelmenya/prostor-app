@@ -3,7 +3,6 @@
 import { useSubGroups } from '@/entities/product';
 import { GroupList, GroupListSkeleton } from '@/features/catalog';
 import { PageContainer, PageTitle, CatalogInfoBlock } from '@/shared/ui';
-import { PushPromoBanner } from '@/features/push-notifications';
 import { MAIN_CATALOG_ID } from '@/shared/config';
 
 export function CatalogPage() {
@@ -11,7 +10,6 @@ export function CatalogPage() {
 
     return (
         <PageContainer>
-            <PushPromoBanner />
             <div className="flex flex-col gap-4 lg:gap-6">
                 <PageTitle>Каталог товаров и услуг</PageTitle>
                 <CatalogInfoBlock>
