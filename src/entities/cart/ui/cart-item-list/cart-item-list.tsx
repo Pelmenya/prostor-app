@@ -1,8 +1,7 @@
 'use client';
 
 import type { TCartItem, TCartServiceItem } from '@/entities/cart';
-import { CartItem } from '@/entities/cart/ui/cart-item';
-import { CartServiceCard } from '@/entities/cart/ui/cart-service-card';
+import { CartItem, CartServiceCard } from '@/entities/cart';
 import { EServiceCategory } from '@/shared/model';
 
 type TCartItemListProps = {

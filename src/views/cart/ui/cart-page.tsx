@@ -1,7 +1,6 @@
 'use client';
 
 import { ArchiveBoxXMarkIcon } from '@heroicons/react/20/solid';
-import { useState } from 'react';
 
 import {
     useCartStore,
@@ -11,77 +10,25 @@ import {
     CartEmpty,
     CartItemList,
 } from '@/entities/cart';
-import { CartTotal, useCartImages } from '@/features/cart';
+import { CartTotal, useCartImages, useCartConfirmDialog } from '@/features/cart';
 import { PageContainer, PageTitle, ConfirmDialog } from '@/shared/ui';
-
-type TDialogType = 'removeSelected' | 'product' | 'service';
 
 export function CartPage() {
     const items = useCartStore((s) => s.items);
     const toggleAllSelected = useCartStore((s) => s.toggleAllSelected);
-    const removeSelected = useCartStore((s) => s.removeSelected);
     const toggleProductSelected = useCartStore((s) => s.toggleProductSelected);
     const toggleServiceSelected = useCartStore((s) => s.toggleServiceSelected);
     const updateProductCount = useCartStore((s) => s.updateProductCount);
     const updateServiceCount = useCartStore((s) => s.updateServiceCount);
-    const removeProduct = useCartStore((s) => s.removeProduct);
 
     const productIds = Object.keys(items);
-    const cartIsFull = productIds.length > 0;
+    const hasItems = productIds.length > 0;
     const { imageUrls, loadingIds } = useCartImages(productIds);
     const totalCount = selectTotalItems(items);
     const allSelected = selectAreAllSelected(items);
     const hasSelected = selectHasSelectedItems(items);
 
-    // ConfirmDialog
-    const [isDialogOpen, setDialogOpen] = useState(false);
-    const [dialogType, setDialogType] = useState<TDialogType | null>(null);
-    const [pendingProductId, setPendingProductId] = useState<string | null>(null);
-    const [pendingProductName, setPendingProductName] = useState<string | null>(null);
-    const [pendingServiceId, setPendingServiceId] = useState<string | null>(null);
-
-    const closeDialog = () => {
-        setDialogOpen(false);
-    };
-
-    const handleRemoveProduct = (productId: string, productName: string) => {
-        setPendingProductId(productId);
-        setPendingProductName(productName);
-        setDialogType('product');
-        setDialogOpen(true);
-    };
-
-    const handleRemoveService = (productId: string, serviceId: string) => {
-        setPendingProductId(productId);
-        setPendingServiceId(serviceId);
-        setDialogType('service');
-        setDialogOpen(true);
-    };
-
-    const handleConfirm = () => {
-        if (dialogType === 'removeSelected') {
-            removeSelected();
-        } else if (dialogType === 'product' && pendingProductId) {
-            removeProduct(pendingProductId);
-        } else if (dialogType === 'service' && pendingProductId && pendingServiceId) {
-            updateServiceCount(pendingProductId, pendingServiceId, 0);
-        }
-        closeDialog();
-    };
-
-    const dialogTitle =
-        dialogType === 'removeSelected'
-            ? 'Удалить выбранные товары?'
-            : dialogType === 'product'
-              ? 'Удалить товар'
-              : 'Удалить услугу';
-
-    const dialogMessage =
-        dialogType === 'removeSelected'
-            ? 'Вы точно хотите удалить выбранные товары? Отменить действие будет невозможно.'
-            : dialogType === 'product' && pendingProductName
-              ? `Вы точно хотите удалить «${pendingProductName}»? Отменить действие будет невозможно.`
-              : 'Вы точно хотите удалить выбранную услугу? Отменить действие будет невозможно.';
+    const dialog = useCartConfirmDialog();
 
     return (
         <>
@@ -95,7 +42,7 @@ export function CartPage() {
                             )}
                         </div>
 
-                        {cartIsFull && (
+                        {hasItems && (
                             <div className="flex items-center justify-between gap-6">
                                 <label className="flex cursor-pointer items-center gap-2">
                                     <input
@@ -108,11 +55,9 @@ export function CartPage() {
                                 </label>
                                 <button
                                     className="btn btn-outline btn-xs"
-                                    onClick={() => {
-                                        setDialogType('removeSelected');
-                                        setDialogOpen(true);
-                                    }}
+                                    onClick={dialog.requestRemoveSelected}
                                     disabled={!hasSelected}
+                                    aria-label="Удалить выбранные"
                                 >
                                     <ArchiveBoxXMarkIcon className="size-2.75" />
                                 </button>
@@ -120,7 +65,7 @@ export function CartPage() {
                         )}
                     </div>
 
-                    {cartIsFull ? (
+                    {hasItems ? (
                         <CartItemList
                             items={items}
                             imageUrls={imageUrls}
@@ -129,8 +74,8 @@ export function CartPage() {
                             onToggleService={toggleServiceSelected}
                             onUpdateProductCount={updateProductCount}
                             onUpdateServiceCount={updateServiceCount}
-                            onRemoveProduct={handleRemoveProduct}
-                            onRemoveService={handleRemoveService}
+                            onRemoveProduct={dialog.requestRemoveProduct}
+                            onRemoveService={dialog.requestRemoveService}
                         />
                     ) : (
                         <CartEmpty />
@@ -138,11 +83,11 @@ export function CartPage() {
                 </div>
 
                 <ConfirmDialog
-                    isOpen={isDialogOpen}
-                    onClose={closeDialog}
-                    onConfirm={handleConfirm}
-                    title={dialogTitle}
-                    message={dialogMessage}
+                    isOpen={dialog.isOpen}
+                    onClose={dialog.close}
+                    onConfirm={dialog.confirm}
+                    title={dialog.title}
+                    message={dialog.message}
                     confirmText="Удалить"
                 />
             </PageContainer>

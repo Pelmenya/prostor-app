@@ -10,7 +10,6 @@ export type TConfirmDialogProps = {
     message: string;
     confirmText?: string;
     cancelText?: string;
-    variant?: 'danger' | 'warning' | 'info';
 };
 
 export function ConfirmDialog({

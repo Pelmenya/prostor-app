@@ -1,8 +1,7 @@
 'use client';
 
 import type { TCartServiceItem } from '@/entities/cart';
-import { CartCardWrapper } from '@/entities/cart/ui/cart-card-wrapper';
-import { CartServiceItem } from '@/entities/cart/ui/cart-service-item';
+import { CartCardWrapper, CartServiceItem } from '@/entities/cart';
 
 type TCardBadgeVariant = 'service' | 'installation' | 'maintenance';
 
