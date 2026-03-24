@@ -8,6 +8,7 @@ import { useAuth } from '@/shared/lib/platform';
 import { useAuthStore } from '@/shared/lib';
 import { webLogout } from '@/features/auth';
 import { PushToggle } from '@/features/push-notifications';
+import { ThemeToggle } from '@/shared/ui';
 
 type THeaderProps = {
     back?: boolean;
@@ -82,6 +83,7 @@ export function Header({ back = false, backTo }: THeaderProps) {
                 </div>
 
                 <div className="navbar-end gap-2 w-auto">
+                    <ThemeToggle />
                     {showAuth ? (
                         <>
                             <PushToggle />

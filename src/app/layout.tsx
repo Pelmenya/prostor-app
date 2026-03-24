@@ -37,6 +37,13 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="ru" data-theme="light">
+            <head>
+                <script
+                    dangerouslySetInnerHTML={{
+                        __html: `(function(){try{var t=localStorage.getItem('theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}else if(window.matchMedia('(prefers-color-scheme: dark)').matches){document.documentElement.setAttribute('data-theme','dark');}}catch(e){}})();`,
+                    }}
+                />
+            </head>
             <body className={`${montserrat.className} antialiased`}>{children}</body>
         </html>
     );
