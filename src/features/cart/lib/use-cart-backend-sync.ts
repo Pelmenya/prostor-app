@@ -17,6 +17,33 @@ import type { TBackendCartState, TCartItem } from '@/entities/cart';
 
 const DEBOUNCE_MS = 300;
 
+/** Проверяет, отличаются ли две корзины (ключи, количества товаров и услуг) */
+function hasCartDiff(local: Record<string, TCartItem>, server: Record<string, TCartItem>): boolean {
+    const localKeys = Object.keys(local);
+    const serverKeys = Object.keys(server);
+    if (localKeys.length !== serverKeys.length) return true;
+
+    for (const id of serverKeys) {
+        const l = local[id];
+        const s = server[id];
+        if (!l) return true;
+        if (l.count !== s.count || l.price !== s.price) return true;
+
+        // Сравниваем услуги
+        const lSvcKeys = Object.keys(l.services);
+        const sSvcKeys = Object.keys(s.services);
+        if (lSvcKeys.length !== sSvcKeys.length) return true;
+        for (const svcId of sSvcKeys) {
+            const lSvc = l.services[svcId];
+            const sSvc = s.services[svcId];
+            if (!lSvc) return true;
+            if (lSvc.count !== sSvc.count || lSvc.price !== sSvc.price) return true;
+        }
+    }
+
+    return false;
+}
+
 // ── Module-level state (доступен из flushCartSync) ──
 let pendingTimer: ReturnType<typeof setTimeout> | null = null;
 let pendingAuth: string | null = null;
@@ -182,8 +209,10 @@ export function useCartBackendSync() {
     // ── SWR: TanStack Query refetch на фокус/resume → обновить store ──
     // refetchOnWindowFocus (дефолт TQ) подтягивает свежие данные при:
     // - переключении вкладок, PWA resume, alt-tab
+    const isGuest = useCartStore((s) => s.isGuest);
+
     const { data: serverCart, dataUpdatedAt } = useCart({
-        enabled: isAuthenticated && !useCartStore.getState().isGuest,
+        enabled: isAuthenticated && !isGuest,
     });
 
     useEffect(() => {
@@ -194,16 +223,7 @@ export function useCartBackendSync() {
         const serverItems = fromBackendCartState(serverCart);
         const localItems = useCartStore.getState().items;
 
-        // Простая проверка: отличаются ли ключи или количество
-        const serverKeys = Object.keys(serverItems).sort().join(',');
-        const localKeys = Object.keys(localItems).sort().join(',');
-        if (serverKeys === localKeys) {
-            // Ключи совпадают — проверим количества
-            const same = Object.entries(serverItems).every(
-                ([id, item]) => localItems[id]?.count === item.count,
-            );
-            if (same) return;
-        }
+        if (!hasCartDiff(localItems, serverItems)) return;
 
         skipNextSyncRef.current = true;
         useCartStore.getState().replaceItems(serverItems);
