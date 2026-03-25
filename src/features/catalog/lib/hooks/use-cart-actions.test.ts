@@ -246,7 +246,7 @@ describe('useCartActions', () => {
             const { result } = renderCartActions();
 
             act(() => {
-                result.current.handleCheckboxChange(SERVICE_ID, 150000);
+                result.current.handleCheckboxChange(SERVICE_ID, 0, 150000);
             });
 
             const item = useCartStore.getState().items[PRODUCT_ID];
@@ -264,7 +264,7 @@ describe('useCartActions', () => {
             const { result } = renderCartActions();
 
             act(() => {
-                result.current.handleCheckboxChange(SERVICE_ID, 150000);
+                result.current.handleCheckboxChange(SERVICE_ID, 0, 150000);
             });
 
             const svc = useCartStore.getState().items[PRODUCT_ID].services[SERVICE_ID];
@@ -279,7 +279,7 @@ describe('useCartActions', () => {
             const { result } = renderCartActions();
 
             act(() => {
-                result.current.handleCheckboxChange(SERVICE_ID, 150000);
+                result.current.handleCheckboxChange(SERVICE_ID, 0, 150000);
             });
 
             const svc = useCartStore.getState().items[PRODUCT_ID].services[SERVICE_ID];
@@ -293,7 +293,7 @@ describe('useCartActions', () => {
             const { result } = renderCartActions();
 
             act(() => {
-                result.current.handleCheckboxChange(SERVICE_ID, 150000);
+                result.current.handleCheckboxChange(SERVICE_ID, 0, 150000);
             });
 
             const svc = useCartStore.getState().items[PRODUCT_ID].services[SERVICE_ID];
@@ -308,7 +308,7 @@ describe('useCartActions', () => {
             const itemsBefore = { ...useCartStore.getState().items };
 
             act(() => {
-                result.current.handleCheckboxChange(SERVICE_ID, 150000);
+                result.current.handleCheckboxChange(SERVICE_ID, 0, 150000);
             });
 
             expect(useCartStore.getState().items).toEqual(itemsBefore);
@@ -319,7 +319,7 @@ describe('useCartActions', () => {
 
             act(() => {
                 // price не передаётся — должен использоваться 0
-                result.current.handleCheckboxChange(SERVICE_ID);
+                result.current.handleCheckboxChange(SERVICE_ID, 0);
             });
 
             const svc = useCartStore.getState().items[PRODUCT_ID]?.services[SERVICE_ID];
