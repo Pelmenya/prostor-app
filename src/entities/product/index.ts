@@ -1,5 +1,6 @@
 export {
     productKeys,
+    fetchTopLevelGroups,
     fetchSubGroups,
     fetchProducts,
     fetchGroupPath,

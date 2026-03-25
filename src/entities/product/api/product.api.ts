@@ -1,9 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '@/shared/api';
+import { API_URL } from '@/shared/config';
 import type { TGroup, TGroupPath, TProduct, TImage } from '@/shared/model';
 
 const BASE = '/moysklad';
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 // Query keys — единый источник правды для хуков и серверного prefetchQuery.
 // Ключи должны совпадать, иначе HydrationBoundary не гидрирует кеш.
@@ -18,6 +18,8 @@ export const productKeys = {
 };
 
 // Серверные fetch-функции (plain async, без хуков) — для prefetchQuery в RSC.
+export const fetchTopLevelGroups = () => apiClient<TGroup[]>(`${BASE}/top-level-groups`);
+
 export const fetchSubGroups = (groupId: string) =>
     apiClient<TGroup[]>(`${BASE}/group/${groupId}/groups`);
 
@@ -93,7 +95,7 @@ export function useGroupPath(groupId: string) {
  */
 export function useProductImages(productId: string) {
     return useQuery({
-        queryKey: ['catalog', 'product-images', productId],
+        queryKey: productKeys.productImages(productId),
         queryFn: () => apiClient<TImage[]>(`${BASE}/product/${productId}/images`),
         enabled: !!productId,
         staleTime: 10 * 60 * 1000,
@@ -105,8 +107,11 @@ export function useProductImages(productId: string) {
  */
 export function useBundleImages(bundleId: string | undefined) {
     return useQuery({
-        queryKey: ['catalog', 'bundle-images', bundleId],
-        queryFn: () => apiClient<TImage[]>(`${BASE}/bundle/${bundleId}/images`),
+        queryKey: productKeys.bundleImages(bundleId ?? ''),
+        queryFn: () => {
+            if (!bundleId) throw new Error('bundleId is required');
+            return apiClient<TImage[]>(`${BASE}/bundle/${bundleId}/images`);
+        },
         enabled: !!bundleId,
         staleTime: 10 * 60 * 1000,
     });
