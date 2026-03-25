@@ -11,11 +11,23 @@ function subscribe(callback: () => void) {
         attributes: true,
         attributeFilter: ['data-theme'],
     });
-    return () => observer.disconnect();
+
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleChange = (e: MediaQueryListEvent) => {
+        if (!localStorage.getItem('theme')) {
+            document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : 'light');
+        }
+    };
+    mq.addEventListener('change', handleChange);
+
+    return () => {
+        observer.disconnect();
+        mq.removeEventListener('change', handleChange);
+    };
 }
 
 function getSnapshot(): TTheme {
-    return (document.documentElement.getAttribute('data-theme') ?? 'light') as TTheme;
+    return document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
 }
 
 function getServerSnapshot(): TTheme {
@@ -28,7 +40,9 @@ export function ThemeToggle() {
     const toggle = () => {
         const next: TTheme = theme === 'light' ? 'dark' : 'light';
         document.documentElement.setAttribute('data-theme', next);
-        localStorage.setItem('theme', next);
+        try {
+            localStorage.setItem('theme', next);
+        } catch {}
     };
 
     return (
