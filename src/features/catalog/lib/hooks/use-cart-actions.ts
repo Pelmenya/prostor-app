@@ -47,7 +47,7 @@ export function useCartActions(product: TProduct | undefined, productId: string)
         updateServiceCount(productId, serviceId, Math.max(currentCount - 1, 0));
     };
 
-    const handleCheckboxChange = (serviceId: string, price?: number) => {
+    const handleCheckboxChange = (serviceId: string, _rateOfHours: number, price?: number) => {
         if (!product) return;
         if (!cartItem) addProduct(product, 0, productUnitPrice);
 
