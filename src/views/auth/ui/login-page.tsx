@@ -88,12 +88,20 @@ function LoginForm() {
                     </button>
                 </form>
 
-                <p className="text-center text-sm mt-4">
-                    Нет аккаунта?{' '}
-                    <Link href="/register" className="link link-primary">
-                        Зарегистрироваться
-                    </Link>
-                </p>
+                <div className="flex flex-col items-center gap-2 mt-4 text-sm">
+                    <p>
+                        Нет аккаунта?{' '}
+                        <Link href="/register" className="link link-primary">
+                            Зарегистрироваться
+                        </Link>
+                    </p>
+                    <p>
+                        Забыли пароль?{' '}
+                        <Link href="/forgot-password" className="link link-primary">
+                            Восстановить
+                        </Link>
+                    </p>
+                </div>
             </div>
         </div>
     );
