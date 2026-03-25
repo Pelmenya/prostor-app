@@ -10,6 +10,10 @@ export {
 
 export type { TCartItem, TCartServiceItem } from './model/cart.store';
 
+export { useCart, useUpdateCart, CART_QUERY_KEY } from './api/cart.api';
+export type { TBackendCartState, TBackendCartItem, TBackendServiceEntry } from './api/cart.types';
+export { toBackendCartState, fromBackendCartState } from './lib/cart-mappers';
+
 export { CartEmpty } from './ui/cart-empty';
 export { CartCardWrapper } from './ui/cart-card-wrapper';
 export { CartItem } from './ui/cart-item';

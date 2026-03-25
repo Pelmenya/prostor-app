@@ -4,7 +4,7 @@
 
 ## Текущая задача
 
-### Фронт: Adapter Pattern — `docs/features/AUTH_ADAPTER.md`
+### Фронт: Adapter Pattern — `docs/features/auth/AUTH_ADAPTER.md`
 
 | Шаг                  | Описание                                       | Прогресс |
 | -------------------- | ---------------------------------------------- | -------- |
@@ -544,7 +544,7 @@ PK остаётся bigint — Telegram не ломается. Добавляе�
 
 ### Этап 1: Web MVP (4-6 недель)
 
-> Архитектура авторизации: `docs/features/AUTH_ADAPTER.md`
+> Архитектура авторизации: `docs/features/auth/AUTH_ADAPTER.md`
 
 - ✅ Бойлерплейт Next.js 16 + React 19 + Tailwind 4 + DaisyUI 5
 - ✅ Весь стек установлен, ESLint + Steiger + Husky настроены
@@ -616,8 +616,8 @@ PK остаётся bigint — Telegram не ломается. Добавляе�
 ### В этом репозитории
 
 - `docs/BOILERPLATE.md` — **что сделано и что делать** (структура файлов, layout groups, shared, entities, widgets, pages)
-- `docs/features/AUTH_ADAPTER.md` — **архитектура авторизации** (Adapter Pattern, фронтенд)
-- `docs/features/CART_STRATEGY.md` — **корзина для web** (Zustand + localStorage → sync после логина)
+- `docs/features/auth/AUTH_ADAPTER.md` — **архитектура авторизации** (Adapter Pattern, фронтенд)
+- `docs/features/cart/CART_STRATEGY.md` — **корзина для web** (Zustand + localStorage → sync после логина)
 - `docs/backend/STRANGLE_FIG_MIGRATION.md` — **план миграции бэкенда** (Strangle Fig Pattern, 5 шагов)
 - `docs/strategy/` — общая стратегия, решения
 - `docs/research/` — исследования платформ (MAX, Web, PWA)

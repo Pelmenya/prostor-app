@@ -2,7 +2,7 @@
 
 import { useSyncExternalStore } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '@/shared/lib/platform';
 import { useAuthStore } from '@/shared/lib';
@@ -14,8 +14,11 @@ type THeaderProps = {
     backTo?: string;
 };
 
+const PRIVATE_PATHS = ['/profile', '/orders', '/checkout'];
+
 export function Header({ back = false, backTo }: THeaderProps) {
     const router = useRouter();
+    const pathname = usePathname();
     const { isAuthenticated, user, logout } = useAuth();
     const { accessToken, refreshToken } = useAuthStore();
 
@@ -38,7 +41,10 @@ export function Header({ back = false, backTo }: THeaderProps) {
             }
         }
         logout();
-        router.push('/');
+
+        // Редирект только с приватных страниц (профиль, заказы, checkout)
+        const isPrivate = PRIVATE_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+        if (isPrivate) router.push('/');
     };
 
     return (
@@ -91,11 +97,14 @@ export function Header({ back = false, backTo }: THeaderProps) {
                         </>
                     ) : mounted ? (
                         <>
-                            <Link href="/login" className="btn btn-primary btn-sm">
+                            <Link
+                                href={`/login?from=${encodeURIComponent(pathname)}`}
+                                className="btn btn-primary btn-sm"
+                            >
                                 Войти
                             </Link>
                             <Link
-                                href="/register"
+                                href={`/register?from=${encodeURIComponent(pathname)}`}
                                 className="btn btn-ghost btn-sm hidden sm:inline-flex"
                             >
                                 Регистрация

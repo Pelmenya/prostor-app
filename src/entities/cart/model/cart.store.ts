@@ -54,6 +54,7 @@ type TCartStore = {
     // Управление
     clear: () => void;
     setIsGuest: (isGuest: boolean) => void;
+    replaceItems: (items: Record<string, TCartItem>) => void;
 };
 
 // ---- Хелперы ----
@@ -279,7 +280,7 @@ export const useCartStore = create<TCartStore>()(
                     const item = state.items[productId];
                     if (!item) return state;
 
-                    const { [serviceId]: _, ...remainingServices } = item.services;
+                    const { [serviceId]: _removed, ...remainingServices } = item.services;
                     const updatedItem = { ...item, services: remainingServices };
 
                     if (shouldRemoveProduct(updatedItem)) {
@@ -368,6 +369,7 @@ export const useCartStore = create<TCartStore>()(
 
             clear: () => set({ items: {} }),
             setIsGuest: (isGuest) => set({ isGuest }),
+            replaceItems: (items) => set({ items }),
         }),
         {
             name: 'prostor-cart',
