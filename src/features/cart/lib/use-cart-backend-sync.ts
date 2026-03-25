@@ -6,6 +6,7 @@ import { useAuth } from '@/shared/lib/platform';
 import { useAuthStore } from '@/shared/lib';
 import {
     useCartStore,
+    useCart,
     toBackendCartState,
     fromBackendCartState,
     CART_QUERY_KEY,
@@ -177,6 +178,36 @@ export function useCartBackendSync() {
             controller.abort();
         };
     }, [isAuthenticated]);
+
+    // ── SWR: TanStack Query refetch на фокус/resume → обновить store ──
+    // refetchOnWindowFocus (дефолт TQ) подтягивает свежие данные при:
+    // - переключении вкладок, PWA resume, alt-tab
+    const { data: serverCart, dataUpdatedAt } = useCart({
+        enabled: isAuthenticated && !useCartStore.getState().isGuest,
+    });
+
+    useEffect(() => {
+        if (!serverCart || !dataUpdatedAt) return;
+        // Не обновляем store если есть pending локальные изменения
+        if (pendingTimer) return;
+
+        const serverItems = fromBackendCartState(serverCart);
+        const localItems = useCartStore.getState().items;
+
+        // Простая проверка: отличаются ли ключи или количество
+        const serverKeys = Object.keys(serverItems).sort().join(',');
+        const localKeys = Object.keys(localItems).sort().join(',');
+        if (serverKeys === localKeys) {
+            // Ключи совпадают — проверим количества
+            const same = Object.entries(serverItems).every(
+                ([id, item]) => localItems[id]?.count === item.count,
+            );
+            if (same) return;
+        }
+
+        skipNextSyncRef.current = true;
+        useCartStore.getState().replaceItems(serverItems);
+    }, [serverCart, dataUpdatedAt]);
 
     // ── Debounce sync: store → POST /cart ──
     useEffect(() => {
