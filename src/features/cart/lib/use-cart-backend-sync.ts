@@ -1,19 +1,47 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/shared/lib/platform';
 import { useAuthStore } from '@/shared/lib';
 import {
     useCartStore,
-    useUpdateCart,
     toBackendCartState,
     fromBackendCartState,
+    CART_QUERY_KEY,
 } from '@/entities/cart';
 import { apiClient } from '@/shared/api';
 import { mergeCartItems } from './merge-cart-items';
 import type { TBackendCartState, TCartItem } from '@/entities/cart';
 
 const DEBOUNCE_MS = 300;
+
+// ── Module-level state (доступен из flushCartSync) ──
+let pendingTimer: ReturnType<typeof setTimeout> | null = null;
+let pendingAuth: string | null = null;
+
+function postCart(items: Record<string, TCartItem>, auth: string): Promise<unknown> {
+    return apiClient('/cart', {
+        method: 'POST',
+        body: toBackendCartState(items),
+        auth,
+    });
+}
+
+/**
+ * Немедленно отправить pending изменения корзины на бэк.
+ * Вызывается из useLogout() ДО webLogout (пока JWT ещё валиден на сервере).
+ */
+export function flushCartSync(): Promise<unknown> | undefined {
+    if (pendingTimer && pendingAuth) {
+        clearTimeout(pendingTimer);
+        pendingTimer = null;
+        const { items } = useCartStore.getState();
+        const auth = pendingAuth;
+        pendingAuth = null;
+        return postCart(items, auth);
+    }
+}
 
 /**
  * Единый хук синхронизации корзины с бэкендом.
@@ -26,54 +54,42 @@ const DEBOUNCE_MS = 300;
  */
 export function useCartBackendSync() {
     const { isAuthenticated, authHeader } = useAuth();
-    const updateCart = useUpdateCart();
+    const queryClient = useQueryClient();
 
-    const updateCartRef = useRef(updateCart);
     const authHeaderRef = useRef(authHeader);
+    const queryClientRef = useRef(queryClient);
 
     useEffect(() => {
-        updateCartRef.current = updateCart;
         authHeaderRef.current = authHeader;
-    });
+    }, [authHeader]);
+    useEffect(() => {
+        queryClientRef.current = queryClient;
+    }, [queryClient]);
 
-    const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-    /** Auth header захваченный в момент изменения корзины (пока токен жив) */
-    const pendingAuthRef = useRef<string | null>(null);
     const skipNextSyncRef = useRef(false);
     const mergedRef = useRef(false);
     const prevAuthRef = useRef(false);
 
+    // ── Login / Logout ──
     useEffect(() => {
         const wasAuth = prevAuthRef.current;
         prevAuthRef.current = isAuthenticated;
 
-        // ── Logout: auth → guest ──
+        // Logout: auth → guest
         if (wasAuth && !isAuthenticated) {
-            // Flush pending debounce с захваченным ранее auth header
-            if (timerRef.current && pendingAuthRef.current) {
-                clearTimeout(timerRef.current);
-                timerRef.current = null;
-                const { items } = useCartStore.getState();
-                const body = toBackendCartState(items);
-                const auth = pendingAuthRef.current;
-                pendingAuthRef.current = null;
-                // fire-and-forget — токен ещё валиден (JWT не отзывается мгновенно)
-                apiClient('/cart', { method: 'POST', body, auth }).catch(() => {});
-            }
             mergedRef.current = false;
             const { isGuest, setIsGuest } = useCartStore.getState();
             if (!isGuest) setIsGuest(true);
             return;
         }
 
-        // ── Login: guest → auth (merge один раз) ──
+        // Login: guest → auth (merge один раз)
         if (!isAuthenticated || mergedRef.current) return;
         mergedRef.current = true;
 
         const controller = new AbortController();
 
         const run = async () => {
-            // Ждём гидратацию persist
             if (!useCartStore.persist.hasHydrated()) {
                 await new Promise<void>((resolve) => {
                     const unsub = useCartStore.persist.onFinishHydration(() => {
@@ -92,10 +108,8 @@ export function useCartBackendSync() {
                 setIsGuest,
             } = useCartStore.getState();
 
-            // Уже залогинен (перезагрузка) — не перезатираем, sync подхватит
             if (!isGuest) return;
 
-            // Получаем серверную корзину
             // apiClient напрямую, т.к. useApi() нельзя вызвать в async функции
             let serverItems: Record<string, TCartItem> = {};
             try {
@@ -107,8 +121,6 @@ export function useCartBackendSync() {
                     serverItems = fromBackendCartState(serverCart);
                 }
             } catch {
-                // GET /cart недоступен — не мержим, только переключаем режим.
-                // Debounce sync подхватит при следующем изменении корзины.
                 setIsGuest(false);
                 return;
             }
@@ -123,7 +135,14 @@ export function useCartBackendSync() {
                 skipNextSyncRef.current = true;
                 replaceItems(merged);
                 setIsGuest(false);
-                updateCartRef.current.mutate(toBackendCartState(merged));
+                const header = authHeaderRef.current;
+                if (header) {
+                    postCart(merged, header)
+                        .then(() =>
+                            queryClientRef.current.invalidateQueries({ queryKey: CART_QUERY_KEY }),
+                        )
+                        .catch(() => {});
+                }
             } else if (hasServer) {
                 skipNextSyncRef.current = true;
                 replaceItems(serverItems);
@@ -134,7 +153,6 @@ export function useCartBackendSync() {
         };
 
         run();
-
         return () => {
             controller.abort();
         };
@@ -151,27 +169,29 @@ export function useCartBackendSync() {
                 return;
             }
 
-            // Захватываем auth header СЕЙЧАС (пока токен жив)
+            // Захватываем auth СЕЙЧАС из store (синхронно, пока токен жив)
+            // TODO: для miniapp (Telegram/MAX) читать из platform adapter
             const token = useAuthStore.getState().accessToken;
-            pendingAuthRef.current = token ? `Bearer ${token}` : null;
+            pendingAuth = token ? `Bearer ${token}` : null;
 
-            if (timerRef.current) clearTimeout(timerRef.current);
+            if (pendingTimer) clearTimeout(pendingTimer);
 
-            timerRef.current = setTimeout(() => {
-                const auth = pendingAuthRef.current;
+            pendingTimer = setTimeout(() => {
+                const auth = pendingAuth;
                 if (!auth) return;
-                apiClient('/cart', {
-                    method: 'POST',
-                    body: toBackendCartState(state.items),
-                    auth,
-                }).catch(() => {});
-                pendingAuthRef.current = null;
+                postCart(state.items, auth)
+                    .then(() =>
+                        queryClientRef.current.invalidateQueries({ queryKey: CART_QUERY_KEY }),
+                    )
+                    .catch(() => {});
+                pendingAuth = null;
+                pendingTimer = null;
             }, DEBOUNCE_MS);
         });
 
         return () => {
             unsubscribe();
-            if (timerRef.current) clearTimeout(timerRef.current);
+            if (pendingTimer) clearTimeout(pendingTimer);
         };
     }, []);
 }

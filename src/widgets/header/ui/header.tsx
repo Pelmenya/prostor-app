@@ -5,8 +5,8 @@ import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '@/shared/lib/platform';
-import { useAuthStore } from '@/shared/lib';
-import { webLogout } from '@/features/auth';
+import { useLogout } from '@/features/auth';
+import { flushCartSync } from '@/features/cart';
 import { PushToggle } from '@/features/push-notifications';
 
 type THeaderProps = {
@@ -14,13 +14,12 @@ type THeaderProps = {
     backTo?: string;
 };
 
-const PRIVATE_PATHS = ['/profile', '/orders', '/checkout'];
-
 export function Header({ back = false, backTo }: THeaderProps) {
     const router = useRouter();
     const pathname = usePathname();
-    const { isAuthenticated, user, logout } = useAuth();
-    const { accessToken, refreshToken } = useAuthStore();
+    const { isAuthenticated, user } = useAuth();
+    const logout = useLogout();
+    const handleLogout = () => logout(flushCartSync);
 
     // Предотвращение hydration mismatch: SSR = false, клиент = true
     const mounted = useSyncExternalStore(
@@ -31,21 +30,6 @@ export function Header({ back = false, backTo }: THeaderProps) {
 
     const showAuth = mounted && isAuthenticated;
     const showUser = mounted && isAuthenticated && user;
-
-    const handleLogout = async () => {
-        if (accessToken && refreshToken) {
-            try {
-                await webLogout(accessToken, refreshToken);
-            } catch {
-                // Игнорируем — главное очистить локальное состояние
-            }
-        }
-        logout();
-
-        // Редирект только с приватных страниц (профиль, заказы, checkout)
-        const isPrivate = PRIVATE_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));
-        if (isPrivate) router.push('/');
-    };
 
     return (
         <header className="relative z-10 shrink-0 bg-base-100 border-b border-base-content/10 shadow-sm">

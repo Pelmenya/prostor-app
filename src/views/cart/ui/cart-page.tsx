@@ -1,6 +1,5 @@
 'use client';
 
-import { useSyncExternalStore } from 'react';
 import { ArchiveBoxXMarkIcon } from '@heroicons/react/20/solid';
 
 import {
@@ -10,6 +9,7 @@ import {
     selectHasSelectedItems,
     CartEmpty,
     CartItemList,
+    useCartHydrated,
 } from '@/entities/cart';
 import { CartTotal, useCartImages, useCartConfirmDialog } from '@/features/cart';
 import { PageContainer, PageTitle, ConfirmDialog } from '@/shared/ui';
@@ -23,15 +23,7 @@ export function CartPage() {
     const updateServiceCount = useCartStore((s) => s.updateServiceCount);
 
     // Ждём гидратацию persist, чтобы не мигать "Пустая корзина"
-    const hydrated = useSyncExternalStore(
-        (onStoreChange) => {
-            if (useCartStore.persist.hasHydrated()) return () => {};
-            const unsub = useCartStore.persist.onFinishHydration(onStoreChange);
-            return unsub;
-        },
-        () => useCartStore.persist.hasHydrated(),
-        () => false, // SSR — всегда false
-    );
+    const hydrated = useCartHydrated();
 
     const hasItems = Object.keys(items).length > 0;
     const productIds = Object.entries(items)
