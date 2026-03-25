@@ -32,13 +32,19 @@ export const fetchGroupPath = (groupId: string) =>
 export const fetchProduct = (productId: string) =>
     apiClient<TProduct>(`${BASE}/product/${productId}`);
 
+export const fetchProductImages = (productId: string) =>
+    apiClient<TImage[]>(`${BASE}/product/${productId}/images`);
+
+export const fetchBundleImages = (bundleId: string) =>
+    apiClient<TImage[]>(`${BASE}/bundle/${bundleId}/images`);
+
 /**
  * Верхнеуровневые группы каталога
  */
 export function useTopLevelGroups() {
     return useQuery({
         queryKey: productKeys.topLevelGroups(),
-        queryFn: () => apiClient<TGroup[]>(`${BASE}/top-level-groups`),
+        queryFn: fetchTopLevelGroups,
         staleTime: 5 * 60 * 1000,
     });
 }
@@ -96,7 +102,7 @@ export function useGroupPath(groupId: string) {
 export function useProductImages(productId: string) {
     return useQuery({
         queryKey: productKeys.productImages(productId),
-        queryFn: () => apiClient<TImage[]>(`${BASE}/product/${productId}/images`),
+        queryFn: () => fetchProductImages(productId),
         enabled: !!productId,
         staleTime: 10 * 60 * 1000,
     });
@@ -110,7 +116,7 @@ export function useBundleImages(bundleId: string | undefined) {
         queryKey: productKeys.bundleImages(bundleId ?? ''),
         queryFn: () => {
             if (!bundleId) throw new Error('bundleId is required');
-            return apiClient<TImage[]>(`${BASE}/bundle/${bundleId}/images`);
+            return fetchBundleImages(bundleId);
         },
         enabled: !!bundleId,
         staleTime: 10 * 60 * 1000,

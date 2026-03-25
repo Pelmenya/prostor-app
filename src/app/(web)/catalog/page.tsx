@@ -18,6 +18,7 @@ export default async function CatalogRoute() {
     await queryClient.prefetchQuery({
         queryKey: productKeys.subGroups(MAIN_CATALOG_ID),
         queryFn: () => fetchSubGroups(MAIN_CATALOG_ID),
+        staleTime: 5 * 60 * 1000,
     });
     return (
         <HydrationBoundary state={dehydrate(queryClient)}>
