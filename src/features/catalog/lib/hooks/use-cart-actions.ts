@@ -35,24 +35,25 @@ export function useCartActions(product: TProduct | undefined, productId: string)
     const handleServiceIncrement = (serviceId: string) => {
         if (!product) return;
         if (!cartItem) addProduct(product, 0, productUnitPrice);
-        updateServiceCount(productId, serviceId, (cartItem?.services[serviceId]?.count || 0) + 1);
+        const currentCount =
+            useCartStore.getState().items[productId]?.services[serviceId]?.count ?? 0;
+        updateServiceCount(productId, serviceId, currentCount + 1);
     };
 
     const handleServiceDecrement = (serviceId: string) => {
         if (!cartItem) return;
-        updateServiceCount(
-            productId,
-            serviceId,
-            Math.max((cartItem.services[serviceId]?.count || 0) - 1, 0),
-        );
+        const currentCount =
+            useCartStore.getState().items[productId]?.services[serviceId]?.count ?? 0;
+        updateServiceCount(productId, serviceId, Math.max(currentCount - 1, 0));
     };
 
-    const handleCheckboxChange = (serviceId: string, rateOfHours: number, price?: number) => {
+    const handleCheckboxChange = (serviceId: string, price?: number) => {
         if (!product) return;
         if (!cartItem) addProduct(product, 0, productUnitPrice);
 
-        if (cartItem?.services[serviceId]) {
-            const newChecked = !cartItem.services[serviceId].checked;
+        const currentItem = useCartStore.getState().items[productId];
+        if (currentItem?.services[serviceId]) {
+            const newChecked = !currentItem.services[serviceId].checked;
             updateServiceCount(productId, serviceId, newChecked ? 1 : 0);
         } else {
             const fullService = product.services?.find((s: TService) => s.id === serviceId);

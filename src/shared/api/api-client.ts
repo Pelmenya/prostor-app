@@ -1,4 +1,4 @@
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+import { API_URL as BASE_URL } from '@/shared/config';
 
 export class ApiError extends Error {
     constructor(
