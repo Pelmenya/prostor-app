@@ -9,6 +9,7 @@ import {
     selectHasSelectedItems,
     CartEmpty,
     CartItemList,
+    useCartHydrated,
 } from '@/entities/cart';
 import { CartTotal, useCartImages, useCartConfirmDialog } from '@/features/cart';
 import { PageContainer, PageTitle, ConfirmDialog } from '@/shared/ui';
@@ -20,6 +21,9 @@ export function CartPage() {
     const toggleServiceSelected = useCartStore((s) => s.toggleServiceSelected);
     const updateProductCount = useCartStore((s) => s.updateProductCount);
     const updateServiceCount = useCartStore((s) => s.updateServiceCount);
+
+    // Ждём гидратацию persist, чтобы не мигать "Пустая корзина"
+    const hydrated = useCartHydrated();
 
     const hasItems = Object.keys(items).length > 0;
     const productIds = Object.entries(items)
@@ -67,7 +71,11 @@ export function CartPage() {
                         )}
                     </div>
 
-                    {hasItems ? (
+                    {!hydrated ? (
+                        <div className="flex justify-center py-12">
+                            <span className="loading loading-spinner loading-md" />
+                        </div>
+                    ) : hasItems ? (
                         <CartItemList
                             items={items}
                             imageUrls={imageUrls}

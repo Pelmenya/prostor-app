@@ -2,11 +2,11 @@
 
 import { useSyncExternalStore } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '@/shared/lib/platform';
-import { useAuthStore } from '@/shared/lib';
-import { webLogout } from '@/features/auth';
+import { useLogout } from '@/features/auth';
+import { flushCartSync } from '@/features/cart';
 import { PushToggle } from '@/features/push-notifications';
 import { ThemeToggle } from '@/shared/ui';
 
@@ -17,8 +17,10 @@ type THeaderProps = {
 
 export function Header({ back = false, backTo }: THeaderProps) {
     const router = useRouter();
-    const { isAuthenticated, user, logout } = useAuth();
-    const { accessToken, refreshToken } = useAuthStore();
+    const pathname = usePathname();
+    const { isAuthenticated, user } = useAuth();
+    const logout = useLogout();
+    const handleLogout = () => logout(flushCartSync);
 
     // Предотвращение hydration mismatch: SSR = false, клиент = true
     const mounted = useSyncExternalStore(
@@ -29,18 +31,6 @@ export function Header({ back = false, backTo }: THeaderProps) {
 
     const showAuth = mounted && isAuthenticated;
     const showUser = mounted && isAuthenticated && user;
-
-    const handleLogout = async () => {
-        if (accessToken && refreshToken) {
-            try {
-                await webLogout(accessToken, refreshToken);
-            } catch {
-                // Игнорируем — главное очистить локальное состояние
-            }
-        }
-        logout();
-        router.push('/');
-    };
 
     return (
         <header className="relative z-10 shrink-0 bg-base-100 border-b border-base-content/10 shadow-sm">
@@ -93,11 +83,14 @@ export function Header({ back = false, backTo }: THeaderProps) {
                         </>
                     ) : mounted ? (
                         <>
-                            <Link href="/login" className="btn btn-primary btn-sm">
+                            <Link
+                                href={`/login?from=${encodeURIComponent(pathname)}`}
+                                className="btn btn-primary btn-sm"
+                            >
                                 Войти
                             </Link>
                             <Link
-                                href="/register"
+                                href={`/register?from=${encodeURIComponent(pathname)}`}
                                 className="btn btn-ghost btn-sm hidden sm:inline-flex"
                             >
                                 Регистрация

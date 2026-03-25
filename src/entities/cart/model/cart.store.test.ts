@@ -365,4 +365,33 @@ describe('cart.store', () => {
             expect(Object.keys(selected['prod-1'].services)).toEqual(['svc-1']);
         });
     });
+
+    describe('replaceItems', () => {
+        it('полностью заменяет items', () => {
+            useCartStore.getState().addProduct(mockProduct, 1, 1500000);
+            expect(Object.keys(useCartStore.getState().items)).toHaveLength(1);
+
+            const newItems = {
+                'prod-new': {
+                    product: { id: 'prod-new', name: 'Новый товар' },
+                    count: 3,
+                    price: 200000,
+                    selectedForCheckout: true,
+                    services: {},
+                },
+            };
+
+            useCartStore.getState().replaceItems(newItems);
+
+            const items = useCartStore.getState().items;
+            expect(Object.keys(items)).toEqual(['prod-new']);
+            expect(items['prod-new'].count).toBe(3);
+        });
+
+        it('не меняет isGuest', () => {
+            useCartStore.setState({ isGuest: false });
+            useCartStore.getState().replaceItems({});
+            expect(useCartStore.getState().isGuest).toBe(false);
+        });
+    });
 });
