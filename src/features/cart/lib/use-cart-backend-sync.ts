@@ -6,6 +6,7 @@ import { useAuth } from '@/shared/lib/platform';
 import { useAuthStore } from '@/shared/lib';
 import {
     useCartStore,
+    useCart,
     toBackendCartState,
     fromBackendCartState,
     CART_QUERY_KEY,
@@ -15,6 +16,36 @@ import { mergeCartItems } from './merge-cart-items';
 import type { TBackendCartState, TCartItem } from '@/entities/cart';
 
 const DEBOUNCE_MS = 300;
+
+/** Проверяет, отличаются ли две корзины (ключи, количества товаров и услуг) */
+export function hasCartDiff(
+    local: Record<string, TCartItem>,
+    server: Record<string, TCartItem>,
+): boolean {
+    const localKeys = Object.keys(local);
+    const serverKeys = Object.keys(server);
+    if (localKeys.length !== serverKeys.length) return true;
+
+    for (const id of serverKeys) {
+        const l = local[id];
+        const s = server[id];
+        if (!l) return true;
+        if (l.count !== s.count || l.price !== s.price) return true;
+
+        // Сравниваем услуги
+        const lSvcKeys = Object.keys(l.services);
+        const sSvcKeys = Object.keys(s.services);
+        if (lSvcKeys.length !== sSvcKeys.length) return true;
+        for (const svcId of sSvcKeys) {
+            const lSvc = l.services[svcId];
+            const sSvc = s.services[svcId];
+            if (!lSvc) return true;
+            if (lSvc.count !== sSvc.count || lSvc.price !== sSvc.price) return true;
+        }
+    }
+
+    return false;
+}
 
 // ── Module-level state (доступен из flushCartSync) ──
 let pendingTimer: ReturnType<typeof setTimeout> | null = null;
@@ -177,6 +208,29 @@ export function useCartBackendSync() {
             controller.abort();
         };
     }, [isAuthenticated]);
+
+    // ── SWR: TanStack Query refetch на фокус/resume → обновить store ──
+    // refetchOnWindowFocus (дефолт TQ) подтягивает свежие данные при:
+    // - переключении вкладок, PWA resume, alt-tab
+    const isGuest = useCartStore((s) => s.isGuest);
+
+    const { data: serverCart, dataUpdatedAt } = useCart({
+        enabled: isAuthenticated && !isGuest,
+    });
+
+    useEffect(() => {
+        if (!serverCart || !dataUpdatedAt) return;
+        // Не обновляем store если есть pending локальные изменения
+        if (pendingTimer) return;
+
+        const serverItems = fromBackendCartState(serverCart);
+        const localItems = useCartStore.getState().items;
+
+        if (!hasCartDiff(localItems, serverItems)) return;
+
+        skipNextSyncRef.current = true;
+        useCartStore.getState().replaceItems(serverItems);
+    }, [serverCart, dataUpdatedAt]);
 
     // ── Debounce sync: store → POST /cart ──
     useEffect(() => {
