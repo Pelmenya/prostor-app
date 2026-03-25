@@ -5,12 +5,37 @@ import type { TGroup, TGroupPath, TProduct, TImage } from '@/shared/model';
 const BASE = '/moysklad';
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
+// Query keys — единый источник правды для хуков и серверного prefetchQuery.
+// Ключи должны совпадать, иначе HydrationBoundary не гидрирует кеш.
+export const productKeys = {
+    subGroups: (groupId: string) => ['catalog', 'groups', groupId] as const,
+    products: (groupId: string) => ['catalog', 'products', groupId] as const,
+    groupPath: (groupId: string) => ['catalog', 'group-path', groupId] as const,
+    product: (productId: string) => ['catalog', 'product', productId] as const,
+    topLevelGroups: () => ['catalog', 'top-level-groups'] as const,
+    productImages: (productId: string) => ['catalog', 'product-images', productId] as const,
+    bundleImages: (bundleId: string) => ['catalog', 'bundle-images', bundleId] as const,
+};
+
+// Серверные fetch-функции (plain async, без хуков) — для prefetchQuery в RSC.
+export const fetchSubGroups = (groupId: string) =>
+    apiClient<TGroup[]>(`${BASE}/group/${groupId}/groups`);
+
+export const fetchProducts = (groupId: string) =>
+    apiClient<TProduct[]>(`${BASE}/group/${groupId}/products`);
+
+export const fetchGroupPath = (groupId: string) =>
+    apiClient<TGroupPath[]>(`${BASE}/group/${groupId}/path`);
+
+export const fetchProduct = (productId: string) =>
+    apiClient<TProduct>(`${BASE}/product/${productId}`);
+
 /**
  * Верхнеуровневые группы каталога
  */
 export function useTopLevelGroups() {
     return useQuery({
-        queryKey: ['catalog', 'top-level-groups'],
+        queryKey: productKeys.topLevelGroups(),
         queryFn: () => apiClient<TGroup[]>(`${BASE}/top-level-groups`),
         staleTime: 5 * 60 * 1000,
     });
@@ -21,8 +46,8 @@ export function useTopLevelGroups() {
  */
 export function useSubGroups(groupId: string) {
     return useQuery({
-        queryKey: ['catalog', 'groups', groupId],
-        queryFn: () => apiClient<TGroup[]>(`${BASE}/group/${groupId}/groups`),
+        queryKey: productKeys.subGroups(groupId),
+        queryFn: () => fetchSubGroups(groupId),
         enabled: !!groupId,
         staleTime: 5 * 60 * 1000,
     });
@@ -33,8 +58,8 @@ export function useSubGroups(groupId: string) {
  */
 export function useProducts(groupId: string) {
     return useQuery({
-        queryKey: ['catalog', 'products', groupId],
-        queryFn: () => apiClient<TProduct[]>(`${BASE}/group/${groupId}/products`),
+        queryKey: productKeys.products(groupId),
+        queryFn: () => fetchProducts(groupId),
         enabled: !!groupId,
         staleTime: 5 * 60 * 1000,
     });
@@ -45,8 +70,8 @@ export function useProducts(groupId: string) {
  */
 export function useProduct(productId: string) {
     return useQuery({
-        queryKey: ['catalog', 'product', productId],
-        queryFn: () => apiClient<TProduct>(`${BASE}/product/${productId}`),
+        queryKey: productKeys.product(productId),
+        queryFn: () => fetchProduct(productId),
         enabled: !!productId,
     });
 }
@@ -56,8 +81,8 @@ export function useProduct(productId: string) {
  */
 export function useGroupPath(groupId: string) {
     return useQuery({
-        queryKey: ['catalog', 'group-path', groupId],
-        queryFn: () => apiClient<TGroupPath[]>(`${BASE}/group/${groupId}/path`),
+        queryKey: productKeys.groupPath(groupId),
+        queryFn: () => fetchGroupPath(groupId),
         enabled: !!groupId,
         staleTime: 5 * 60 * 1000,
     });
