@@ -108,7 +108,27 @@ export function useCartBackendSync() {
                 setIsGuest,
             } = useCartStore.getState();
 
-            if (!isGuest) return;
+            if (!isGuest) {
+                // Уже залогинен (перезагрузка) — подтягиваем серверную корзину
+                // чтобы увидеть изменения с других устройств
+                try {
+                    const header = authHeaderRef.current;
+                    if (header) {
+                        const serverCart = await apiClient<TBackendCartState>('/cart', {
+                            auth: header,
+                        });
+                        if (controller.signal.aborted) return;
+                        const serverItems = fromBackendCartState(serverCart);
+                        if (Object.keys(serverItems).length > 0) {
+                            skipNextSyncRef.current = true;
+                            replaceItems(serverItems);
+                        }
+                    }
+                } catch {
+                    // Сервер недоступен — работаем с localStorage
+                }
+                return;
+            }
 
             // apiClient напрямую, т.к. useApi() нельзя вызвать в async функции
             let serverItems: Record<string, TCartItem> = {};

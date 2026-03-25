@@ -1,17 +1,33 @@
 'use client';
 
-import { useState } from 'react';
+import { useSyncExternalStore } from 'react';
 import { SunIcon, MoonIcon } from '@heroicons/react/24/outline';
 
+function getTheme(): boolean {
+    return document.documentElement.getAttribute('data-theme') === 'dark';
+}
+
+/**
+ * Переключатель темы light/dark.
+ * useSyncExternalStore гарантирует отсутствие hydration mismatch:
+ * SSR всегда рендерит light, клиент подхватывает реальную тему.
+ */
 export function ThemeToggle() {
-    const [isDark, setIsDark] = useState(() => {
-        if (typeof window === 'undefined') return false;
-        return document.documentElement.getAttribute('data-theme') === 'dark';
-    });
+    const isDark = useSyncExternalStore(
+        (onStoreChange) => {
+            const observer = new MutationObserver(onStoreChange);
+            observer.observe(document.documentElement, {
+                attributes: true,
+                attributeFilter: ['data-theme'],
+            });
+            return () => observer.disconnect();
+        },
+        () => getTheme(),
+        () => false, // SSR — всегда light
+    );
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const dark = e.target.checked;
-        setIsDark(dark);
         document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
         try {
             localStorage.setItem('theme', dark ? 'dark' : 'light');
