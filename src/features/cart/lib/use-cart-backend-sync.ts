@@ -18,7 +18,10 @@ import type { TBackendCartState, TCartItem } from '@/entities/cart';
 const DEBOUNCE_MS = 300;
 
 /** Проверяет, отличаются ли две корзины (ключи, количества товаров и услуг) */
-function hasCartDiff(local: Record<string, TCartItem>, server: Record<string, TCartItem>): boolean {
+export function hasCartDiff(
+    local: Record<string, TCartItem>,
+    server: Record<string, TCartItem>,
+): boolean {
     const localKeys = Object.keys(local);
     const serverKeys = Object.keys(server);
     if (localKeys.length !== serverKeys.length) return true;
