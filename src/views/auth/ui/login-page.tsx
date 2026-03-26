@@ -93,6 +93,12 @@ function LoginForm() {
                             Восстановить
                         </Link>
                     </p>
+                    <p>
+                        Есть аккаунт в Telegram?{' '}
+                        <Link href="/link-account" className="link link-primary">
+                            Привязать
+                        </Link>
+                    </p>
                 </div>
             </div>
         </div>

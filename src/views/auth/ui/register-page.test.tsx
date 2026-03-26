@@ -154,27 +154,7 @@ describe('RegisterPage', () => {
 
     // ── Привязка аккаунтов ──
 
-    it('показывает экран верификации при 409 (email из телеги, не верифицирован)', async () => {
-        mockWebRegister.mockRejectedValue(
-            new ApiError(409, 'Conflict', {
-                message: 'Подтвердите email',
-                needsVerification: true,
-            }),
-        );
-
-        const user = userEvent.setup();
-        renderWithQuery(<RegisterPage />);
-
-        await fillAndSubmitForm(user);
-
-        await waitFor(() => {
-            expect(screen.getByText('Подтвердите email')).toBeInTheDocument();
-            expect(screen.getByText(/уже существует/)).toBeInTheDocument();
-            expect(screen.getByText(/зарегистрируйтесь повторно/)).toBeInTheDocument();
-        });
-    });
-
-    it('экран верификации содержит кнопку повторной отправки', async () => {
+    it('редиректит на /register/verify-email при 409', async () => {
         mockWebRegister.mockRejectedValue(
             new ApiError(409, 'Conflict', { needsVerification: true }),
         );
@@ -185,24 +165,9 @@ describe('RegisterPage', () => {
         await fillAndSubmitForm(user);
 
         await waitFor(() => {
-            expect(screen.getByRole('button', { name: 'Отправить повторно' })).toBeInTheDocument();
-        });
-    });
-
-    it('экран верификации содержит ссылку на логин', async () => {
-        mockWebRegister.mockRejectedValue(
-            new ApiError(409, 'Conflict', { needsVerification: true }),
-        );
-
-        const user = userEvent.setup();
-        renderWithQuery(<RegisterPage />);
-
-        await fillAndSubmitForm(user);
-
-        await waitFor(() => {
-            expect(
-                screen.getByRole('link', { name: /Войти в существующий аккаунт/ }),
-            ).toHaveAttribute('href', '/login');
+            expect(mockPush).toHaveBeenCalledWith(
+                expect.stringContaining('/register/verify-email?email='),
+            );
         });
     });
 

@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useForm, useFormContext, Controller, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { webRegister, resendVerification } from '@/features/auth';
+import { webRegister } from '@/features/auth';
 import { ApiError } from '@/shared/api';
 import {
     useAuthStore,
@@ -97,68 +97,6 @@ function ConsentCheckboxes() {
     );
 }
 
-function VerificationNeeded({ email }: { email: string }) {
-    const [resent, setResent] = useState(false);
-    const [sending, setSending] = useState(false);
-
-    const handleResend = async () => {
-        setSending(true);
-        try {
-            await resendVerification('');
-        } catch {
-            // Без токена не отправится, но бэк уже отправил при 409
-        }
-        setSending(false);
-        setResent(true);
-    };
-
-    return (
-        <div className="card bg-base-200 shadow-xl w-full max-w-md">
-            <div className="card-body items-center text-center">
-                <div className="text-5xl mb-4">✉️</div>
-                <h1 className="card-title text-2xl gradient-text">Подтвердите email</h1>
-
-                <p className="text-sm text-base-content/70 mt-2">
-                    Аккаунт с email <strong>{email}</strong> уже существует. Мы отправили письмо для
-                    подтверждения.
-                </p>
-
-                <p className="text-sm text-base-content/70 mt-2">
-                    После подтверждения вернитесь на эту страницу и зарегистрируйтесь повторно —
-                    аккаунты будут привязаны
-                </p>
-
-                <p className="text-xs text-base-content/50 mt-2">
-                    Письмо не пришло? Проверьте папку «Спам». Если письма нет — попробуйте другую
-                    почту (Gmail, Яндекс)
-                </p>
-
-                {resent ? (
-                    <div className="alert alert-success text-sm mt-4">
-                        Письмо отправлено повторно
-                    </div>
-                ) : (
-                    <button
-                        className="btn btn-outline btn-sm mt-4"
-                        onClick={handleResend}
-                        disabled={sending}
-                    >
-                        {sending ? (
-                            <span className="loading loading-spinner loading-sm" />
-                        ) : (
-                            'Отправить повторно'
-                        )}
-                    </button>
-                )}
-
-                <Link href="/login" className="link link-primary text-sm mt-4">
-                    Войти в существующий аккаунт
-                </Link>
-            </div>
-        </div>
-    );
-}
-
 function RegisterForm() {
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -175,8 +113,6 @@ function RegisterForm() {
     } = useCurrentAgreement();
 
     const [serverError, setServerError] = useState<string | null>(null);
-    const [needsVerification, setNeedsVerification] = useState(false);
-    const [verificationEmail, setVerificationEmail] = useState('');
 
     const methods = useForm<TRegisterForm>({
         resolver: zodResolver(registerSchema),
@@ -223,8 +159,7 @@ function RegisterForm() {
             if (err instanceof ApiError) {
                 // 409 — email найден в телеге, но не верифицирован
                 if (err.status === 409) {
-                    setVerificationEmail(form.email);
-                    setNeedsVerification(true);
+                    router.push(`/register/verify-email?email=${encodeURIComponent(form.email)}`);
                     return;
                 }
                 setServerError(extractErrorMessage(err.data, 'Ошибка регистрации'));
@@ -233,10 +168,6 @@ function RegisterForm() {
             }
         }
     };
-
-    if (needsVerification) {
-        return <VerificationNeeded email={verificationEmail} />;
-    }
 
     return (
         <div className="card bg-base-200 shadow-xl w-full max-w-md">
