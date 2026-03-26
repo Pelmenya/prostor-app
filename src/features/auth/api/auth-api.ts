@@ -67,7 +67,9 @@ export async function resetPassword(
     });
 }
 
-export async function verifyEmail(token: string): Promise<{ success: boolean }> {
+export async function verifyEmail(
+    token: string,
+): Promise<{ success: boolean; emailChanged?: boolean }> {
     return apiClient('/auth/verify-email', {
         method: 'POST',
         body: { token },
@@ -102,5 +104,12 @@ export async function changeEmail(
         method: 'POST',
         auth: authHeader,
         body: { newEmail },
+    });
+}
+
+/** Получить свежие данные текущего пользователя */
+export async function fetchCurrentUser(accessToken: string): Promise<TUser> {
+    return apiClient<TUser>('/auth/me', {
+        auth: `Bearer ${accessToken}`,
     });
 }
