@@ -40,12 +40,12 @@ export async function webLogout(accessToken: string, refreshToken: string): Prom
 // ─── Пароль и email ──────────────────────────────────────────
 
 export async function changePassword(
-    accessToken: string,
+    authHeader: string,
     body: { oldPassword: string; newPassword: string },
 ): Promise<{ success: boolean }> {
     return apiClient('/auth/change-password', {
         method: 'POST',
-        auth: `Bearer ${accessToken}`,
+        auth: authHeader,
         body,
     });
 }
@@ -78,5 +78,29 @@ export async function resendVerification(accessToken: string): Promise<{ success
     return apiClient('/auth/resend-verification', {
         method: 'POST',
         auth: `Bearer ${accessToken}`,
+    });
+}
+
+// ─── Профиль ────────────────────────────────────────────────
+
+export async function updateProfile(
+    authHeader: string,
+    body: { first_name?: string; last_name?: string; phone?: string },
+): Promise<TUser> {
+    return apiClient('/auth/profile', {
+        method: 'PATCH',
+        auth: authHeader,
+        body,
+    });
+}
+
+export async function changeEmail(
+    authHeader: string,
+    newEmail: string,
+): Promise<{ success: boolean }> {
+    return apiClient('/auth/change-email', {
+        method: 'POST',
+        auth: authHeader,
+        body: { newEmail },
     });
 }
