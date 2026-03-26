@@ -51,14 +51,14 @@ export function ProfileForm({ user, onSubmit, isLoading = false }: TProfileFormP
 
     const nameInputHandler =
         (field: 'first_name' | 'last_name') => (e: React.FormEvent<HTMLInputElement>) => {
-            setValue(field, capitalizeName((e.target as HTMLInputElement).value), {
+            setValue(field, capitalizeName(e.currentTarget.value), {
                 shouldDirty: true,
                 shouldValidate: isSubmitted,
             });
         };
 
     const emailInputHandler = (e: React.FormEvent<HTMLInputElement>) => {
-        setValue('email', (e.target as HTMLInputElement).value.trim().toLowerCase(), {
+        setValue('email', e.currentTarget.value.trim().toLowerCase(), {
             shouldDirty: true,
             shouldValidate: isSubmitted,
         });

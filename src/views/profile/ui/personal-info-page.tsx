@@ -19,9 +19,13 @@ export function PersonalInfoPage() {
     const handleSave = async (data: TProfileFormData) => {
         if (!user) return;
         setIsLoading(true);
-        // TODO: вызов PUT /user/me когда будет готов эндпоинт
-        setUser({ ...user, ...data });
-        router.back();
+        try {
+            // TODO: вызов PUT /user/me когда будет готов эндпоинт
+            setUser({ ...user, ...data });
+            router.push('/profile');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (

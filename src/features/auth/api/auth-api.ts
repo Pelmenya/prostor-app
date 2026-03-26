@@ -40,12 +40,12 @@ export async function webLogout(accessToken: string, refreshToken: string): Prom
 // ─── Пароль и email ──────────────────────────────────────────
 
 export async function changePassword(
-    accessToken: string,
+    authHeader: string,
     body: { oldPassword: string; newPassword: string },
 ): Promise<{ success: boolean }> {
     return apiClient('/auth/change-password', {
         method: 'POST',
-        auth: `Bearer ${accessToken}`,
+        auth: authHeader,
         body,
     });
 }

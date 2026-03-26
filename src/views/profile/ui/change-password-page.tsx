@@ -3,13 +3,16 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useAuthStore, extractErrorMessage } from '@/shared/lib';
+import { useRouter } from 'next/navigation';
+import { extractErrorMessage } from '@/shared/lib';
+import { useAuth } from '@/shared/lib/platform';
 import { PageContainer, PageTitle, FormCard, InputField } from '@/shared/ui';
 import { changePassword, newPasswordSchema, type TChangePasswordForm } from '@/features/auth';
 import { ApiError } from '@/shared/api';
 
 export function ChangePasswordPage() {
-    const accessToken = useAuthStore((s) => s.accessToken);
+    const { authHeader } = useAuth();
+    const router = useRouter();
     const [serverError, setServerError] = useState<string | null>(null);
     const [success, setSuccess] = useState(false);
 
@@ -24,11 +27,11 @@ export function ChangePasswordPage() {
     });
 
     const onSubmit = async (form: TChangePasswordForm) => {
-        if (!accessToken) return;
+        if (!authHeader) return;
         setServerError(null);
         setSuccess(false);
         try {
-            await changePassword(accessToken, {
+            await changePassword(authHeader, {
                 oldPassword: form.oldPassword,
                 newPassword: form.newPassword,
             });
@@ -36,6 +39,10 @@ export function ChangePasswordPage() {
             reset();
         } catch (err) {
             if (err instanceof ApiError) {
+                if (err.status === 401) {
+                    router.push('/login?from=/profile/change-password');
+                    return;
+                }
                 setServerError(extractErrorMessage(err.data, 'Ошибка смены пароля'));
             } else {
                 setServerError('Ошибка сети');
@@ -57,6 +64,7 @@ export function ChangePasswordPage() {
                         <input
                             type="password"
                             placeholder="Введите текущий пароль"
+                            autoComplete="current-password"
                             className={`input input-sm w-full ${errors.oldPassword ? 'input-error' : ''}`}
                             {...register('oldPassword')}
                         />
@@ -66,6 +74,7 @@ export function ChangePasswordPage() {
                         <input
                             type="password"
                             placeholder="Минимум 8 символов"
+                            autoComplete="new-password"
                             className={`input input-sm w-full ${errors.newPassword ? 'input-error' : ''}`}
                             {...register('newPassword')}
                         />
@@ -75,6 +84,7 @@ export function ChangePasswordPage() {
                         <input
                             type="password"
                             placeholder="Повторите новый пароль"
+                            autoComplete="new-password"
                             className={`input input-sm w-full ${errors.confirmPassword ? 'input-error' : ''}`}
                             {...register('confirmPassword')}
                         />
