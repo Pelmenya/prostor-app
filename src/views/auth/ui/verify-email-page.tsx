@@ -4,29 +4,27 @@ import { Suspense, useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
-import { verifyEmail } from '@/features/auth';
-import { apiClient } from '@/shared/api';
+import { verifyEmail, fetchCurrentUser } from '@/features/auth';
 import { useAuthStore } from '@/shared/lib';
 import { PageContainer } from '@/shared/ui';
-import type { TUser } from '@/shared/model';
 
 type TVerifyStatus = 'loading' | 'verified' | 'changed' | 'error';
 
-/** После смены email — обновить Zustand store и инвалидировать TQ кэш */
-async function refreshUserData(queryClient: ReturnType<typeof useQueryClient>) {
-    const accessToken = useAuthStore.getState().accessToken;
-    if (!accessToken) return;
-
-    try {
-        const user = await apiClient<TUser>('/auth/me', {
-            auth: `Bearer ${accessToken}`,
-        });
-        useAuthStore.getState().setUser(user);
-        queryClient.invalidateQueries({ queryKey: ['user'] });
-    } catch {
-        // Не критично — при следующем запросе подтянется
-    }
-}
+const STATUS_CONFIG = {
+    verified: {
+        title: 'Email подтверждён',
+        description:
+            'Теперь вы будете получать уведомления о заказах и напоминания о замене картриджей.',
+        linkHref: '/catalog',
+        linkText: 'Перейти в каталог',
+    },
+    changed: {
+        title: 'Email изменён',
+        description: 'Новый email успешно привязан к вашему аккаунту.',
+        linkHref: '/profile',
+        linkText: 'В личный кабинет',
+    },
+} as const;
 
 function VerifyEmailForm() {
     const searchParams = useSearchParams();
@@ -46,7 +44,16 @@ function VerifyEmailForm() {
                 const res = await verifyEmail(token);
 
                 if (res?.emailChanged) {
-                    await refreshUserData(queryClient);
+                    const accessToken = useAuthStore.getState().accessToken;
+                    if (accessToken) {
+                        try {
+                            const user = await fetchCurrentUser(accessToken);
+                            useAuthStore.getState().setUser(user);
+                            queryClient.setQueryData(['user', 'me'], user);
+                        } catch {
+                            // Не критично — при следующем запросе подтянется
+                        }
+                    }
                     setStatus('changed');
                 } else {
                     setStatus('verified');
@@ -70,29 +77,20 @@ function VerifyEmailForm() {
                     </>
                 )}
 
-                {status === 'verified' && (
+                {(status === 'verified' || status === 'changed') && (
                     <>
                         <div className="text-5xl mb-4">✅</div>
-                        <h1 className="card-title text-2xl gradient-text">Email подтверждён</h1>
+                        <h1 className="card-title text-2xl gradient-text">
+                            {STATUS_CONFIG[status].title}
+                        </h1>
                         <p className="text-sm text-base-content/70 mt-2">
-                            Теперь вы будете получать уведомления о заказах и напоминания о замене
-                            картриджей.
+                            {STATUS_CONFIG[status].description}
                         </p>
-                        <Link href="/catalog" className="btn btn-primary w-full mt-4">
-                            Перейти в каталог
-                        </Link>
-                    </>
-                )}
-
-                {status === 'changed' && (
-                    <>
-                        <div className="text-5xl mb-4">✅</div>
-                        <h1 className="card-title text-2xl gradient-text">Email изменён</h1>
-                        <p className="text-sm text-base-content/70 mt-2">
-                            Новый email успешно привязан к вашему аккаунту.
-                        </p>
-                        <Link href="/profile" className="btn btn-primary w-full mt-4">
-                            В личный кабинет
+                        <Link
+                            href={STATUS_CONFIG[status].linkHref}
+                            className="btn btn-primary w-full mt-4"
+                        >
+                            {STATUS_CONFIG[status].linkText}
                         </Link>
                     </>
                 )}

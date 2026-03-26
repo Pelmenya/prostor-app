@@ -106,3 +106,10 @@ export async function changeEmail(
         body: { newEmail },
     });
 }
+
+/** Получить свежие данные текущего пользователя */
+export async function fetchCurrentUser(accessToken: string): Promise<TUser> {
+    return apiClient<TUser>('/auth/me', {
+        auth: `Bearer ${accessToken}`,
+    });
+}

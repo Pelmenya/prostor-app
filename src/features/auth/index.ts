@@ -9,6 +9,7 @@ export {
     resendVerification,
     updateProfile,
     changeEmail,
+    fetchCurrentUser,
 } from './api/auth-api';
 export type { TAuthResponse } from './api/auth-api';
 export { useLogout } from './lib/use-logout';

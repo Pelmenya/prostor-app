@@ -4,13 +4,17 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { VerifyEmailPage } from './verify-email-page';
 
 const mockVerifyEmail = vi.fn();
+const mockFetchCurrentUser = vi.fn();
+const mockSetUser = vi.fn();
 let mockToken: string | null = 'valid-token';
+let mockAccessToken: string | null = null;
 
 vi.mock('@/features/auth', async (importOriginal) => {
     const actual = await importOriginal<typeof import('@/features/auth')>();
     return {
         ...actual,
         verifyEmail: (...args: unknown[]) => mockVerifyEmail(...args),
+        fetchCurrentUser: (...args: unknown[]) => mockFetchCurrentUser(...args),
     };
 });
 
@@ -26,19 +30,22 @@ vi.mock('next/link', () => ({
     ),
 }));
 
-vi.mock('@/shared/api', async (importOriginal) => {
-    const actual = await importOriginal<typeof import('@/shared/api')>();
-    return { ...actual, apiClient: vi.fn().mockResolvedValue({}) };
-});
-
 vi.mock('@/shared/lib', async (importOriginal) => {
     const actual = await importOriginal<typeof import('@/shared/lib')>();
     return {
         ...actual,
         useAuthStore: Object.assign(
-            vi.fn(() => ({})),
+            vi.fn((selector?: (s: Record<string, unknown>) => unknown) =>
+                selector
+                    ? selector({ accessToken: mockAccessToken, user: null, setUser: mockSetUser })
+                    : {},
+            ),
             {
-                getState: () => ({ accessToken: null, setUser: vi.fn() }),
+                getState: () => ({
+                    accessToken: mockAccessToken,
+                    user: null,
+                    setUser: mockSetUser,
+                }),
             },
         ),
     };
@@ -48,13 +55,17 @@ function renderWithProviders(ui: React.ReactElement) {
     const queryClient = new QueryClient({
         defaultOptions: { queries: { retry: false } },
     });
-    return render(<QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>);
+    return {
+        queryClient,
+        ...render(<QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>),
+    };
 }
 
 describe('VerifyEmailPage', () => {
     beforeEach(() => {
         vi.clearAllMocks();
         mockToken = 'valid-token';
+        mockAccessToken = null;
     });
 
     it('показывает спиннер во время верификации', () => {
@@ -84,6 +95,35 @@ describe('VerifyEmailPage', () => {
             'href',
             '/profile',
         );
+    });
+
+    it('обновляет данные юзера после смены email', async () => {
+        mockAccessToken = 'test-jwt';
+        const freshUser = { id: 1, email: 'new@mail.ru', first_name: 'Test' };
+        mockVerifyEmail.mockResolvedValue({ success: true, emailChanged: true });
+        mockFetchCurrentUser.mockResolvedValue(freshUser);
+
+        const { queryClient } = renderWithProviders(<VerifyEmailPage />);
+
+        await waitFor(() => {
+            expect(screen.getByText('Email изменён')).toBeInTheDocument();
+        });
+
+        expect(mockFetchCurrentUser).toHaveBeenCalledWith('test-jwt');
+        expect(mockSetUser).toHaveBeenCalledWith(freshUser);
+        expect(queryClient.getQueryData(['user', 'me'])).toEqual(freshUser);
+    });
+
+    it('не запрашивает юзера без accessToken', async () => {
+        mockAccessToken = null;
+        mockVerifyEmail.mockResolvedValue({ success: true, emailChanged: true });
+        renderWithProviders(<VerifyEmailPage />);
+
+        await waitFor(() => {
+            expect(screen.getByText('Email изменён')).toBeInTheDocument();
+        });
+
+        expect(mockFetchCurrentUser).not.toHaveBeenCalled();
     });
 
     it('показывает ошибку при невалидном токене', async () => {
