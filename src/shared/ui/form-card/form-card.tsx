@@ -9,7 +9,7 @@ export function FormCard({ children, onSubmit, submitText, isLoading = false }: 
     return (
         <form
             onSubmit={onSubmit}
-            className="p-4 flex flex-col gap-4 border rounded-2xl border-base-content/10"
+            className="p-4 flex flex-col gap-4 border rounded-2xl border-base-content/10 max-w-md mx-auto w-full"
         >
             {children}
             <button type="submit" className="btn btn-primary w-full" disabled={isLoading}>
