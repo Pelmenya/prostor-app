@@ -3,22 +3,25 @@ import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { RegisterPage } from './register-page';
+import { ApiError } from '@/shared/api';
 
 const mockPush = vi.fn();
 const mockGet = vi.fn().mockReturnValue(null);
+const mockWebRegister = vi.fn();
 
 vi.mock('next/navigation', () => ({
     useRouter: () => ({ push: mockPush }),
     useSearchParams: () => ({ get: mockGet }),
 }));
 
-vi.mock('@/features/auth', () => ({
-    webRegister: vi.fn().mockResolvedValue({
-        user: { id: 1, first_name: 'Тест', last_name: 'Тестов' },
-        accessToken: 'access-token',
-        refreshToken: 'refresh-token',
-    }),
-}));
+vi.mock('@/features/auth', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('@/features/auth')>();
+    return {
+        ...actual,
+        webRegister: (...args: unknown[]) => mockWebRegister(...args),
+        resendVerification: vi.fn().mockResolvedValue({ success: true }),
+    };
+});
 
 vi.mock('@/shared/lib', async (importOriginal) => {
     const actual = await importOriginal<Record<string, unknown>>();
@@ -54,8 +57,28 @@ function renderWithQuery(ui: React.ReactElement) {
     return render(<QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>);
 }
 
+async function fillAndSubmitForm(user: ReturnType<typeof userEvent.setup>) {
+    await user.type(screen.getByPlaceholderText('Имя'), 'Тест');
+    await user.type(screen.getByPlaceholderText('Фамилия'), 'Тестов');
+    await user.type(screen.getByPlaceholderText('Email'), 'test@mail.ru');
+    await user.type(screen.getByPlaceholderText('+7 999 999-99-99'), '9991234567');
+    await user.type(screen.getByPlaceholderText('Пароль (минимум 8 символов)'), 'password123');
+
+    const checkboxes = screen.getAllByRole('checkbox');
+    for (const cb of checkboxes) {
+        await user.click(cb);
+    }
+
+    await user.click(screen.getByRole('button', { name: 'Создать аккаунт' }));
+}
+
 beforeEach(() => {
     vi.clearAllMocks();
+    mockWebRegister.mockResolvedValue({
+        user: { id: 1, first_name: 'Тест', last_name: 'Тестов' },
+        accessToken: 'access-token',
+        refreshToken: 'refresh-token',
+    });
 });
 
 describe('RegisterPage', () => {
@@ -104,7 +127,6 @@ describe('RegisterPage', () => {
         const user = userEvent.setup();
         renderWithQuery(<RegisterPage />);
 
-        // Заполняем все поля, но не ставим чекбоксы
         await user.type(screen.getByPlaceholderText('Имя'), 'Тест');
         await user.type(screen.getByPlaceholderText('Фамилия'), 'Тестов');
         await user.type(screen.getByPlaceholderText('Email'), 'test@mail.ru');
@@ -128,5 +150,78 @@ describe('RegisterPage', () => {
 
         const loginLink = screen.getByRole('link', { name: 'Войти' });
         expect(loginLink).toHaveAttribute('href', '/login');
+    });
+
+    // ── Привязка аккаунтов ──
+
+    it('показывает экран верификации при 409 (email из телеги, не верифицирован)', async () => {
+        mockWebRegister.mockRejectedValue(
+            new ApiError(409, 'Conflict', {
+                message: 'Подтвердите email',
+                needsVerification: true,
+            }),
+        );
+
+        const user = userEvent.setup();
+        renderWithQuery(<RegisterPage />);
+
+        await fillAndSubmitForm(user);
+
+        await waitFor(() => {
+            expect(screen.getByText('Подтвердите email')).toBeInTheDocument();
+            expect(screen.getByText(/уже существует/)).toBeInTheDocument();
+            expect(screen.getByText(/зарегистрируйтесь повторно/)).toBeInTheDocument();
+        });
+    });
+
+    it('экран верификации содержит кнопку повторной отправки', async () => {
+        mockWebRegister.mockRejectedValue(
+            new ApiError(409, 'Conflict', { needsVerification: true }),
+        );
+
+        const user = userEvent.setup();
+        renderWithQuery(<RegisterPage />);
+
+        await fillAndSubmitForm(user);
+
+        await waitFor(() => {
+            expect(screen.getByRole('button', { name: 'Отправить повторно' })).toBeInTheDocument();
+        });
+    });
+
+    it('экран верификации содержит ссылку на логин', async () => {
+        mockWebRegister.mockRejectedValue(
+            new ApiError(409, 'Conflict', { needsVerification: true }),
+        );
+
+        const user = userEvent.setup();
+        renderWithQuery(<RegisterPage />);
+
+        await fillAndSubmitForm(user);
+
+        await waitFor(() => {
+            expect(
+                screen.getByRole('link', { name: /Войти в существующий аккаунт/ }),
+            ).toHaveAttribute('href', '/login');
+        });
+    });
+
+    it('показывает серверную ошибку при 400', async () => {
+        mockWebRegister.mockRejectedValue(
+            new ApiError(400, 'Bad Request', {
+                message: 'Пользователь с таким email уже зарегистрирован',
+            }),
+        );
+
+        const user = userEvent.setup();
+        renderWithQuery(<RegisterPage />);
+
+        await fillAndSubmitForm(user);
+
+        await waitFor(() => {
+            expect(
+                screen.getByText('Пользователь с таким email уже зарегистрирован'),
+            ).toBeInTheDocument();
+        });
     });
 });
