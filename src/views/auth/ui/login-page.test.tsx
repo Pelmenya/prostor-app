@@ -11,13 +11,17 @@ vi.mock('next/navigation', () => ({
     useSearchParams: () => ({ get: mockGet }),
 }));
 
-vi.mock('@/features/auth', () => ({
-    webLogin: vi.fn().mockResolvedValue({
-        user: { id: 1, first_name: 'Тест', last_name: 'Тестов' },
-        accessToken: 'access-token',
-        refreshToken: 'refresh-token',
-    }),
-}));
+vi.mock('@/features/auth', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('@/features/auth')>();
+    return {
+        ...actual,
+        webLogin: vi.fn().mockResolvedValue({
+            user: { id: 1, first_name: 'Тест', last_name: 'Тестов' },
+            accessToken: 'access-token',
+            refreshToken: 'refresh-token',
+        }),
+    };
+});
 
 vi.mock('@/shared/lib', async (importOriginal) => {
     const actual = await importOriginal<Record<string, unknown>>();

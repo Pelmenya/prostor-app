@@ -1,7 +1,7 @@
 import { apiClient } from '@/shared/api';
 import type { TUser } from '@/shared/model';
 
-type TAuthResponse = {
+export type TAuthResponse = {
     user: TUser;
     accessToken: string;
     refreshToken: string;
@@ -34,5 +34,49 @@ export async function webLogout(accessToken: string, refreshToken: string): Prom
         method: 'POST',
         auth: `Bearer ${accessToken}`,
         body: { refreshToken },
+    });
+}
+
+// ─── Пароль и email ──────────────────────────────────────────
+
+export async function changePassword(
+    accessToken: string,
+    body: { oldPassword: string; newPassword: string },
+): Promise<{ success: boolean }> {
+    return apiClient('/auth/change-password', {
+        method: 'POST',
+        auth: `Bearer ${accessToken}`,
+        body,
+    });
+}
+
+export async function forgotPassword(email: string): Promise<{ success: boolean }> {
+    return apiClient('/auth/forgot-password', {
+        method: 'POST',
+        body: { email },
+    });
+}
+
+export async function resetPassword(
+    token: string,
+    password: string,
+): Promise<{ success: boolean }> {
+    return apiClient('/auth/reset-password', {
+        method: 'POST',
+        body: { token, password },
+    });
+}
+
+export async function verifyEmail(token: string): Promise<{ success: boolean }> {
+    return apiClient('/auth/verify-email', {
+        method: 'POST',
+        body: { token },
+    });
+}
+
+export async function resendVerification(accessToken: string): Promise<{ success: boolean }> {
+    return apiClient('/auth/resend-verification', {
+        method: 'POST',
+        auth: `Bearer ${accessToken}`,
     });
 }

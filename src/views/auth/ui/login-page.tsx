@@ -5,18 +5,10 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { webLogin } from '@/features/auth';
+import { webLogin, loginSchema, type TLoginForm } from '@/features/auth';
 import { ApiError } from '@/shared/api';
 import { useAuthStore, extractErrorMessage, getSafeRedirect } from '@/shared/lib';
 import { PageContainer, FormField } from '@/shared/ui';
-
-const loginSchema = z.object({
-    email: z.string().trim().toLowerCase().min(1, 'Введите email').email('Неверный формат email'),
-    password: z.string().min(1, 'Введите пароль'),
-});
-
-type TLoginForm = z.infer<typeof loginSchema>;
 
 function LoginForm() {
     const router = useRouter();
@@ -88,12 +80,20 @@ function LoginForm() {
                     </button>
                 </form>
 
-                <p className="text-center text-sm mt-4">
-                    Нет аккаунта?{' '}
-                    <Link href="/register" className="link link-primary">
-                        Зарегистрироваться
-                    </Link>
-                </p>
+                <div className="flex flex-col items-center gap-2 mt-4 text-sm">
+                    <p>
+                        Нет аккаунта?{' '}
+                        <Link href="/register" className="link link-primary">
+                            Зарегистрироваться
+                        </Link>
+                    </p>
+                    <p>
+                        Забыли пароль?{' '}
+                        <Link href="/forgot-password" className="link link-primary">
+                            Восстановить
+                        </Link>
+                    </p>
+                </div>
             </div>
         </div>
     );
