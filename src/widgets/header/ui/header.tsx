@@ -47,8 +47,11 @@ export function Header({ back = false, backTo }: THeaderProps) {
                     )}
 
                     {showUser ? (
-                        <>
-                            <div className={`avatar avatar-placeholder ${!back ? 'ml-1' : ''}`}>
+                        <Link
+                            href="/profile"
+                            className={`flex items-center gap-2 min-w-0 active:opacity-70 ${!back ? 'ml-1' : ''}`}
+                        >
+                            <div className="avatar avatar-placeholder shrink-0">
                                 <div className="ring-primary ring-offset-base-100 size-6 rounded-full ring-1 ring-offset-2 bg-primary text-primary-content sm:size-8 md:size-12 lg:size-16">
                                     <span className="font-semibold text-xs sm:text-sm md:text-base">
                                         {(user.firstName?.charAt(0) ?? '?') +
@@ -61,7 +64,7 @@ export function Header({ back = false, backTo }: THeaderProps) {
                                     {user.firstName} {user.lastName}
                                 </p>
                             </div>
-                        </>
+                        </Link>
                     ) : (
                         <Link
                             href="/catalog"

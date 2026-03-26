@@ -7,7 +7,7 @@ export const loginSchema = z.object({
 
 export type TLoginForm = z.infer<typeof loginSchema>;
 
-export const changePasswordSchema = z
+export const newPasswordSchema = z
     .object({
         oldPassword: z.string().min(1, 'Введите текущий пароль'),
         newPassword: z.string().min(8, 'Минимум 8 символов'),
@@ -18,7 +18,7 @@ export const changePasswordSchema = z
         path: ['confirmPassword'],
     });
 
-export type TChangePasswordForm = z.infer<typeof changePasswordSchema>;
+export type TChangePasswordForm = z.infer<typeof newPasswordSchema>;
 
 export const forgotPasswordSchema = z.object({
     email: z.string().min(1, 'Введите email').email('Некорректный email'),

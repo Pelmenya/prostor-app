@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
     loginSchema,
-    changePasswordSchema,
+    newPasswordSchema,
     forgotPasswordSchema,
     resetPasswordSchema,
 } from './auth-schemas';
@@ -36,9 +36,9 @@ describe('loginSchema', () => {
     });
 });
 
-describe('changePasswordSchema', () => {
+describe('newPasswordSchema', () => {
     it('валидные данные', () => {
-        const result = changePasswordSchema.safeParse({
+        const result = newPasswordSchema.safeParse({
             oldPassword: 'old12345',
             newPassword: 'new12345',
             confirmPassword: 'new12345',
@@ -47,7 +47,7 @@ describe('changePasswordSchema', () => {
     });
 
     it('пустой старый пароль', () => {
-        const result = changePasswordSchema.safeParse({
+        const result = newPasswordSchema.safeParse({
             oldPassword: '',
             newPassword: 'new12345',
             confirmPassword: 'new12345',
@@ -56,7 +56,7 @@ describe('changePasswordSchema', () => {
     });
 
     it('новый пароль < 8 символов', () => {
-        const result = changePasswordSchema.safeParse({
+        const result = newPasswordSchema.safeParse({
             oldPassword: 'old12345',
             newPassword: 'short',
             confirmPassword: 'short',
@@ -65,7 +65,7 @@ describe('changePasswordSchema', () => {
     });
 
     it('пароли не совпадают', () => {
-        const result = changePasswordSchema.safeParse({
+        const result = newPasswordSchema.safeParse({
             oldPassword: 'old12345',
             newPassword: 'new12345',
             confirmPassword: 'different',
