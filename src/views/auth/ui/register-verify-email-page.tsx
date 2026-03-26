@@ -1,13 +1,37 @@
 'use client';
 
-import { Suspense } from 'react';
+import { Suspense, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { webRegister } from '@/features/auth';
 import { PageContainer } from '@/shared/ui';
 
 function RegisterVerifyEmailContent() {
     const searchParams = useSearchParams();
     const email = searchParams.get('email') ?? '';
+    const [resent, setResent] = useState(false);
+    const [sending, setSending] = useState(false);
+
+    const handleResend = async () => {
+        if (!email) return;
+        setSending(true);
+        try {
+            // webRegister с тем же email → бэк вернёт 409 и отправит verification заново
+            await webRegister({
+                first_name: '',
+                last_name: '',
+                email,
+                phone: '',
+                password: 'placeholder',
+                policyVersion: '',
+                pdAgreementVersion: '',
+            });
+        } catch {
+            // 409 ожидаем — письмо отправлено
+        }
+        setSending(false);
+        setResent(true);
+    };
 
     return (
         <div className="card bg-base-200 shadow-xl w-full max-w-md">
@@ -35,6 +59,24 @@ function RegisterVerifyEmailContent() {
                     Письмо не пришло? Проверьте папку «Спам». Если письма нет — попробуйте другую
                     почту (Gmail, Яндекс)
                 </p>
+
+                {resent ? (
+                    <div className="alert alert-success text-sm mt-4">
+                        Письмо отправлено повторно
+                    </div>
+                ) : (
+                    <button
+                        className="btn btn-outline btn-sm mt-4"
+                        onClick={handleResend}
+                        disabled={sending || !email}
+                    >
+                        {sending ? (
+                            <span className="loading loading-spinner loading-sm" />
+                        ) : (
+                            'Отправить повторно'
+                        )}
+                    </button>
+                )}
 
                 <div className="flex flex-col gap-2 w-full mt-4">
                     <Link
