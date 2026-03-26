@@ -5,17 +5,26 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { webRegister, newPasswordSchema, type TNewPasswordForm } from '@/features/auth';
+import { z } from 'zod';
+import { webRegister, newPasswordSchema } from '@/features/auth';
 import { ApiError } from '@/shared/api';
 import { useAuthStore, extractErrorMessage, getSafeRedirect } from '@/shared/lib';
 import { useCurrentPolicy } from '@/entities/privacy-policy';
 import { useCurrentAgreement } from '@/entities/personal-data-agreement';
 import { PageContainer, FormField } from '@/shared/ui';
 
+const linkAccountSchema = newPasswordSchema.and(
+    z.object({
+        email: z.string().min(1, 'Введите email').email('Некорректный email'),
+    }),
+);
+
+type TLinkAccountForm = z.infer<typeof linkAccountSchema>;
+
 function LinkAccountForm() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const email = searchParams.get('email') ?? '';
+    const emailFromUrl = searchParams.get('email') ?? '';
     const { setTokens, setUser } = useAuthStore();
 
     const { data: currentPolicy } = useCurrentPolicy();
@@ -27,27 +36,12 @@ function LinkAccountForm() {
         register,
         handleSubmit,
         formState: { errors, isSubmitting },
-    } = useForm<TNewPasswordForm>({
-        resolver: zodResolver(newPasswordSchema),
-        defaultValues: { password: '', confirmPassword: '' },
+    } = useForm<TLinkAccountForm>({
+        resolver: zodResolver(linkAccountSchema),
+        defaultValues: { email: emailFromUrl, password: '', confirmPassword: '' },
     });
 
-    if (!email) {
-        return (
-            <div className="card bg-base-200 shadow-xl w-full max-w-md">
-                <div className="card-body">
-                    <div className="alert alert-error text-sm">
-                        Email не указан. Начните с регистрации.
-                    </div>
-                    <Link href="/register" className="btn btn-primary w-full mt-4">
-                        Перейти к регистрации
-                    </Link>
-                </div>
-            </div>
-        );
-    }
-
-    const onSubmit = async (form: TNewPasswordForm) => {
+    const onSubmit = async (form: TLinkAccountForm) => {
         setServerError(null);
 
         if (!currentPolicy?.version || !currentAgreement?.version) {
@@ -59,7 +53,7 @@ function LinkAccountForm() {
             const data = await webRegister({
                 first_name: '',
                 last_name: '',
-                email,
+                email: form.email,
                 phone: '',
                 password: form.password,
                 policyVersion: currentPolicy.version,
@@ -71,7 +65,7 @@ function LinkAccountForm() {
         } catch (err) {
             if (err instanceof ApiError) {
                 if (err.status === 409) {
-                    setServerError('Email ещё не подтверждён. Проверьте почту');
+                    router.push(`/register/verify-email?email=${encodeURIComponent(form.email)}`);
                     return;
                 }
                 setServerError(extractErrorMessage(err.data, 'Ошибка привязки'));
@@ -87,10 +81,20 @@ function LinkAccountForm() {
                 <h1 className="card-title text-2xl gradient-text">Привязка аккаунта</h1>
 
                 <p className="text-sm text-base-content/70 mt-2">
-                    Аккаунт <strong>{email}</strong> найден. Придумайте пароль для входа через веб
+                    Введите email из Telegram и придумайте пароль для входа через веб
                 </p>
 
                 <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4 mt-4">
+                    <FormField label="Email" error={errors.email?.message}>
+                        <input
+                            type="email"
+                            className={`input input-bordered w-full ${errors.email ? 'input-error' : ''}`}
+                            placeholder="Email из Telegram"
+                            readOnly={!!emailFromUrl}
+                            {...register('email')}
+                        />
+                    </FormField>
+
                     <FormField label="Пароль" error={errors.password?.message}>
                         <input
                             type="password"
