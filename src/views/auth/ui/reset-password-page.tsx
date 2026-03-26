@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { resetPassword, resetPasswordSchema, type TResetPasswordForm } from '@/features/auth';
+import { resetPassword, newPasswordSchema, type TNewPasswordForm } from '@/features/auth';
 import { ApiError } from '@/shared/api';
 import { extractErrorMessage } from '@/shared/lib';
 import { PageContainer, FormField } from '@/shared/ui';
@@ -22,8 +22,8 @@ function ResetPasswordForm() {
         register,
         handleSubmit,
         formState: { errors, isSubmitting },
-    } = useForm<TResetPasswordForm>({
-        resolver: zodResolver(resetPasswordSchema),
+    } = useForm<TNewPasswordForm>({
+        resolver: zodResolver(newPasswordSchema),
         defaultValues: { password: '', confirmPassword: '' },
     });
 
@@ -42,7 +42,7 @@ function ResetPasswordForm() {
         );
     }
 
-    const onSubmit = async (form: TResetPasswordForm) => {
+    const onSubmit = async (form: TNewPasswordForm) => {
         setServerError(null);
         try {
             await resetPassword(token, form.password);

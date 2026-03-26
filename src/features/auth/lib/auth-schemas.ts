@@ -26,7 +26,8 @@ export const forgotPasswordSchema = z.object({
 
 export type TForgotPasswordForm = z.infer<typeof forgotPasswordSchema>;
 
-export const resetPasswordSchema = z
+/** Общая схема: новый пароль + подтверждение. Используется в reset-password, link-account */
+export const newPasswordSchema = z
     .object({
         password: z.string().min(8, 'Минимум 8 символов'),
         confirmPassword: z.string().min(1, 'Подтвердите пароль'),
@@ -36,4 +37,4 @@ export const resetPasswordSchema = z
         path: ['confirmPassword'],
     });
 
-export type TResetPasswordForm = z.infer<typeof resetPasswordSchema>;
+export type TNewPasswordForm = z.infer<typeof newPasswordSchema>;

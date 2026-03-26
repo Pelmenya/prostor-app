@@ -14,11 +14,11 @@ export {
     loginSchema,
     changePasswordSchema,
     forgotPasswordSchema,
-    resetPasswordSchema,
+    newPasswordSchema,
 } from './lib/auth-schemas';
 export type {
     TLoginForm,
     TChangePasswordForm,
     TForgotPasswordForm,
-    TResetPasswordForm,
+    TNewPasswordForm,
 } from './lib/auth-schemas';

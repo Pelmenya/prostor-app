@@ -5,25 +5,12 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { webRegister } from '@/features/auth';
+import { webRegister, newPasswordSchema, type TNewPasswordForm } from '@/features/auth';
 import { ApiError } from '@/shared/api';
 import { useAuthStore, extractErrorMessage, getSafeRedirect } from '@/shared/lib';
 import { useCurrentPolicy } from '@/entities/privacy-policy';
 import { useCurrentAgreement } from '@/entities/personal-data-agreement';
 import { PageContainer, FormField } from '@/shared/ui';
-
-const linkAccountSchema = z
-    .object({
-        password: z.string().min(8, 'Минимум 8 символов'),
-        confirmPassword: z.string().min(1, 'Подтвердите пароль'),
-    })
-    .refine((d) => d.password === d.confirmPassword, {
-        message: 'Пароли не совпадают',
-        path: ['confirmPassword'],
-    });
-
-type TLinkAccountForm = z.infer<typeof linkAccountSchema>;
 
 function LinkAccountForm() {
     const router = useRouter();
@@ -40,8 +27,8 @@ function LinkAccountForm() {
         register,
         handleSubmit,
         formState: { errors, isSubmitting },
-    } = useForm<TLinkAccountForm>({
-        resolver: zodResolver(linkAccountSchema),
+    } = useForm<TNewPasswordForm>({
+        resolver: zodResolver(newPasswordSchema),
         defaultValues: { password: '', confirmPassword: '' },
     });
 
@@ -60,7 +47,7 @@ function LinkAccountForm() {
         );
     }
 
-    const onSubmit = async (form: TLinkAccountForm) => {
+    const onSubmit = async (form: TNewPasswordForm) => {
         setServerError(null);
 
         if (!currentPolicy?.version || !currentAgreement?.version) {

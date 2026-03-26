@@ -3,7 +3,7 @@ import {
     loginSchema,
     changePasswordSchema,
     forgotPasswordSchema,
-    resetPasswordSchema,
+    newPasswordSchema,
 } from './auth-schemas';
 
 describe('loginSchema', () => {
@@ -94,9 +94,9 @@ describe('forgotPasswordSchema', () => {
     });
 });
 
-describe('resetPasswordSchema', () => {
+describe('newPasswordSchema', () => {
     it('валидные данные', () => {
-        const result = resetPasswordSchema.safeParse({
+        const result = newPasswordSchema.safeParse({
             password: 'new12345',
             confirmPassword: 'new12345',
         });
@@ -104,7 +104,7 @@ describe('resetPasswordSchema', () => {
     });
 
     it('пароль < 8 символов', () => {
-        const result = resetPasswordSchema.safeParse({
+        const result = newPasswordSchema.safeParse({
             password: 'short',
             confirmPassword: 'short',
         });
@@ -112,7 +112,7 @@ describe('resetPasswordSchema', () => {
     });
 
     it('пароли не совпадают', () => {
-        const result = resetPasswordSchema.safeParse({
+        const result = newPasswordSchema.safeParse({
             password: 'new12345',
             confirmPassword: 'different',
         });
@@ -123,7 +123,7 @@ describe('resetPasswordSchema', () => {
     });
 
     it('пустое подтверждение', () => {
-        const result = resetPasswordSchema.safeParse({
+        const result = newPasswordSchema.safeParse({
             password: 'new12345',
             confirmPassword: '',
         });
