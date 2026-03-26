@@ -84,23 +84,23 @@ export async function resendVerification(accessToken: string): Promise<{ success
 // ─── Профиль ────────────────────────────────────────────────
 
 export async function updateProfile(
-    accessToken: string,
+    authHeader: string,
     body: { first_name?: string; last_name?: string; phone?: string },
 ): Promise<TUser> {
     return apiClient('/auth/profile', {
         method: 'PATCH',
-        auth: `Bearer ${accessToken}`,
+        auth: authHeader,
         body,
     });
 }
 
 export async function changeEmail(
-    accessToken: string,
+    authHeader: string,
     newEmail: string,
 ): Promise<{ success: boolean }> {
     return apiClient('/auth/change-email', {
         method: 'POST',
-        auth: `Bearer ${accessToken}`,
+        auth: authHeader,
         body: { newEmail },
     });
 }

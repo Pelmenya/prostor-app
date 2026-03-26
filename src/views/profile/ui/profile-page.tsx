@@ -2,7 +2,7 @@
 
 import { useSyncExternalStore } from 'react';
 import Link from 'next/link';
-import { PencilSquareIcon, LockClosedIcon } from '@heroicons/react/24/outline';
+import { PencilSquareIcon, LockClosedIcon, EnvelopeIcon } from '@heroicons/react/24/outline';
 import { useAuthStore, normalizeRuPhone, formatRuPhoneForView } from '@/shared/lib';
 import { useLogout } from '@/features/auth';
 import { flushCartSync } from '@/features/cart';
@@ -44,6 +44,16 @@ export function ProfilePage() {
                             )}
                             {phone && <p className="text-xs">{phone}</p>}
                             {user.email && <p className="text-xs truncate">{user.email}</p>}
+                        </div>
+                        <PencilSquareIcon className="size-5 shrink-0" />
+                    </div>
+                </Link>
+
+                <Link href="/profile/change-email" className="block active:opacity-70">
+                    <div className="p-4 bg-base-100 rounded-2xl border border-base-content/10 flex items-center gap-4 w-full">
+                        <EnvelopeIcon className="size-5 shrink-0" />
+                        <div className="flex-1 min-w-0 flex flex-col gap-2">
+                            <h3 className="font-semibold">Изменить почту</h3>
                         </div>
                         <PencilSquareIcon className="size-5 shrink-0" />
                     </div>

@@ -13,7 +13,6 @@ const schema = z.object({
     first_name: z.string().min(1, 'Имя обязательно'),
     last_name: z.string().min(1, 'Фамилия обязательна'),
     phone: z.string().regex(phoneE164Ru, 'Формат: +7 999 999-99-99'),
-    email: z.string().email('Неверный формат почты'),
 });
 
 export type TProfileFormData = z.infer<typeof schema>;
@@ -43,7 +42,6 @@ export function ProfileForm({ user, onSubmit, isLoading = false }: TProfileFormP
             first_name: capitalizeName(user?.first_name ?? ''),
             last_name: capitalizeName(user?.last_name ?? ''),
             phone: user?.phone ? denormalizeViewToE164(user.phone) : '',
-            email: user?.email ?? '',
         },
         mode: 'onSubmit',
         reValidateMode: 'onChange',
@@ -56,13 +54,6 @@ export function ProfileForm({ user, onSubmit, isLoading = false }: TProfileFormP
                 shouldValidate: isSubmitted,
             });
         };
-
-    const emailInputHandler = (e: React.FormEvent<HTMLInputElement>) => {
-        setValue('email', e.currentTarget.value.trim().toLowerCase(), {
-            shouldDirty: true,
-            shouldValidate: isSubmitted,
-        });
-    };
 
     return (
         <FormCard onSubmit={handleSubmit(onSubmit)} submitText="Сохранить" isLoading={isLoading}>
@@ -111,16 +102,6 @@ export function ProfileForm({ user, onSubmit, isLoading = false }: TProfileFormP
                             maxLength={18}
                         />
                     )}
-                />
-            </InputField>
-
-            <InputField label="Email" error={errors.email?.message}>
-                <input
-                    type="email"
-                    placeholder="Почта"
-                    className={`input input-sm w-full ${errors.email ? 'input-error' : ''}`}
-                    {...register('email')}
-                    onInput={emailInputHandler}
                 />
             </InputField>
         </FormCard>
