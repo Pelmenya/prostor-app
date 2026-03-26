@@ -7,6 +7,8 @@ export {
     resetPassword,
     verifyEmail,
     resendVerification,
+    updateProfile,
+    changeEmail,
 } from './api/auth-api';
 export type { TAuthResponse } from './api/auth-api';
 export { useLogout } from './lib/use-logout';

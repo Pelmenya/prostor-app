@@ -80,3 +80,27 @@ export async function resendVerification(accessToken: string): Promise<{ success
         auth: `Bearer ${accessToken}`,
     });
 }
+
+// ─── Профиль ────────────────────────────────────────────────
+
+export async function updateProfile(
+    accessToken: string,
+    body: { first_name?: string; last_name?: string; phone?: string },
+): Promise<TUser> {
+    return apiClient('/auth/profile', {
+        method: 'PATCH',
+        auth: `Bearer ${accessToken}`,
+        body,
+    });
+}
+
+export async function changeEmail(
+    accessToken: string,
+    newEmail: string,
+): Promise<{ success: boolean }> {
+    return apiClient('/auth/change-email', {
+        method: 'POST',
+        auth: `Bearer ${accessToken}`,
+        body: { newEmail },
+    });
+}
