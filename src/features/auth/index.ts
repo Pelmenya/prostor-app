@@ -11,11 +11,13 @@ export {
 export type { TAuthResponse } from './api/auth-api';
 export { useLogout } from './lib/use-logout';
 export {
+    loginSchema,
     changePasswordSchema,
     forgotPasswordSchema,
     resetPasswordSchema,
 } from './lib/auth-schemas';
 export type {
+    TLoginForm,
     TChangePasswordForm,
     TForgotPasswordForm,
     TResetPasswordForm,

@@ -1,5 +1,40 @@
 import { describe, it, expect } from 'vitest';
-import { changePasswordSchema, forgotPasswordSchema, resetPasswordSchema } from './auth-schemas';
+import {
+    loginSchema,
+    changePasswordSchema,
+    forgotPasswordSchema,
+    resetPasswordSchema,
+} from './auth-schemas';
+
+describe('loginSchema', () => {
+    it('валидные данные', () => {
+        const result = loginSchema.safeParse({ email: 'test@mail.ru', password: '12345678' });
+        expect(result.success).toBe(true);
+    });
+
+    it('email приводится к lowercase', () => {
+        const result = loginSchema.safeParse({ email: 'Test@Mail.RU', password: '12345678' });
+        expect(result.success).toBe(true);
+        if (result.success) {
+            expect(result.data.email).toBe('test@mail.ru');
+        }
+    });
+
+    it('пустой email', () => {
+        const result = loginSchema.safeParse({ email: '', password: '12345678' });
+        expect(result.success).toBe(false);
+    });
+
+    it('невалидный email', () => {
+        const result = loginSchema.safeParse({ email: 'not-email', password: '12345678' });
+        expect(result.success).toBe(false);
+    });
+
+    it('пустой пароль', () => {
+        const result = loginSchema.safeParse({ email: 'test@mail.ru', password: '' });
+        expect(result.success).toBe(false);
+    });
+});
 
 describe('changePasswordSchema', () => {
     it('валидные данные', () => {
