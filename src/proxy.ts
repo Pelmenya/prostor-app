@@ -11,9 +11,19 @@ export function proxy(request: NextRequest) {
     const { pathname } = request.nextUrl;
     const token = request.cookies.get('access_token')?.value;
 
-    // Авторизованный юзер на /login или /register → на главную
-    if (token && (pathname === '/login' || pathname === '/register')) {
-        return NextResponse.redirect(new URL('/', request.url));
+    // Авторизованный юзер на auth-страницах → на главную
+    const AUTH_ONLY = [
+        '/login',
+        '/register',
+        '/forgot-password',
+        '/reset-password',
+        '/verify-email',
+    ];
+    if (token && AUTH_ONLY.some((p) => pathname === p || pathname.startsWith(`${p}/`))) {
+        const from = request.nextUrl.searchParams.get('from');
+        return NextResponse.redirect(
+            new URL(from && from.startsWith('/') ? from : '/', request.url),
+        );
     }
 
     // Приватные пути без токена → на /login
