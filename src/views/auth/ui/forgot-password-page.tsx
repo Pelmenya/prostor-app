@@ -53,6 +53,10 @@ export function ForgotPasswordPage() {
                                 <div className="alert alert-success text-sm">
                                     Мы отправили ссылку для сброса пароля. Проверьте почту
                                 </div>
+                                <p className="text-xs text-base-content/50">
+                                    Письмо не пришло? Проверьте папку «Спам». Если письма нет —
+                                    попробуйте другую почту (Gmail, Яндекс)
+                                </p>
                                 <Link href="/login" className="btn btn-primary w-full">
                                     Вернуться ко входу
                                 </Link>

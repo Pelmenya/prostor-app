@@ -128,6 +128,11 @@ function VerificationNeeded({ email }: { email: string }) {
                     аккаунты будут привязаны
                 </p>
 
+                <p className="text-xs text-base-content/50 mt-2">
+                    Письмо не пришло? Проверьте папку «Спам». Если письма нет — попробуйте другую
+                    почту (Gmail, Яндекс)
+                </p>
+
                 {resent ? (
                     <div className="alert alert-success text-sm mt-4">
                         Письмо отправлено повторно

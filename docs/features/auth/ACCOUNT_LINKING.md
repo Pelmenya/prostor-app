@@ -230,12 +230,27 @@ Web → кнопка "Открыть в Telegram"
 | 3   | Страница /auth/magic на фронте    | ⬜ 0%    |
 | 4   | Предложение установить пароль     | ⬜ 0%    |
 
-### Этап 3: Magic Link Web → Telegram (⬜ TODO)
+### Этап 3: Привязка Web → Telegram (⬜ TODO — рефакторинг auth)
 
-| Шаг | Описание                      | Прогресс |
-| --- | ----------------------------- | -------- |
-| 1   | Deep link в боте              | ⬜ 0%    |
-| 2   | Привязка при /start magic_xxx | ⬜ 0%    |
+Проблема: web-юзеры имеют отрицательный ID (sequence), а `validateInitData`
+ищет по `User.id = Telegram ID`. Нельзя просто привязать UserIdentity(telegram)
+к web-юзеру — initData проверка сломается.
+
+Требует рефакторинг: `validateInitData` → поиск через `UserIdentity` вместо `User.id`.
+Связан со Strangle Fig Migration шаг 3: "JWT + OAuth + magic link в auth.guard".
+
+| Шаг | Описание                                                        | Прогресс |
+| --- | --------------------------------------------------------------- | -------- |
+| 1   | validateInitData: поиск через UserIdentity вместо User.id       | ⬜ 0%    |
+| 2   | registerUserWithConsent: привязка к web-юзеру по verified email | ⬜ 0%    |
+| 3   | Тесты: оба направления привязки                                 | ⬜ 0%    |
+
+### Этап 4: Magic Link (⬜ TODO)
+
+| Шаг | Описание                                                            | Прогресс |
+| --- | ------------------------------------------------------------------- | -------- |
+| 1   | Magic Link: Telegram → Web (Entity + эндпоинты + кнопка в Mini App) | ⬜ 0%    |
+| 2   | Magic Link: Web → Telegram (deep link + бот)                        | ⬜ 0%    |
 
 ---
 
