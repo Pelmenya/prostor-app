@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -35,6 +36,7 @@ export function ProfileForm({ user, onSubmit, isLoading = false }: TProfileFormP
         setValue,
         control,
         trigger,
+        reset,
         formState: { errors, isSubmitted },
     } = useForm<TProfileFormData>({
         resolver: zodResolver(schema),
@@ -46,6 +48,15 @@ export function ProfileForm({ user, onSubmit, isLoading = false }: TProfileFormP
         mode: 'onSubmit',
         reValidateMode: 'onChange',
     });
+
+    useEffect(() => {
+        if (!user) return;
+        reset({
+            first_name: capitalizeName(user.first_name ?? ''),
+            last_name: capitalizeName(user.last_name ?? ''),
+            phone: user.phone ? denormalizeViewToE164(user.phone) : '',
+        });
+    }, [user, reset]);
 
     const nameInputHandler =
         (field: 'first_name' | 'last_name') => (e: React.FormEvent<HTMLInputElement>) => {
