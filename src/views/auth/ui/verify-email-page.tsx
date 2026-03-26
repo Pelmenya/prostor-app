@@ -2,17 +2,38 @@
 
 import { Suspense, useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import { verifyEmail } from '@/features/auth';
+import { apiClient } from '@/shared/api';
+import { useAuthStore } from '@/shared/lib';
 import { PageContainer } from '@/shared/ui';
+import type { TUser } from '@/shared/model';
+
+type TVerifyStatus = 'loading' | 'verified' | 'changed' | 'error';
+
+/** После смены email — обновить Zustand store и инвалидировать TQ кэш */
+async function refreshUserData(queryClient: ReturnType<typeof useQueryClient>) {
+    const accessToken = useAuthStore.getState().accessToken;
+    if (!accessToken) return;
+
+    try {
+        const user = await apiClient<TUser>('/auth/me', {
+            auth: `Bearer ${accessToken}`,
+        });
+        useAuthStore.getState().setUser(user);
+        queryClient.invalidateQueries({ queryKey: ['user'] });
+    } catch {
+        // Не критично — при следующем запросе подтянется
+    }
+}
 
 function VerifyEmailForm() {
     const searchParams = useSearchParams();
     const token = searchParams.get('token');
+    const queryClient = useQueryClient();
 
-    const [status, setStatus] = useState<'loading' | 'success' | 'error'>(
-        token ? 'loading' : 'error',
-    );
+    const [status, setStatus] = useState<TVerifyStatus>(token ? 'loading' : 'error');
     const [errorMessage, setErrorMessage] = useState(token ? '' : 'Недействительная ссылка');
     const hasCalledRef = useRef(false);
 
@@ -20,13 +41,24 @@ function VerifyEmailForm() {
         if (!token || hasCalledRef.current) return;
         hasCalledRef.current = true;
 
-        verifyEmail(token)
-            .then(() => setStatus('success'))
-            .catch(() => {
+        const run = async () => {
+            try {
+                const res = await verifyEmail(token);
+
+                if (res?.emailChanged) {
+                    await refreshUserData(queryClient);
+                    setStatus('changed');
+                } else {
+                    setStatus('verified');
+                }
+            } catch {
                 setStatus('error');
                 setErrorMessage('Ссылка недействительна или истекла');
-            });
-    }, [token]);
+            }
+        };
+
+        run();
+    }, [token, queryClient]);
 
     return (
         <div className="card bg-base-200 shadow-xl w-full max-w-md">
@@ -38,7 +70,7 @@ function VerifyEmailForm() {
                     </>
                 )}
 
-                {status === 'success' && (
+                {status === 'verified' && (
                     <>
                         <div className="text-5xl mb-4">✅</div>
                         <h1 className="card-title text-2xl gradient-text">Email подтверждён</h1>
@@ -48,6 +80,19 @@ function VerifyEmailForm() {
                         </p>
                         <Link href="/catalog" className="btn btn-primary w-full mt-4">
                             Перейти в каталог
+                        </Link>
+                    </>
+                )}
+
+                {status === 'changed' && (
+                    <>
+                        <div className="text-5xl mb-4">✅</div>
+                        <h1 className="card-title text-2xl gradient-text">Email изменён</h1>
+                        <p className="text-sm text-base-content/70 mt-2">
+                            Новый email успешно привязан к вашему аккаунту.
+                        </p>
+                        <Link href="/profile" className="btn btn-primary w-full mt-4">
+                            В личный кабинет
                         </Link>
                     </>
                 )}

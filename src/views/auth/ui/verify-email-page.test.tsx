@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { VerifyEmailPage } from './verify-email-page';
 
 const mockVerifyEmail = vi.fn();
@@ -25,6 +26,31 @@ vi.mock('next/link', () => ({
     ),
 }));
 
+vi.mock('@/shared/api', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('@/shared/api')>();
+    return { ...actual, apiClient: vi.fn().mockResolvedValue({}) };
+});
+
+vi.mock('@/shared/lib', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('@/shared/lib')>();
+    return {
+        ...actual,
+        useAuthStore: Object.assign(
+            vi.fn(() => ({})),
+            {
+                getState: () => ({ accessToken: null, setUser: vi.fn() }),
+            },
+        ),
+    };
+});
+
+function renderWithProviders(ui: React.ReactElement) {
+    const queryClient = new QueryClient({
+        defaultOptions: { queries: { retry: false } },
+    });
+    return render(<QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>);
+}
+
 describe('VerifyEmailPage', () => {
     beforeEach(() => {
         vi.clearAllMocks();
@@ -32,14 +58,14 @@ describe('VerifyEmailPage', () => {
     });
 
     it('показывает спиннер во время верификации', () => {
-        mockVerifyEmail.mockReturnValue(new Promise(() => {})); // never resolves
-        render(<VerifyEmailPage />);
+        mockVerifyEmail.mockReturnValue(new Promise(() => {}));
+        renderWithProviders(<VerifyEmailPage />);
         expect(screen.getByText('Подтверждаем email...')).toBeInTheDocument();
     });
 
     it('показывает успех при валидном токене', async () => {
         mockVerifyEmail.mockResolvedValue({ success: true });
-        render(<VerifyEmailPage />);
+        renderWithProviders(<VerifyEmailPage />);
 
         await waitFor(() => {
             expect(screen.getByText('Email подтверждён')).toBeInTheDocument();
@@ -47,9 +73,22 @@ describe('VerifyEmailPage', () => {
         expect(mockVerifyEmail).toHaveBeenCalledWith('valid-token');
     });
 
+    it('показывает смену email при emailChanged', async () => {
+        mockVerifyEmail.mockResolvedValue({ success: true, emailChanged: true });
+        renderWithProviders(<VerifyEmailPage />);
+
+        await waitFor(() => {
+            expect(screen.getByText('Email изменён')).toBeInTheDocument();
+        });
+        expect(screen.getByText('В личный кабинет').closest('a')).toHaveAttribute(
+            'href',
+            '/profile',
+        );
+    });
+
     it('показывает ошибку при невалидном токене', async () => {
         mockVerifyEmail.mockRejectedValue(new Error('Invalid'));
-        render(<VerifyEmailPage />);
+        renderWithProviders(<VerifyEmailPage />);
 
         await waitFor(() => {
             expect(screen.getByText('Ссылка недействительна или истекла')).toBeInTheDocument();
@@ -58,14 +97,14 @@ describe('VerifyEmailPage', () => {
 
     it('показывает ошибку без token в URL', () => {
         mockToken = null;
-        render(<VerifyEmailPage />);
+        renderWithProviders(<VerifyEmailPage />);
         expect(screen.getByText('Недействительная ссылка')).toBeInTheDocument();
         expect(mockVerifyEmail).not.toHaveBeenCalled();
     });
 
-    it('ссылка на каталог после успеха', async () => {
+    it('ссылка на каталог после подтверждения', async () => {
         mockVerifyEmail.mockResolvedValue({ success: true });
-        render(<VerifyEmailPage />);
+        renderWithProviders(<VerifyEmailPage />);
 
         await waitFor(() => {
             expect(screen.getByText('Перейти в каталог').closest('a')).toHaveAttribute(

@@ -67,7 +67,9 @@ export async function resetPassword(
     });
 }
 
-export async function verifyEmail(token: string): Promise<{ success: boolean }> {
+export async function verifyEmail(
+    token: string,
+): Promise<{ success: boolean; emailChanged?: boolean }> {
     return apiClient('/auth/verify-email', {
         method: 'POST',
         body: { token },

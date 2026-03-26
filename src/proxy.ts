@@ -12,13 +12,7 @@ export function proxy(request: NextRequest) {
     const token = request.cookies.get('access_token')?.value;
 
     // Авторизованный юзер на auth-страницах → на главную
-    const AUTH_ONLY = [
-        '/login',
-        '/register',
-        '/forgot-password',
-        '/reset-password',
-        '/verify-email',
-    ];
+    const AUTH_ONLY = ['/login', '/register', '/forgot-password', '/reset-password'];
     if (token && AUTH_ONLY.some((p) => pathname === p || pathname.startsWith(`${p}/`))) {
         const from = request.nextUrl.searchParams.get('from');
         return NextResponse.redirect(
