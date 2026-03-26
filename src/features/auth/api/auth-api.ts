@@ -1,7 +1,7 @@
 import { apiClient } from '@/shared/api';
 import type { TUser } from '@/shared/model';
 
-type TAuthResponse = {
+export type TAuthResponse = {
     user: TUser;
     accessToken: string;
     refreshToken: string;

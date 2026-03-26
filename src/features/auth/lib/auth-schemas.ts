@@ -14,7 +14,7 @@ export const changePasswordSchema = z
 export type TChangePasswordForm = z.infer<typeof changePasswordSchema>;
 
 export const forgotPasswordSchema = z.object({
-    email: z.string().email('Некорректный email'),
+    email: z.string().min(1, 'Введите email').email('Некорректный email'),
 });
 
 export type TForgotPasswordForm = z.infer<typeof forgotPasswordSchema>;

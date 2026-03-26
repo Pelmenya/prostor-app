@@ -26,14 +26,19 @@ export function ForgotPasswordPage() {
         setServerError(null);
         try {
             await forgotPassword(form.email);
-            setSent(true);
         } catch (err) {
             if (err instanceof ApiError) {
-                setServerError(extractErrorMessage(err.data, 'Ошибка отправки'));
+                // Rate limit — показываем, остальные 4xx скрываем (OWASP A07)
+                if (err.status === 400) {
+                    setServerError(extractErrorMessage(err.data, ''));
+                    return;
+                }
             } else {
                 setServerError('Ошибка сети');
+                return;
             }
         }
+        setSent(true);
     };
 
     return (

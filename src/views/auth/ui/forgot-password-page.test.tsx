@@ -38,7 +38,7 @@ describe('ForgotPasswordPage', () => {
         await user.click(screen.getByRole('button', { name: 'Отправить ссылку' }));
 
         await waitFor(() => {
-            expect(screen.getByText('Некорректный email')).toBeInTheDocument();
+            expect(screen.getByText('Введите email')).toBeInTheDocument();
         });
         expect(mockForgotPassword).not.toHaveBeenCalled();
     });

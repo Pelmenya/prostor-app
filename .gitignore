@@ -30,7 +30,7 @@ node_modules/
 .DS_Store
 Thumbs.db
 
-# Claude Code (локальные настройки не в git)
+# Claude Code (локальные настройки)
 .claude/settings.local.json
 
 # Debug

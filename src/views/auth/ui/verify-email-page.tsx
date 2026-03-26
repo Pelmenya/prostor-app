@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { verifyEmail } from '@/features/auth';
@@ -14,9 +14,11 @@ function VerifyEmailForm() {
         token ? 'loading' : 'error',
     );
     const [errorMessage, setErrorMessage] = useState(token ? '' : 'Недействительная ссылка');
+    const hasCalledRef = useRef(false);
 
     useEffect(() => {
-        if (!token) return;
+        if (!token || hasCalledRef.current) return;
+        hasCalledRef.current = true;
 
         verifyEmail(token)
             .then(() => setStatus('success'))
