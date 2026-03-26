@@ -1,10 +1,11 @@
 import { describe, it, expect, vi } from 'vitest';
 import { proxy } from './proxy';
 
+const BASE_URL = process.env.NEXT_PUBLIC_WEB_APP_URL ?? 'http://localhost:3050';
+
 /** Мок NextRequest — реальный NextRequest не парсит cookies в happy-dom */
 function createMockRequest(pathname: string, token?: string) {
-    const base = 'http://localhost:3050';
-    const url = new URL(pathname, base);
+    const url = new URL(pathname, BASE_URL);
     return {
         url: url.toString(),
         nextUrl: url,
