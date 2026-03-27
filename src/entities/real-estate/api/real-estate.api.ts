@@ -22,7 +22,7 @@ export function useRealEstate(id: number) {
     return useQuery({
         queryKey: realEstateKeys.detail(id),
         queryFn: () => api<TRealEstate>(`/real-estate/${id}`),
-        enabled: !!id,
+        enabled: id > 0,
     });
 }
 
@@ -60,8 +60,9 @@ export function useDeleteRealEstate() {
     return useMutation({
         mutationFn: (id: number) =>
             api<{ success: boolean }>(`/real-estate/${id}`, { method: 'DELETE' }),
-        onSuccess: () => {
+        onSuccess: (_, id) => {
             queryClient.invalidateQueries({ queryKey: realEstateKeys.all });
+            queryClient.removeQueries({ queryKey: realEstateKeys.detail(id) });
         },
     });
 }

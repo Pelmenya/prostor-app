@@ -9,6 +9,6 @@ export {
 
 export { RealEstateCard } from './ui/real-estate-card/real-estate-card';
 
-export { getRealEstateTypeName } from './lib/get-real-estate-type-name';
-export { getWaterSourceName } from './lib/get-water-source-name';
-export { getWaterIntakePointName } from './lib/get-water-intake-point-name';
+export { getRealEstateTypeName, TYPE_NAMES } from './lib/get-real-estate-type-name';
+export { getWaterSourceName, SOURCE_NAMES } from './lib/get-water-source-name';
+export { getWaterIntakePointName, POINT_NAMES } from './lib/get-water-intake-point-name';

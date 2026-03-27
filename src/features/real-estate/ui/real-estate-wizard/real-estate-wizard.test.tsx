@@ -13,10 +13,14 @@ vi.mock('next/navigation', () => ({
     useRouter: () => ({ push: mockPush }),
 }));
 
-vi.mock('@/entities/real-estate', () => ({
-    useCreateRealEstate: () => ({ mutateAsync: mockCreateMutateAsync }),
-    useUpdateRealEstate: () => ({ mutateAsync: mockUpdateMutateAsync }),
-}));
+vi.mock('@/entities/real-estate', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('@/entities/real-estate')>();
+    return {
+        ...actual,
+        useCreateRealEstate: () => ({ mutateAsync: mockCreateMutateAsync }),
+        useUpdateRealEstate: () => ({ mutateAsync: mockUpdateMutateAsync }),
+    };
+});
 
 vi.mock('@/shared/api', () => ({
     useApi: () => vi.fn(),

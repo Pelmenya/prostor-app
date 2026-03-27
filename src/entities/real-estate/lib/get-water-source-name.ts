@@ -1,6 +1,6 @@
 import type { TRealEstateSourceWater } from '@/shared/model';
 
-const SOURCE_NAMES: Record<TRealEstateSourceWater, string> = {
+export const SOURCE_NAMES: Record<TRealEstateSourceWater, string> = {
     borehole: 'Скважина',
     well: 'Колодец',
     reservoir: 'Водоём',

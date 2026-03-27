@@ -1,6 +1,6 @@
 import type { TWaterIntakePoints } from '@/shared/model';
 
-const POINT_NAMES: Record<keyof TWaterIntakePoints, string> = {
+export const POINT_NAMES: Record<keyof TWaterIntakePoints, string> = {
     toilet: 'Унитаз',
     sink: 'Раковина',
     bath: 'Ванна',

@@ -27,8 +27,8 @@ export function RealEstateCard({ realEstate, onDelete, onClick }: TRealEstateCar
 
     return (
         <div
-            className="card bg-base-100 border border-base-300 shadow-sm cursor-pointer transition-all hover:shadow-md"
-            onClick={() => onClick?.(realEstate.id)}
+            className={`card bg-base-100 border border-base-300 shadow-sm transition-all ${onClick ? 'cursor-pointer hover:shadow-md' : ''}`}
+            onClick={onClick ? () => onClick(realEstate.id) : undefined}
         >
             <div className="card-body p-4 flex-row items-center gap-3">
                 <Icon className="size-10 text-primary shrink-0" />
@@ -48,6 +48,7 @@ export function RealEstateCard({ realEstate, onDelete, onClick }: TRealEstateCar
                 {onDelete && (
                     <button
                         className="btn btn-ghost btn-sm btn-square shrink-0"
+                        aria-label="Удалить адрес"
                         onClick={(e) => {
                             e.stopPropagation();
                             onDelete(realEstate.id);

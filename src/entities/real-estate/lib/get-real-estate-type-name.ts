@@ -1,6 +1,6 @@
 import type { TRealEstateType } from '@/shared/model';
 
-const TYPE_NAMES: Record<TRealEstateType, string> = {
+export const TYPE_NAMES: Record<TRealEstateType, string> = {
     house: 'Дом',
     apartment: 'Квартира',
     prom: 'Промобъект',

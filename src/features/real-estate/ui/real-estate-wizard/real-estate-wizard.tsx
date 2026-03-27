@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
+import { toast } from 'react-toastify';
 import {
     HomeModernIcon,
     BuildingOffice2Icon,
@@ -11,36 +12,59 @@ import {
     MinusIcon,
     PlusIcon,
 } from '@heroicons/react/24/outline';
-import { useCreateRealEstate, useUpdateRealEstate } from '@/entities/real-estate';
+import {
+    useCreateRealEstate,
+    useUpdateRealEstate,
+    TYPE_NAMES,
+    SOURCE_NAMES,
+    POINT_NAMES,
+} from '@/entities/real-estate';
 import { InputField, PageContainer, PageTitle } from '@/shared/ui';
 import {
     realEstateSchema,
     DEFAULT_FORM_VALUES,
     type TRealEstateForm,
 } from '../../lib/real-estate-schema';
-import type { TRealEstate, TRealEstateType, TRealEstateSourceWater } from '@/shared/model';
+import type {
+    TRealEstate,
+    TRealEstateType,
+    TRealEstateSourceWater,
+    TWaterIntakePoints,
+} from '@/shared/model';
 
-const TYPES: { value: TRealEstateType; label: string; Icon: typeof HomeModernIcon }[] = [
-    { value: 'apartment', label: 'Квартира', Icon: BuildingOffice2Icon },
-    { value: 'house', label: 'Дом', Icon: HomeModernIcon },
-    { value: 'prom', label: 'Промобъект', Icon: BuildingLibraryIcon },
+const TYPE_ICONS: Record<TRealEstateType, typeof HomeModernIcon> = {
+    apartment: BuildingOffice2Icon,
+    house: HomeModernIcon,
+    prom: BuildingLibraryIcon,
+};
+
+const TYPE_ENTRIES = (Object.keys(TYPE_NAMES) as TRealEstateType[]).map((value) => ({
+    value,
+    label: TYPE_NAMES[value],
+    Icon: TYPE_ICONS[value],
+}));
+
+const SOURCE_ENTRIES = (Object.keys(SOURCE_NAMES) as TRealEstateSourceWater[]).map((value) => ({
+    value,
+    label: SOURCE_NAMES[value],
+}));
+
+const WATER_POINT_ENTRIES = (Object.keys(POINT_NAMES) as (keyof TWaterIntakePoints)[]).map(
+    (key) => ({
+        key,
+        label: POINT_NAMES[key],
+    }),
+);
+
+const STEP_FIELDS: (keyof TRealEstateForm)[][] = [
+    ['address', 'activeType', 'residents'],
+    ['activeSource'],
+    ['waterIntakePoints'],
 ];
 
-const SOURCES: { value: TRealEstateSourceWater; label: string }[] = [
-    { value: 'waterSupply', label: 'Водопровод' },
-    { value: 'borehole', label: 'Скважина' },
-    { value: 'well', label: 'Колодец' },
-    { value: 'reservoir', label: 'Водоём' },
-];
+const LAST_STEP = STEP_FIELDS.length - 1;
 
-const WATER_POINTS: { key: keyof TRealEstateForm['waterIntakePoints']; label: string }[] = [
-    { key: 'toilet', label: 'Унитаз' },
-    { key: 'sink', label: 'Раковина' },
-    { key: 'bath', label: 'Ванна' },
-    { key: 'washingMachine', label: 'Стиральная машина' },
-    { key: 'dishWasher', label: 'Посудомоечная машина' },
-    { key: 'showerCabin', label: 'Душевая кабина' },
-];
+const MAX_RESIDENTS = 50;
 
 type TRealEstateWizardProps = {
     editData?: TRealEstate;
@@ -49,6 +73,7 @@ type TRealEstateWizardProps = {
 export function RealEstateWizard({ editData }: TRealEstateWizardProps) {
     const router = useRouter();
     const [step, setStep] = useState(0);
+    const [serverError, setServerError] = useState<string | null>(null);
     const createMutation = useCreateRealEstate();
     const updateMutation = useUpdateRealEstate();
 
@@ -80,20 +105,15 @@ export function RealEstateWizard({ editData }: TRealEstateWizardProps) {
     const activeSource = watch('activeSource');
     const residents = watch('residents');
 
-    const STEP_FIELDS: (keyof TRealEstateForm)[][] = [
-        ['address', 'activeType', 'residents'],
-        ['activeSource'],
-        ['waterIntakePoints'],
-    ];
-
     const nextStep = async () => {
         const valid = await trigger(STEP_FIELDS[step]);
-        if (valid) setStep((s) => Math.min(s + 1, 2));
+        if (valid) setStep((s) => Math.min(s + 1, LAST_STEP));
     };
 
     const prevStep = () => setStep((s) => Math.max(s - 1, 0));
 
     const onSubmit = async (form: TRealEstateForm) => {
+        setServerError(null);
         const payload = {
             ...form,
             depthWaterSource:
@@ -102,12 +122,18 @@ export function RealEstateWizard({ editData }: TRealEstateWizardProps) {
                     : undefined,
         };
 
-        if (isEdit && editData) {
-            await updateMutation.mutateAsync({ id: editData.id, data: payload });
-        } else {
-            await createMutation.mutateAsync(payload);
+        try {
+            if (isEdit && editData) {
+                await updateMutation.mutateAsync({ id: editData.id, data: payload });
+                toast.success('Объект обновлён');
+            } else {
+                await createMutation.mutateAsync(payload);
+                toast.success('Объект добавлен');
+            }
+            router.push('/profile/addresses');
+        } catch {
+            setServerError('Не удалось сохранить объект');
         }
-        router.push('/profile/addresses');
     };
 
     return (
@@ -115,7 +141,6 @@ export function RealEstateWizard({ editData }: TRealEstateWizardProps) {
             <div className="flex flex-col gap-4">
                 <PageTitle>{isEdit ? 'Редактировать объект' : 'Новый объект'}</PageTitle>
 
-                {/* Шаги */}
                 <ul className="steps steps-horizontal w-full text-xs">
                     <li className={`step ${step >= 0 ? 'step-primary' : ''}`}>Адрес</li>
                     <li className={`step ${step >= 1 ? 'step-primary' : ''}`}>Вода</li>
@@ -143,7 +168,7 @@ export function RealEstateWizard({ editData }: TRealEstateWizardProps) {
                                     </p>
                                 )}
                                 <div className="flex gap-2 mt-2">
-                                    {TYPES.map(({ value, label, Icon }) => (
+                                    {TYPE_ENTRIES.map(({ value, label, Icon }) => (
                                         <button
                                             key={value}
                                             type="button"
@@ -164,7 +189,7 @@ export function RealEstateWizard({ editData }: TRealEstateWizardProps) {
                                 <input
                                     type="range"
                                     min={1}
-                                    max={20}
+                                    max={MAX_RESIDENTS}
                                     className="range range-primary range-xs mt-2"
                                     {...register('residents', { valueAsNumber: true })}
                                 />
@@ -185,7 +210,7 @@ export function RealEstateWizard({ editData }: TRealEstateWizardProps) {
                                     Источник воды
                                 </span>
                                 <div className="grid grid-cols-2 gap-2 mt-2">
-                                    {SOURCES.map(({ value, label }) => (
+                                    {SOURCE_ENTRIES.map(({ value, label }) => (
                                         <button
                                             key={value}
                                             type="button"
@@ -216,7 +241,7 @@ export function RealEstateWizard({ editData }: TRealEstateWizardProps) {
                     {step === 2 && (
                         <div className="flex flex-col gap-3">
                             <span className="label-text text-sm font-medium">Точки водозабора</span>
-                            {WATER_POINTS.map(({ key, label }) => (
+                            {WATER_POINT_ENTRIES.map(({ key, label }) => (
                                 <Controller
                                     key={key}
                                     name={`waterIntakePoints.${key}`}
@@ -228,6 +253,7 @@ export function RealEstateWizard({ editData }: TRealEstateWizardProps) {
                                                 <button
                                                     type="button"
                                                     className="btn btn-xs btn-circle btn-outline"
+                                                    aria-label={`Уменьшить ${label}`}
                                                     onClick={() =>
                                                         field.onChange(Math.max(0, field.value - 1))
                                                     }
@@ -240,6 +266,7 @@ export function RealEstateWizard({ editData }: TRealEstateWizardProps) {
                                                 <button
                                                     type="button"
                                                     className="btn btn-xs btn-circle btn-outline"
+                                                    aria-label={`Увеличить ${label}`}
                                                     onClick={() => field.onChange(field.value + 1)}
                                                 >
                                                     <PlusIcon className="size-3" />
@@ -252,6 +279,8 @@ export function RealEstateWizard({ editData }: TRealEstateWizardProps) {
                         </div>
                     )}
 
+                    {serverError && <div className="alert alert-error text-sm">{serverError}</div>}
+
                     {/* ─── Навигация ──────────────────────────────────── */}
                     <div className="flex gap-2 mt-2">
                         {step > 0 && (
@@ -263,7 +292,7 @@ export function RealEstateWizard({ editData }: TRealEstateWizardProps) {
                                 Назад
                             </button>
                         )}
-                        {step < 2 ? (
+                        {step < LAST_STEP ? (
                             <button
                                 type="button"
                                 className="btn btn-sm btn-primary flex-1"

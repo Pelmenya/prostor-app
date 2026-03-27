@@ -2,23 +2,28 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { PlusCircleIcon } from '@heroicons/react/24/solid';
+import { toast } from 'react-toastify';
 import { useRealEstates, useDeleteRealEstate, RealEstateCard } from '@/entities/real-estate';
-import { PageContainer, PageTitle } from '@/shared/ui';
+import { PageContainer, PageTitle, ConfirmDialog } from '@/shared/ui';
 
 export function AddressesPage() {
-    const { data: realEstates, isLoading } = useRealEstates();
+    const router = useRouter();
+    const { data: realEstates, isLoading, isError } = useRealEstates();
     const deleteRealEstate = useDeleteRealEstate();
-    const [confirmId, setConfirmId] = useState<number | null>(null);
+    const [deletingId, setDeletingId] = useState<number | null>(null);
 
-    const handleDelete = (id: number) => {
-        setConfirmId(id);
-    };
-
-    const handleConfirmDelete = () => {
-        if (confirmId === null) return;
-        deleteRealEstate.mutate(confirmId);
-        setConfirmId(null);
+    const handleConfirmDelete = async () => {
+        if (deletingId === null) return;
+        try {
+            await deleteRealEstate.mutateAsync(deletingId);
+            toast.success('Адрес удалён');
+        } catch {
+            toast.error('Не удалось удалить адрес');
+        } finally {
+            setDeletingId(null);
+        }
     };
 
     return (
@@ -39,7 +44,11 @@ export function AddressesPage() {
                     </div>
                 )}
 
-                {!isLoading && (!realEstates || realEstates.length === 0) && (
+                {isError && (
+                    <div className="alert alert-error text-sm">Не удалось загрузить адреса</div>
+                )}
+
+                {!isLoading && !isError && (!realEstates || realEstates.length === 0) && (
                     <div className="card bg-base-100 border border-base-300 p-8 text-center">
                         <p className="text-base-content/60 mb-4">У вас пока нет адресов</p>
                         <Link
@@ -54,32 +63,24 @@ export function AddressesPage() {
                 {realEstates && realEstates.length > 0 && (
                     <div className="flex flex-col gap-3">
                         {realEstates.map((re) => (
-                            <RealEstateCard key={re.id} realEstate={re} onDelete={handleDelete} />
+                            <RealEstateCard
+                                key={re.id}
+                                realEstate={re}
+                                onClick={(id) => router.push(`/profile/addresses/${id}`)}
+                                onDelete={setDeletingId}
+                            />
                         ))}
                     </div>
                 )}
             </div>
 
-            {/* Диалог подтверждения удаления */}
-            {confirmId !== null && (
-                <dialog className="modal modal-open">
-                    <div className="modal-box">
-                        <h3 className="font-bold text-lg">Удалить адрес?</h3>
-                        <p className="py-4 text-sm text-base-content/70">
-                            Объект будет удалён. Это действие нельзя отменить.
-                        </p>
-                        <div className="modal-action">
-                            <button className="btn btn-sm" onClick={() => setConfirmId(null)}>
-                                Отмена
-                            </button>
-                            <button className="btn btn-sm btn-error" onClick={handleConfirmDelete}>
-                                Удалить
-                            </button>
-                        </div>
-                    </div>
-                    <div className="modal-backdrop" onClick={() => setConfirmId(null)} />
-                </dialog>
-            )}
+            <ConfirmDialog
+                isOpen={deletingId !== null}
+                onClose={() => setDeletingId(null)}
+                onConfirm={handleConfirmDelete}
+                title="Удалить адрес?"
+                message="Объект будет удалён. Это действие нельзя отменить."
+            />
         </PageContainer>
     );
 }
