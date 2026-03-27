@@ -1,12 +1,13 @@
 import { z } from 'zod';
+import { REAL_ESTATE_TYPES, WATER_SOURCES } from '@/shared/model';
 
 export const realEstateSchema = z.object({
     address: z.string().min(1, 'Введите адрес'),
-    activeType: z.enum(['house', 'apartment', 'prom'], {
+    activeType: z.enum(REAL_ESTATE_TYPES, {
         message: 'Выберите тип объекта',
     }),
     residents: z.number().min(1, 'Минимум 1 житель').max(50, 'Максимум 50 жителей'),
-    activeSource: z.enum(['borehole', 'well', 'reservoir', 'waterSupply'], {
+    activeSource: z.enum(WATER_SOURCES, {
         message: 'Выберите источник воды',
     }),
     depthWaterSource: z.number().min(0).optional(),

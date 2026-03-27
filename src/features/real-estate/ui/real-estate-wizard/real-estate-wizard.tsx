@@ -3,21 +3,15 @@
 import { useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
-import {
-    HomeModernIcon,
-    BuildingOffice2Icon,
-    BuildingLibraryIcon,
-    MinusIcon,
-    PlusIcon,
-} from '@heroicons/react/24/outline';
+import { MinusIcon, PlusIcon } from '@heroicons/react/24/outline';
 import {
     useCreateRealEstate,
     useUpdateRealEstate,
     TYPE_NAMES,
     SOURCE_NAMES,
     POINT_NAMES,
+    TYPE_ICONS,
 } from '@/entities/real-estate';
 import { InputField, PageContainer, PageTitle } from '@/shared/ui';
 import {
@@ -31,12 +25,6 @@ import type {
     TRealEstateSourceWater,
     TWaterIntakePoints,
 } from '@/shared/model';
-
-const TYPE_ICONS: Record<TRealEstateType, typeof HomeModernIcon> = {
-    apartment: BuildingOffice2Icon,
-    house: HomeModernIcon,
-    prom: BuildingLibraryIcon,
-};
 
 const TYPE_ENTRIES = (Object.keys(TYPE_NAMES) as TRealEstateType[]).map((value) => ({
     value,
@@ -68,10 +56,10 @@ const MAX_RESIDENTS = 50;
 
 type TRealEstateWizardProps = {
     editData?: TRealEstate;
+    onSuccess?: () => void;
 };
 
-export function RealEstateWizard({ editData }: TRealEstateWizardProps) {
-    const router = useRouter();
+export function RealEstateWizard({ editData, onSuccess }: TRealEstateWizardProps) {
     const [step, setStep] = useState(0);
     const [serverError, setServerError] = useState<string | null>(null);
     const createMutation = useCreateRealEstate();
@@ -130,7 +118,7 @@ export function RealEstateWizard({ editData }: TRealEstateWizardProps) {
                 await createMutation.mutateAsync(payload);
                 toast.success('Объект добавлен');
             }
-            router.push('/profile/addresses');
+            onSuccess?.();
         } catch {
             setServerError('Не удалось сохранить объект');
         }

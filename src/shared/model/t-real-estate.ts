@@ -1,5 +1,8 @@
-export type TRealEstateType = 'house' | 'apartment' | 'prom';
-export type TRealEstateSourceWater = 'borehole' | 'well' | 'reservoir' | 'waterSupply';
+export const REAL_ESTATE_TYPES = ['house', 'apartment', 'prom'] as const;
+export type TRealEstateType = (typeof REAL_ESTATE_TYPES)[number];
+
+export const WATER_SOURCES = ['borehole', 'well', 'reservoir', 'waterSupply'] as const;
+export type TRealEstateSourceWater = (typeof WATER_SOURCES)[number];
 
 export type TWaterIntakePoints = {
     toilet: number;

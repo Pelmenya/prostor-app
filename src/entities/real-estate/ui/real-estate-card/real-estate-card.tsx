@@ -1,20 +1,10 @@
 'use client';
 
-import {
-    HomeModernIcon,
-    BuildingOffice2Icon,
-    BuildingLibraryIcon,
-    TrashIcon,
-} from '@heroicons/react/24/outline';
+import { HomeModernIcon, TrashIcon } from '@heroicons/react/24/outline';
 import type { TRealEstate } from '@/shared/model';
 import { getRealEstateTypeName } from '../../lib/get-real-estate-type-name';
 import { getWaterSourceName } from '../../lib/get-water-source-name';
-
-const TYPE_ICONS: Record<TRealEstate['activeType'], typeof HomeModernIcon> = {
-    house: HomeModernIcon,
-    apartment: BuildingOffice2Icon,
-    prom: BuildingLibraryIcon,
-};
+import { TYPE_ICONS } from '../../lib/real-estate-type-icons';
 
 type TRealEstateCardProps = {
     realEstate: TRealEstate;

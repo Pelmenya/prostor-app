@@ -17,6 +17,8 @@ export type { TUser } from './t-user';
 
 export type { TLegalDocument } from './t-legal-document';
 
+export { REAL_ESTATE_TYPES, WATER_SOURCES } from './t-real-estate';
+
 export type {
     TRealEstateType,
     TRealEstateSourceWater,
