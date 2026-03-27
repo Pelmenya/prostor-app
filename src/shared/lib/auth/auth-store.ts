@@ -31,7 +31,7 @@ function deleteCookie(name: string) {
     document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; SameSite=Lax${secure}`;
 }
 
-function readFromLocalStorage(): Pick<
+function initAuthFromStorage(): Pick<
     TAuthStore,
     'accessToken' | 'refreshToken' | 'user' | 'isAuthenticated'
 > {
@@ -55,7 +55,7 @@ function readFromLocalStorage(): Pick<
 }
 
 export const useAuthStore = create<TAuthStore>((set) => ({
-    ...readFromLocalStorage(),
+    ...initAuthFromStorage(),
 
     setTokens(access: string, refresh: string) {
         localStorage.setItem(ACCESS_TOKEN_KEY, access);

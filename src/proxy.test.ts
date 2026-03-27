@@ -123,4 +123,23 @@ describe('proxy', () => {
         const res = proxy(createMockRequest('/orders', 'jwt-token'));
         expect(res.headers.get('x-middleware-next')).toBe('1');
     });
+
+    it('редиректит гостя с /real-estate на /login', () => {
+        const res = proxy(createMockRequest('/real-estate'));
+        expect(res.status).toBe(307);
+        const location = new URL(res.headers.get('location')!);
+        expect(location.pathname).toBe('/login');
+        expect(location.searchParams.get('from')).toBe('/real-estate');
+    });
+
+    it('редиректит гостя с /real-estate/add на /login', () => {
+        const res = proxy(createMockRequest('/real-estate/add'));
+        expect(res.status).toBe(307);
+        expect(new URL(res.headers.get('location')!).pathname).toBe('/login');
+    });
+
+    it('пропускает залогиненного на /real-estate', () => {
+        const res = proxy(createMockRequest('/real-estate', 'jwt-token'));
+        expect(res.headers.get('x-middleware-next')).toBe('1');
+    });
 });
