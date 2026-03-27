@@ -59,6 +59,8 @@ export function Header({ back = false, backTo }: THeaderProps) {
                     <button
                         ref={burgerRef}
                         aria-label="Меню"
+                        aria-expanded={isMenuOpen}
+                        aria-haspopup="true"
                         onClick={() => setIsMenuOpen((prev) => !prev)}
                         className="size-10 flex items-center justify-center cursor-pointer hover:opacity-80"
                     >

@@ -7,9 +7,10 @@ vi.mock('@headlessui/react', () => ({
         show ? <>{children}</> : null,
 }));
 
-vi.mock('@/shared/hooks', () => ({
-    useClickOutside: vi.fn(),
-}));
+vi.mock('@/shared/lib', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('@/shared/lib')>();
+    return { ...actual, useClickOutside: vi.fn() };
+});
 
 vi.mock('@/features/push-notifications', () => ({
     usePushNotifications: () => ({

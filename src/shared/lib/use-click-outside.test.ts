@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { fireEvent } from '@testing-library/dom';
 import { createRef } from 'react';
@@ -17,9 +17,13 @@ describe('useClickOutside', () => {
         handler = vi.fn();
     });
 
+    afterEach(() => {
+        document.body.innerHTML = '';
+    });
+
     it('вызывает handler при клике вне переданного рефа', () => {
         const ref = createRef<HTMLDivElement>();
-        (ref as React.MutableRefObject<HTMLDivElement>).current = container;
+        Object.assign(ref, { current: container });
 
         renderHook(() => useClickOutside([ref], handler, true));
 
@@ -30,7 +34,7 @@ describe('useClickOutside', () => {
 
     it('не вызывает handler при клике внутри рефа', () => {
         const ref = createRef<HTMLDivElement>();
-        (ref as React.MutableRefObject<HTMLDivElement>).current = container;
+        Object.assign(ref, { current: container });
 
         renderHook(() => useClickOutside([ref], handler, true));
 
@@ -41,7 +45,7 @@ describe('useClickOutside', () => {
 
     it('вызывает handler при нажатии Escape', () => {
         const ref = createRef<HTMLDivElement>();
-        (ref as React.MutableRefObject<HTMLDivElement>).current = container;
+        Object.assign(ref, { current: container });
 
         renderHook(() => useClickOutside([ref], handler, true));
 
@@ -52,7 +56,7 @@ describe('useClickOutside', () => {
 
     it('не вызывает handler при нажатии других клавиш', () => {
         const ref = createRef<HTMLDivElement>();
-        (ref as React.MutableRefObject<HTMLDivElement>).current = container;
+        Object.assign(ref, { current: container });
 
         renderHook(() => useClickOutside([ref], handler, true));
 
@@ -64,7 +68,7 @@ describe('useClickOutside', () => {
 
     it('не вызывает handler когда enabled = false', () => {
         const ref = createRef<HTMLDivElement>();
-        (ref as React.MutableRefObject<HTMLDivElement>).current = container;
+        Object.assign(ref, { current: container });
 
         renderHook(() => useClickOutside([ref], handler, false));
 
@@ -77,8 +81,8 @@ describe('useClickOutside', () => {
     it('не вызывает handler если клик внутри любого из нескольких рефов', () => {
         const ref1 = createRef<HTMLDivElement>();
         const ref2 = createRef<HTMLDivElement>();
-        (ref1 as React.MutableRefObject<HTMLDivElement>).current = container;
-        (ref2 as React.MutableRefObject<HTMLDivElement>).current = outside;
+        Object.assign(ref1, { current: container });
+        Object.assign(ref2, { current: outside });
 
         renderHook(() => useClickOutside([ref1, ref2], handler, true));
 
@@ -89,7 +93,7 @@ describe('useClickOutside', () => {
 
     it('снимает обработчики при размонтировании', () => {
         const ref = createRef<HTMLDivElement>();
-        (ref as React.MutableRefObject<HTMLDivElement>).current = container;
+        Object.assign(ref, { current: container });
 
         const { unmount } = renderHook(() => useClickOutside([ref], handler, true));
         unmount();

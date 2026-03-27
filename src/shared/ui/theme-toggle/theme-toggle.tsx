@@ -36,7 +36,8 @@ export function ThemeToggle() {
     return (
         <input
             type="checkbox"
-            className="toggle toggle-primary toggle-sm"
+            className="toggle toggle-primary toggle-sm theme-controller"
+            value="dark"
             aria-label={isDark ? 'Включить светлую тему' : 'Включить тёмную тему'}
             checked={isDark}
             onChange={handleChange}

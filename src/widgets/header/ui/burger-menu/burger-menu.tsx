@@ -15,15 +15,11 @@ import {
 } from '@heroicons/react/24/outline';
 import { ThemeToggle } from '@/shared/ui';
 import { usePushNotifications } from '@/features/push-notifications';
-import { formatUserInitials } from '@/shared/lib';
-import { useClickOutside } from '@/shared/lib/use-click-outside';
+import { formatUserInitials, useClickOutside } from '@/shared/lib';
+import type { TPlatformUser } from '@/shared/lib/platform';
 import { MenuLink } from './menu-link';
 
-type TBurgerMenuUser = {
-    firstName?: string;
-    lastName?: string;
-    email?: string;
-};
+type TBurgerMenuUser = Pick<TPlatformUser, 'firstName' | 'lastName' | 'email'>;
 
 type TBurgerMenuProps = {
     isOpen: boolean;
@@ -56,6 +52,8 @@ export function BurgerMenu({
         <Transition show={isOpen}>
             <div
                 ref={menuRef}
+                role="dialog"
+                aria-label="Меню навигации"
                 className="absolute top-full right-0 w-full sm:w-72 sm:right-4 bg-base-100 shadow-md z-20 rounded-b-xl sm:rounded-xl outline-1 outline-base-content/15 overflow-hidden transition duration-150 ease-out data-[closed]:opacity-0 data-[closed]:-translate-y-2 data-[leave]:duration-100 data-[leave]:ease-in"
             >
                 {isAuthenticated ? (
