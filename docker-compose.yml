@@ -4,16 +4,7 @@ services:
             context: .
             args:
                 NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
-                NEXT_PUBLIC_WEB_APP_URL: ${NEXT_PUBLIC_WEB_APP_URL}
-                NEXT_PUBLIC_S3_PUBLIC_URL: ${NEXT_PUBLIC_S3_PUBLIC_URL}
-                NEXT_PUBLIC_DEV_USER_ID: ${NEXT_PUBLIC_DEV_USER_ID}
                 NEXT_PUBLIC_SALE_PRICES: ${NEXT_PUBLIC_SALE_PRICES}
-                NEXT_PUBLIC_PRICES: ${NEXT_PUBLIC_PRICES}
-                NEXT_PUBLIC_YM_API_KEY: ${NEXT_PUBLIC_YM_API_KEY}
-                NEXT_PUBLIC_ADMIN_IDS: ${NEXT_PUBLIC_ADMIN_IDS}
-                NEXT_PUBLIC_ENABLE_PAYMENTS: ${NEXT_PUBLIC_ENABLE_PAYMENTS}
-                NEXT_PUBLIC_COMMISSION_PERCENTS: ${NEXT_PUBLIC_COMMISSION_PERCENTS}
-                NEXT_PUBLIC_ALLOWED_DEV_ORIGINS: ${NEXT_PUBLIC_ALLOWED_DEV_ORIGINS}
                 NEXT_PUBLIC_VAPID_PUBLIC_KEY: ${NEXT_PUBLIC_VAPID_PUBLIC_KEY}
         container_name: prostor_app
         restart: always
@@ -21,6 +12,12 @@ services:
             - '${PORT_APP:-3000}:3000'
         environment:
             - NODE_ENV=production
+        healthcheck:
+            test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:3000/']
+            interval: 30s
+            timeout: 10s
+            retries: 3
+            start_period: 15s
         networks:
             - crm_network_prod
 
