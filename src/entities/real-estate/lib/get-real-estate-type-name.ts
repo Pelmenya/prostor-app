@@ -7,5 +7,5 @@ export const TYPE_NAMES: Record<TRealEstateType, string> = {
 };
 
 export function getRealEstateTypeName(type: TRealEstateType): string {
-    return TYPE_NAMES[type] ?? 'Объект';
+    return TYPE_NAMES[type];
 }

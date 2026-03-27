@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type FC } from 'react';
+import { type FC } from 'react';
 import MapGL, { Marker, NavigationControl } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
@@ -16,17 +16,14 @@ type TMapViewProps = {
 
 export const MapView: FC<TMapViewProps> = ({ coordinates, zoom = 17, onChangeCoordinates }) => {
     const [lat, lng] = coordinates;
-    const [markerPos, setMarkerPos] = useState({ latitude: lat, longitude: lng });
 
     const handleDragEnd = (event: { lngLat: { lat: number; lng: number } }) => {
-        const newPos = { latitude: event.lngLat.lat, longitude: event.lngLat.lng };
-        setMarkerPos(newPos);
-        onChangeCoordinates?.([newPos.latitude, newPos.longitude]);
+        onChangeCoordinates?.([event.lngLat.lat, event.lngLat.lng]);
     };
 
     return (
         <div className="border border-base-300 bg-base-100 rounded-box p-4 overflow-hidden max-w-full">
-            <div className="w-full max-w-full overflow-hidden rounded-lg" style={{ height: 250 }}>
+            <div className="w-full max-w-full overflow-hidden rounded-lg h-[250px]">
                 <MapGL
                     initialViewState={{
                         longitude: lng,
@@ -38,8 +35,8 @@ export const MapView: FC<TMapViewProps> = ({ coordinates, zoom = 17, onChangeCoo
                 >
                     <NavigationControl position="top-right" />
                     <Marker
-                        longitude={markerPos.longitude}
-                        latitude={markerPos.latitude}
+                        longitude={lng}
+                        latitude={lat}
                         draggable={!!onChangeCoordinates}
                         onDragEnd={onChangeCoordinates ? handleDragEnd : undefined}
                         color="#570df8"

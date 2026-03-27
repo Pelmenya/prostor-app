@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, useEffect, useState } from 'react';
+import { FC, useEffect, useState, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { StepOne } from './components/step-one/step-one';
 import { StepTwo } from './components/step-two/step-two';
@@ -10,7 +10,7 @@ import { useRealEstateWizardStore } from '../../model/real-estate-wizard.store';
 
 type TRealEstateWizardProps = {
     id?: string;
-    addressSearchSlot?: React.ReactNode;
+    addressSearchSlot?: ReactNode;
 };
 
 export const RealEstateWizard: FC<TRealEstateWizardProps> = ({ id, addressSearchSlot }) => {
@@ -57,7 +57,7 @@ export const RealEstateWizard: FC<TRealEstateWizardProps> = ({ id, addressSearch
         if (!editMode) {
             reset();
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- Zustand setters are stable by design
     }, [editMode, data, id]);
 
     const handleCancel = () => {
@@ -73,7 +73,7 @@ export const RealEstateWizard: FC<TRealEstateWizardProps> = ({ id, addressSearch
     }
 
     if (editMode && error) {
-        return <div>Ошибка загрузки объекта</div>;
+        return <div className="alert alert-error text-sm">Ошибка загрузки объекта</div>;
     }
 
     return (

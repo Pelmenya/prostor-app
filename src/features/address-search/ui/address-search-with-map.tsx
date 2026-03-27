@@ -11,7 +11,6 @@ import type { TCoordinates } from '../model/types/t-coordinates';
 
 type TAddressSearchWithMapProps = {
     query: string;
-    selectedAddress: string | null;
     coordinates: TCoordinates | null;
     isViewCoordinates?: boolean;
     onQueryChange: (query: string) => void;
@@ -25,7 +24,6 @@ type TAddressSearchWithMapProps = {
 
 export const AddressSearchWithMap: FC<TAddressSearchWithMapProps> = ({
     query,
-    selectedAddress,
     coordinates,
     isViewCoordinates = true,
     onQueryChange,
@@ -185,12 +183,6 @@ export const AddressSearchWithMap: FC<TAddressSearchWithMapProps> = ({
                     )}
                 </div>
             )}
-
-            <div className="w-full">
-                {query && query.length > 0 && (
-                    <span className="block text-xs break-all">Адрес: {query}</span>
-                )}
-            </div>
         </div>
     );
 };

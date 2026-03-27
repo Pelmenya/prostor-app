@@ -14,7 +14,6 @@ export function AddressSearchSlot() {
     return (
         <AddressSearchWithMap
             query={address || ''}
-            selectedAddress={address}
             coordinates={coordinates}
             isViewCoordinates={false}
             onQueryChange={(q) => setAddress(q)}

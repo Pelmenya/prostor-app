@@ -11,7 +11,9 @@ describe('getRealEstateTypeName', () => {
         expect(getRealEstateTypeName(type)).toBe(expected);
     });
 
-    it('fallback для неизвестного типа', () => {
-        expect(getRealEstateTypeName('unknown' as TRealEstateType)).toBe('Объект');
+    it('все типы покрыты', () => {
+        expect(getRealEstateTypeName('house')).toBeDefined();
+        expect(getRealEstateTypeName('apartment')).toBeDefined();
+        expect(getRealEstateTypeName('prom')).toBeDefined();
     });
 });

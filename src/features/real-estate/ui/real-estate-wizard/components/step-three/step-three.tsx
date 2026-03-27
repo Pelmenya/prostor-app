@@ -40,7 +40,6 @@ export const StepThree: FC<TWizardStepProps> = ({ onPrev, editMode, id, onCancel
 
     const hasAnyIntake = toilet + sink + bath + washingMachine + dishWasher + showerCabin > 0;
 
-    // Progress как derived value
     useEffect(() => {
         setProgress(hasAnyIntake ? 100 : 80);
     }, [hasAnyIntake, setProgress]);
