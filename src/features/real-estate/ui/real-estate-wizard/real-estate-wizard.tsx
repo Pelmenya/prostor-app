@@ -61,7 +61,7 @@ export const RealEstateWizard: FC<TRealEstateWizardProps> = ({ id, addressSearch
     }, [editMode, data, id]);
 
     const handleCancel = () => {
-        router.push('/profile/addresses');
+        router.push('/real-estate');
     };
 
     if (editMode && isLoading) {

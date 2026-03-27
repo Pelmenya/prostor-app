@@ -70,7 +70,7 @@ export const StepThree: FC<TWizardStepProps> = ({ onPrev, editMode, id, onCancel
             } else {
                 await createRealEstate.mutateAsync(data);
                 reset();
-                router.push('/profile/addresses');
+                router.push('/real-estate');
             }
         } catch {
             toast.error('Не удалось сохранить объект');

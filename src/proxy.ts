@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-
-const PRIVATE_PATHS = ['/profile', '/orders', '/checkout'];
+import { PRIVATE_PATHS } from '@/shared/config';
 
 function isPrivate(pathname: string): boolean {
     return PRIVATE_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));

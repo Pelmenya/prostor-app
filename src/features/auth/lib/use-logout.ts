@@ -3,9 +3,8 @@
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/shared/lib/platform';
 import { useAuthStore } from '@/shared/lib';
+import { PRIVATE_PATHS } from '@/shared/config';
 import { webLogout } from '../api/auth-api';
-
-const PRIVATE_PATHS = ['/profile', '/orders', '/checkout'];
 
 /**
  * Хук logout с редиректом только с приватных страниц.

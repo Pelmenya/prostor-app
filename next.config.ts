@@ -3,6 +3,20 @@ import path from 'path';
 
 const nextConfig: NextConfig = {
     output: 'standalone',
+    async redirects() {
+        return [
+            {
+                source: '/profile/addresses',
+                destination: '/real-estate',
+                permanent: true,
+            },
+            {
+                source: '/profile/addresses/:path*',
+                destination: '/real-estate/:path*',
+                permanent: true,
+            },
+        ];
+    },
     allowedDevOrigins: process.env.NEXT_PUBLIC_ALLOWED_DEV_ORIGINS?.split(',') ?? [],
     turbopack: {
         root: path.resolve(__dirname),

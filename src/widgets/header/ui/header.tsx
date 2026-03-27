@@ -64,7 +64,9 @@ export function Header({ back = false, backTo }: THeaderProps) {
                         onClick={() => setIsMenuOpen((prev) => !prev)}
                         className="size-10 flex items-center justify-center cursor-pointer hover:opacity-80"
                     >
-                        {showUser ? (
+                        {!mounted ? (
+                            <div className="skeleton size-8 rounded-full" />
+                        ) : showUser ? (
                             <div className="avatar avatar-placeholder">
                                 <div className="ring-primary ring-offset-base-100 size-8 rounded-full ring-2 ring-offset-2 bg-primary text-primary-content">
                                     <span className="font-semibold text-sm">

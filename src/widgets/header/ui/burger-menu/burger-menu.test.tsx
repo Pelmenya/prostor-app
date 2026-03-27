@@ -102,7 +102,7 @@ describe('BurgerMenu', () => {
         it('показывает навигационные ссылки', () => {
             render(<BurgerMenu {...authProps} />);
             expect(screen.getByRole('link', { name: /заказы/i })).toBeInTheDocument();
-            expect(screen.getByRole('link', { name: /объекты недвижимости/i })).toBeInTheDocument();
+            expect(screen.getByRole('link', { name: /мои адреса/i })).toBeInTheDocument();
         });
 
         it('не показывает Войти и Регистрация', () => {

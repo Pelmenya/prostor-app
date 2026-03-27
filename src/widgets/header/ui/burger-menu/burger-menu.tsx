@@ -93,7 +93,7 @@ export function BurgerMenu({
                         <MenuLink
                             href="/real-estate"
                             icon={HomeModernIcon}
-                            label="Объекты недвижимости"
+                            label="Мои адреса"
                             onClick={onClose}
                         />
                         <hr className="border-base-content/10" />
@@ -138,7 +138,7 @@ export function BurgerMenu({
                             onLogout();
                             onClose();
                         }}
-                        className="flex items-center gap-3 px-4 py-3 w-full hover:bg-base-200 active:bg-base-200 transition-colors text-error"
+                        className="flex items-center gap-3 px-4 py-3 w-full hover:bg-base-200 active:bg-base-200 transition-colors"
                     >
                         <ArrowRightOnRectangleIcon className="size-5 shrink-0" />
                         <span className="text-sm">Выйти</span>

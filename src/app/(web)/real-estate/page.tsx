@@ -1,5 +1,5 @@
 import { AddressesPage } from '@/views/addresses';
 
-export default function AddressesRoute() {
+export default function RealEstateRoute() {
     return <AddressesPage />;
 }
