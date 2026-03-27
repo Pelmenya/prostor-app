@@ -1,14 +1,13 @@
 'use client';
 
-import { useSyncExternalStore } from 'react';
+import { useState, useRef, useSyncExternalStore } from 'react';
 import Link from 'next/link';
-import { useRouter, usePathname } from 'next/navigation';
-import { ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { useRouter } from 'next/navigation';
+import { ArrowLeftIcon, Bars3Icon } from '@heroicons/react/24/outline';
 import { useAuth } from '@/shared/lib/platform';
 import { useLogout } from '@/features/auth';
 import { flushCartSync } from '@/features/cart';
-import { PushToggle } from '@/features/push-notifications';
-import { ThemeToggle } from '@/shared/ui';
+import { BurgerMenu } from './burger-menu/burger-menu';
 
 type THeaderProps = {
     back?: boolean;
@@ -17,10 +16,10 @@ type THeaderProps = {
 
 export function Header({ back = false, backTo }: THeaderProps) {
     const router = useRouter();
-    const pathname = usePathname();
     const { isAuthenticated, user } = useAuth();
     const logout = useLogout();
-    const handleLogout = () => logout(flushCartSync);
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const burgerRef = useRef<HTMLButtonElement>(null);
 
     // Предотвращение hydration mismatch: SSR = false, клиент = true
     const mounted = useSyncExternalStore(
@@ -45,63 +44,45 @@ export function Header({ back = false, backTo }: THeaderProps) {
                             <ArrowLeftIcon className="size-5" />
                         </button>
                     )}
+                    <Link
+                        href="/catalog"
+                        className={`text-lg font-bold gradient-text ${!back ? 'ml-1' : ''}`}
+                    >
+                        PROSTOR
+                    </Link>
+                </div>
 
-                    {showUser ? (
-                        <Link
-                            href="/profile"
-                            className={`flex items-center gap-2 min-w-0 active:opacity-70 ${!back ? 'ml-1' : ''}`}
-                        >
-                            <div className="avatar avatar-placeholder shrink-0">
-                                <div className="ring-primary ring-offset-base-100 size-6 rounded-full ring-1 ring-offset-2 bg-primary text-primary-content sm:size-8 md:size-12 lg:size-16">
-                                    <span className="font-semibold text-xs sm:text-sm md:text-base">
-                                        {(user.firstName?.charAt(0) ?? '?') +
-                                            (user.lastName?.charAt(0) ?? '')}
+                <div className="navbar-end w-auto">
+                    <button
+                        ref={burgerRef}
+                        aria-label="Меню"
+                        onClick={() => setIsMenuOpen((prev) => !prev)}
+                        className="size-10 flex items-center justify-center cursor-pointer hover:opacity-80"
+                    >
+                        {showUser ? (
+                            <div className="avatar avatar-placeholder">
+                                <div className="size-8 rounded-full bg-primary text-primary-content ring-primary ring-offset-base-100 ring-2 ring-offset-2">
+                                    <span className="font-semibold text-sm">
+                                        {(user.firstName?.charAt(0) ?? '') +
+                                            (user.lastName?.charAt(0) ?? '') || '?'}
                                     </span>
                                 </div>
                             </div>
-                            <div className="flex flex-col overflow-hidden font-medium min-w-0">
-                                <p className="text-sm whitespace-nowrap overflow-hidden text-ellipsis md:text-base lg:text-lg">
-                                    {user.firstName} {user.lastName}
-                                </p>
-                            </div>
-                        </Link>
-                    ) : (
-                        <Link
-                            href="/catalog"
-                            className={`text-lg font-bold gradient-text ${!back ? 'ml-1' : ''}`}
-                        >
-                            PROSTOR
-                        </Link>
-                    )}
-                </div>
-
-                <div className="navbar-end gap-2 w-auto">
-                    <ThemeToggle />
-                    {showAuth ? (
-                        <>
-                            <PushToggle />
-                            <button onClick={handleLogout} className="btn btn-ghost btn-sm">
-                                Выйти
-                            </button>
-                        </>
-                    ) : mounted ? (
-                        <>
-                            <Link
-                                href={`/login?from=${encodeURIComponent(pathname)}`}
-                                className="btn btn-primary btn-sm"
-                            >
-                                Войти
-                            </Link>
-                            <Link
-                                href={`/register?from=${encodeURIComponent(pathname)}`}
-                                className="btn btn-ghost btn-sm hidden sm:inline-flex"
-                            >
-                                Регистрация
-                            </Link>
-                        </>
-                    ) : null}
+                        ) : (
+                            <Bars3Icon className="size-6" />
+                        )}
+                    </button>
                 </div>
             </div>
+
+            <BurgerMenu
+                isOpen={isMenuOpen}
+                isAuthenticated={!!showAuth}
+                user={user ?? null}
+                onClose={() => setIsMenuOpen(false)}
+                onLogout={() => logout(flushCartSync)}
+                triggerRef={burgerRef}
+            />
         </header>
     );
 }

@@ -9,5 +9,6 @@ export function mapUserToPlatformUser(user: TUser | null): TPlatformUser | null 
         lastName: user.last_name,
         username: user.username,
         photo: user.photo_url,
+        email: user.email,
     };
 }

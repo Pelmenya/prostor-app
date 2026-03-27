@@ -1,7 +1,6 @@
 'use client';
 
 import { useSyncExternalStore } from 'react';
-import { SunIcon, MoonIcon } from '@heroicons/react/24/outline';
 
 function getTheme(): boolean {
     return document.documentElement.getAttribute('data-theme') === 'dark';
@@ -35,19 +34,12 @@ export function ThemeToggle() {
     };
 
     return (
-        <label
-            className="swap swap-rotate"
+        <input
+            type="checkbox"
+            className="toggle toggle-primary toggle-sm"
             aria-label={isDark ? 'Включить светлую тему' : 'Включить тёмную тему'}
-        >
-            <input
-                type="checkbox"
-                className="theme-controller"
-                value="dark"
-                checked={isDark}
-                onChange={handleChange}
-            />
-            <SunIcon className="swap-off size-5" />
-            <MoonIcon className="swap-on size-5" />
-        </label>
+            checked={isDark}
+            onChange={handleChange}
+        />
     );
 }
