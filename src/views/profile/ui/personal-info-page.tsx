@@ -47,7 +47,7 @@ export function PersonalInfoPage() {
 
     return (
         <PageContainer>
-            <div className="flex flex-col gap-4 max-w-md mx-auto">
+            <div className="flex flex-col gap-4">
                 <PageTitle>Личная информация</PageTitle>
 
                 <div className="flex flex-col items-center gap-2">
