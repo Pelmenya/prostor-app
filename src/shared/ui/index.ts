@@ -21,3 +21,6 @@ export type { TCardBadgeVariant } from './card-badge';
 export { ThemeToggle } from './theme-toggle';
 export { FormCard } from './form-card';
 export { InputField } from './input-field';
+export { RangeSlider } from './range-slider';
+export { Base } from './base';
+export { Borehole, Well, Reservoir, WaterSupply, People } from './icons';

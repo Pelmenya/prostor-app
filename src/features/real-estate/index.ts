@@ -1,1 +1,2 @@
-// Wizard и схема будут добавлены при 1-в-1 переносе из старого фронта
+export { RealEstateWizard } from './ui/real-estate-wizard/real-estate-wizard';
+export { useRealEstateWizardStore } from './model/real-estate-wizard.store';
