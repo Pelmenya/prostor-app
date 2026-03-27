@@ -31,7 +31,7 @@ export function AddressesPage() {
             <div className="flex flex-col gap-4">
                 <div className="flex items-center justify-between">
                     <PageTitle>Мои адреса</PageTitle>
-                    <Link href="/profile/addresses/add" className="btn btn-sm btn-primary">
+                    <Link href="/real-estate/add" className="btn btn-sm btn-primary">
                         <PlusCircleIcon className="size-4" />
                         <span className="text-sm font-semibold">Добавить</span>
                     </Link>
@@ -51,10 +51,7 @@ export function AddressesPage() {
                 {!isLoading && !isError && (!realEstates || realEstates.length === 0) && (
                     <div className="card bg-base-100 border border-base-300 p-8 text-center">
                         <p className="text-base-content/60 mb-4">У вас пока нет адресов</p>
-                        <Link
-                            href="/profile/addresses/add"
-                            className="btn btn-primary btn-sm mx-auto"
-                        >
+                        <Link href="/real-estate/add" className="btn btn-primary btn-sm mx-auto">
                             Добавить первый адрес
                         </Link>
                     </div>
@@ -66,7 +63,7 @@ export function AddressesPage() {
                             <RealEstateCard
                                 key={re.id}
                                 realEstate={re}
-                                onClick={(id) => router.push(`/profile/addresses/${id}`)}
+                                onClick={(id) => router.push(`/real-estate/${id}`)}
                                 onDelete={setDeletingId}
                             />
                         ))}

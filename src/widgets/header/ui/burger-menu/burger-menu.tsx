@@ -93,7 +93,7 @@ export function BurgerMenu({
                         <MenuLink
                             href="/real-estate"
                             icon={HomeModernIcon}
-                            label="Объекты недвижимости"
+                            label="Мои адреса"
                             onClick={onClose}
                         />
                         <hr className="border-base-content/10" />
