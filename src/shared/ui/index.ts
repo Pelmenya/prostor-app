@@ -24,3 +24,4 @@ export { InputField } from './input-field';
 export { RangeSlider } from './range-slider';
 export { Base } from './base';
 export { Borehole, Well, Reservoir, WaterSupply, People } from './icons';
+export { MapView } from './map-view';

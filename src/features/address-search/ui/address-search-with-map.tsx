@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type ChangeEvent, type FC } from 'react';
 import { Combobox, ComboboxInput, ComboboxOption, ComboboxOptions } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
+import { MapView } from '@/shared/ui';
 import { useAddressSuggestions, fetchCoordinates } from '../api/address.api';
 import type { TSuggestion } from '../model/types/t-suggestion';
 import type { TFullGeoDataResponse } from '../model/types/t-full-geo-data-response';
@@ -162,10 +163,15 @@ export const AddressSearchWithMap: FC<TAddressSearchWithMapProps> = ({
 
             {coordinates && (
                 <div className="grid w-full">
-                    {/* TODO: Добавить MapLibre компонент когда он будет готов */}
-                    <div className="w-full h-48 bg-base-200 rounded-xl flex items-center justify-center text-base-content/40 text-sm">
-                        Карта: {coordinates.latitude.toFixed(6)}, {coordinates.longitude.toFixed(6)}
-                    </div>
+                    <MapView
+                        coordinates={[coordinates.latitude, coordinates.longitude]}
+                        onChangeCoordinates={(coords) => {
+                            onCoordinatesChange({
+                                coordinates: { latitude: coords[0], longitude: coords[1] },
+                                geoData: null,
+                            } as TFullGeoDataResponse);
+                        }}
+                    />
                     {isViewCoordinates && (
                         <p className="mt-2 text-sm">
                             {`Координаты: ${coordinates.latitude}, ${coordinates.longitude}`}
