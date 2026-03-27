@@ -1,12 +1,12 @@
 'use client';
 
 import { FC } from 'react';
-import { Borehole, Well, Reservoir, WaterSupply } from '@/shared/ui/icons';
+import { Borehole, Well, Reservoir, WaterSupply } from '@/shared/ui';
 import { WaterSourceOption } from './components/water-source-option/water-source-option';
 import type { TRealEstateSourceWater } from '@/shared/model';
 
 export const WaterSource: FC<{
-    active: string;
+    active: TRealEstateSourceWater;
     onToggle: (type: TRealEstateSourceWater) => void;
 }> = ({ active, onToggle }) => {
     return (

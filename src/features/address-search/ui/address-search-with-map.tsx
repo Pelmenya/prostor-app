@@ -39,6 +39,13 @@ export const AddressSearchWithMap: React.FC<TAddressSearchWithMapProps> = ({
     const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
+    // Cleanup debounce при unmount
+    useEffect(() => {
+        return () => {
+            if (debounceRef.current) clearTimeout(debounceRef.current);
+        };
+    }, []);
+
     // --- Состояния для ручной коррекции и геокодера
     const [pendingSign, setPendingSign] = useState<string | null>(null);
     const [isManual, setIsManual] = useState(false);
@@ -89,17 +96,12 @@ export const AddressSearchWithMap: React.FC<TAddressSearchWithMapProps> = ({
         setIsManual(false);
         onCoordinatesChange(null); // сбросить старые координаты
 
-        // bulletproof: гарантированно триггерим геокодер даже для того же адреса
-        setPendingSign(null);
-        setTimeout(() => {
-            if (selectSuggestion && selectSuggestion.sign) {
-                setPendingSign(selectSuggestion.sign);
-            }
-        }, 0);
+        // Уникальный ключ форсирует геокодер даже при повторном выборе того же адреса
+        if (selectSuggestion?.sign) {
+            setPendingSign(`${selectSuggestion.sign}_${Date.now()}`);
+        }
 
-        setTimeout(() => {
-            inputRef.current?.focus();
-        }, 0);
+        requestAnimationFrame(() => inputRef.current?.focus());
     };
 
     // Очистка поля

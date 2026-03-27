@@ -77,7 +77,7 @@ export const useRealEstateWizardStore = create<TRealEstateWizardState & TRealEst
             set((state) => ({
                 waterIntakePoints: {
                     ...state.waterIntakePoints,
-                    [key]: state.waterIntakePoints[key] + 1,
+                    [key]: Math.min(99, state.waterIntakePoints[key] + 1),
                 },
             })),
 

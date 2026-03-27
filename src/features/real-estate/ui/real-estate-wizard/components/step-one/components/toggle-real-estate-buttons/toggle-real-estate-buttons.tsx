@@ -4,7 +4,7 @@ import { FC } from 'react';
 import type { TRealEstateType } from '@/shared/model';
 
 export const ToggleRealEstateButtons: FC<{
-    active: string;
+    active: TRealEstateType;
     onToggle: (type: TRealEstateType) => void;
 }> = ({ active, onToggle }) => {
     return (

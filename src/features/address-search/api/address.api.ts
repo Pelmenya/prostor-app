@@ -20,12 +20,17 @@ export function useAddressSuggestions(q: string) {
     });
 }
 
-export function useAddressCoordinates(sign: string | null) {
+export function useAddressCoordinates(pendingSign: string | null) {
+    // pendingSign может содержать timestamp суффикс для форсирования запроса
+    const cleanSign = pendingSign?.split('_')[0] ?? null;
+
     return useQuery({
-        queryKey: addressKeys.coordinates(sign ?? ''),
+        queryKey: addressKeys.coordinates(pendingSign ?? ''),
         queryFn: () =>
-            apiClient<TFullGeoDataResponse>(`/proxy/geocode?sign=${encodeURIComponent(sign!)}`),
-        enabled: Boolean(sign),
+            apiClient<TFullGeoDataResponse>(
+                `/proxy/geocode?sign=${encodeURIComponent(cleanSign!)}`,
+            ),
+        enabled: Boolean(cleanSign),
         staleTime: 60_000,
     });
 }
