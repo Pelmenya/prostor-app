@@ -26,6 +26,7 @@ export function AddressSearchSlot() {
                 setCoordinates(fullGeoData?.coordinates ?? null);
                 setGeoData(fullGeoData?.geoData ?? null);
             }}
+            onDragCoordinates={(coords) => setCoordinates(coords)}
         />
     );
 }

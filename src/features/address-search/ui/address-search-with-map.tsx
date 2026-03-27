@@ -18,6 +18,8 @@ type TAddressSearchWithMapProps = {
     onSelectAddress: (address: string) => void;
     onSelectSuggestion: (suggestion: TSuggestion | null) => void;
     onCoordinatesChange: (fullGeoData: TFullGeoDataResponse | null) => void;
+    /** Ручная коррекция координат (перетаскивание маркера на карте) */
+    onDragCoordinates?: (coords: TCoordinates) => void;
     readOnly?: boolean;
 };
 
@@ -30,6 +32,7 @@ export const AddressSearchWithMap: FC<TAddressSearchWithMapProps> = ({
     onSelectAddress,
     onSelectSuggestion,
     onCoordinatesChange,
+    onDragCoordinates,
     readOnly = false,
 }) => {
     const { data: suggestionsData } = useAddressSuggestions(query);
@@ -165,12 +168,15 @@ export const AddressSearchWithMap: FC<TAddressSearchWithMapProps> = ({
                 <div className="grid w-full">
                     <MapView
                         coordinates={[coordinates.latitude, coordinates.longitude]}
-                        onChangeCoordinates={(coords) => {
-                            onCoordinatesChange({
-                                coordinates: { latitude: coords[0], longitude: coords[1] },
-                                geoData: null,
-                            } as TFullGeoDataResponse);
-                        }}
+                        onChangeCoordinates={
+                            onDragCoordinates
+                                ? (coords) =>
+                                      onDragCoordinates({
+                                          latitude: coords[0],
+                                          longitude: coords[1],
+                                      })
+                                : undefined
+                        }
                     />
                     {isViewCoordinates && (
                         <p className="mt-2 text-sm">
