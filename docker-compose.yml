@@ -1,0 +1,26 @@
+services:
+    prostor_app:
+        build:
+            context: .
+            args:
+                NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+                NEXT_PUBLIC_SALE_PRICES: ${NEXT_PUBLIC_SALE_PRICES}
+                NEXT_PUBLIC_VAPID_PUBLIC_KEY: ${NEXT_PUBLIC_VAPID_PUBLIC_KEY}
+        container_name: prostor_app
+        restart: always
+        ports:
+            - '${PORT_APP:-3000}:3000'
+        environment:
+            - NODE_ENV=production
+        healthcheck:
+            test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:3000/']
+            interval: 30s
+            timeout: 10s
+            retries: 3
+            start_period: 15s
+        networks:
+            - crm_network_prod
+
+networks:
+    crm_network_prod:
+        external: true

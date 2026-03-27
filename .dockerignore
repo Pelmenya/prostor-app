@@ -1,0 +1,14 @@
+node_modules
+.next
+.git
+.gitignore
+.env.local
+.env.example
+.claude
+.husky
+.vscode
+.idea
+coverage
+.playwright
+**/*.test.ts
+**/*.test.tsx
