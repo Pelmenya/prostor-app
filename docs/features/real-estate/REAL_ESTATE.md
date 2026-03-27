@@ -2,14 +2,13 @@
 
 ## Прогресс
 
-| Шаг | Описание                                        | Прогресс |
-| --- | ----------------------------------------------- | -------- |
-| 1   | Типы и shared model                             | ⬜ 0%    |
-| 2   | Entity: API хуки (TanStack Query)               | ⬜ 0%    |
-| 3   | Список объектов — страница `/profile/addresses` | ⬜ 0%    |
-| 4   | Wizard добавления/редактирования объекта        | ⬜ 0%    |
-| 5   | Селектор адреса в checkout                      | ⬜ 0%    |
-| 6   | Тесты                                           | ⬜ 0%    |
+| Шаг | Описание                                        | Тесты | Прогресс |
+| --- | ----------------------------------------------- | ----- | -------- |
+| 1   | Типы и shared model                             | —     | ⬜ 0%    |
+| 2   | Entity: API хуки (TanStack Query)               | unit  | ⬜ 0%    |
+| 3   | Список объектов — страница `/profile/addresses` | unit  | ⬜ 0%    |
+| 4   | Wizard добавления/редактирования объекта        | unit  | ⬜ 0%    |
+| 5   | Селектор адреса в checkout                      | unit  | ⬜ 0%    |
 
 ## Что это
 
@@ -105,6 +104,12 @@ useUpdateRealEstate()               — PUT /real-estate/:id (mutation)
 useDeleteRealEstate()               — DELETE /real-estate/:id (mutation)
 ```
 
+**Тесты** (`real-estate.api.test.ts`):
+
+- Корректные query keys
+- Правильные URL и методы запросов
+- Мутации инвалидируют кэш списка после create/update/delete
+
 ### Шаг 3: Список объектов
 
 Страница `/profile/addresses` в ЛК:
@@ -117,6 +122,13 @@ useDeleteRealEstate()               — DELETE /real-estate/:id (mutation)
 
 **Референс:** `crm-aqua-kinetics-front/src/pages/real-estate-page/`
 
+**Тесты** (`addresses-page.test.tsx`):
+
+- Рендер списка объектов (мок API)
+- Пустой список — показывает «Нет объектов» + кнопка добавления
+- Кнопка удаления — вызывает мутацию с подтверждением
+- Спиннер при загрузке
+
 ### Шаг 4: Wizard добавления/редактирования
 
 3 шага (как в старом фронте):
@@ -126,6 +138,14 @@ useDeleteRealEstate()               — DELETE /real-estate/:id (mutation)
 3. **Точки водозабора** — счётчики для каждой точки (туалет, раковина, ванна и т.д.)
 
 **Референс:** `crm-aqua-kinetics-front/src/entities/real-estate/ui/real-estate-wizard/`
+
+**Тесты** (`real-estate-wizard.test.tsx`):
+
+- Навигация между шагами (вперёд/назад)
+- Валидация: адрес обязателен, тип обязателен, residents > 0
+- Zod-схема: невалидные данные (пустой адрес, отрицательные жильцы)
+- Submit вызывает createRealEstate/updateRealEstate мутацию
+- Режим редактирования: форма заполнена данными объекта
 
 ### Шаг 5: Селектор адреса в checkout
 
@@ -137,12 +157,12 @@ useDeleteRealEstate()               — DELETE /real-estate/:id (mutation)
 
 **Референс:** `crm-aqua-kinetics-front/src/entities/real-estate/ui/checkout-address-selector/`
 
-### Шаг 6: Тесты
+**Тесты** (`address-selector.test.tsx`):
 
-- API хуки: корректность запросов
-- Wizard: валидация на каждом шаге
-- Selector: выбор/создание объекта
-- Zustand store (если будет)
+- Рендер списка адресов пользователя
+- Выбор адреса — вызывает onChange с realEstateId
+- Нет адресов — показывает только кнопку «Добавить»
+- Кнопка «Добавить новый адрес» — открывает wizard
 
 ## FSD структура
 
