@@ -1,4 +1,4 @@
-import type { TPlatformUser } from '@/shared/lib/platform/types';
+import type { TPlatformUser } from '@/shared/lib/platform';
 import type { TUser } from '@/shared/model';
 
 export function mapUserToPlatformUser(user: TUser | null): TPlatformUser | null {

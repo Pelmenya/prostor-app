@@ -7,7 +7,10 @@ import { ArrowLeftIcon, Bars3Icon } from '@heroicons/react/24/outline';
 import { useAuth } from '@/shared/lib/platform';
 import { useLogout } from '@/features/auth';
 import { flushCartSync } from '@/features/cart';
-import { BurgerMenu } from './burger-menu/burger-menu';
+import { formatUserInitials } from '@/shared/lib';
+import { BurgerMenu } from './burger-menu';
+
+const NOOP_SUBSCRIBE = () => () => {};
 
 type THeaderProps = {
     back?: boolean;
@@ -23,7 +26,7 @@ export function Header({ back = false, backTo }: THeaderProps) {
 
     // Предотвращение hydration mismatch: SSR = false, клиент = true
     const mounted = useSyncExternalStore(
-        () => () => {},
+        NOOP_SUBSCRIBE,
         () => true,
         () => false,
     );
@@ -61,10 +64,9 @@ export function Header({ back = false, backTo }: THeaderProps) {
                     >
                         {showUser ? (
                             <div className="avatar avatar-placeholder">
-                                <div className="size-8 rounded-full bg-primary text-primary-content ring-primary ring-offset-base-100 ring-2 ring-offset-2">
+                                <div className="ring-primary ring-offset-base-100 size-8 rounded-full ring-2 ring-offset-2 bg-primary text-primary-content">
                                     <span className="font-semibold text-sm">
-                                        {(user.firstName?.charAt(0) ?? '') +
-                                            (user.lastName?.charAt(0) ?? '') || '?'}
+                                        {formatUserInitials(user.firstName, user.lastName)}
                                     </span>
                                 </div>
                             </div>
