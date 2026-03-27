@@ -6,6 +6,7 @@ export type TPlatformUser = {
     lastName?: string;
     username?: string;
     photo?: string;
+    email?: string;
 };
 
 export type THapticType = 'light' | 'medium' | 'heavy' | 'soft' | 'rigid';
