@@ -23,7 +23,7 @@ export const MapView: FC<TMapViewProps> = ({ coordinates, zoom = 17, onChangeCoo
 
     return (
         <div className="border border-base-300 bg-base-100 rounded-box p-4 overflow-hidden max-w-full">
-            <div className="w-full max-w-full overflow-hidden rounded-lg h-[250px]">
+            <div className="w-full max-w-full overflow-hidden rounded-lg h-62.5">
                 <MapGL
                     initialViewState={{
                         longitude: lng,
