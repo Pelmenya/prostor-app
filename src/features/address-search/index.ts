@@ -1,6 +1,6 @@
 export { AddressSearchWithMap } from './ui/address-search-with-map';
 
-export { useAddressSuggestions, useAddressCoordinates, addressKeys } from './api/address.api';
+export { useAddressSuggestions, fetchCoordinates, addressKeys } from './api/address.api';
 
 export type { TSuggestion } from './model/types/t-suggestion';
 export type { TSuggestionAddressResponseData } from './model/types/t-suggestion-address-response-data';

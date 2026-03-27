@@ -5,7 +5,6 @@ import type { TFullGeoDataResponse } from '../model/types/t-full-geo-data-respon
 
 export const addressKeys = {
     suggestions: (q: string) => ['address', 'suggestions', q] as const,
-    coordinates: (sign: string) => ['address', 'coordinates', sign] as const,
 };
 
 export function useAddressSuggestions(q: string) {
@@ -20,17 +19,7 @@ export function useAddressSuggestions(q: string) {
     });
 }
 
-export function useAddressCoordinates(pendingSign: string | null) {
-    // pendingSign может содержать timestamp суффикс для форсирования запроса
-    const cleanSign = pendingSign?.split('_')[0] ?? null;
-
-    return useQuery({
-        queryKey: addressKeys.coordinates(pendingSign ?? ''),
-        queryFn: () =>
-            apiClient<TFullGeoDataResponse>(
-                `/proxy/geocode?sign=${encodeURIComponent(cleanSign!)}`,
-            ),
-        enabled: Boolean(cleanSign),
-        staleTime: 60_000,
-    });
+/** Геокодирование по sign — plain async, вызывается из event handler */
+export function fetchCoordinates(sign: string): Promise<TFullGeoDataResponse> {
+    return apiClient<TFullGeoDataResponse>(`/proxy/geocode?sign=${encodeURIComponent(sign)}`);
 }

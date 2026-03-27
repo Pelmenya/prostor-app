@@ -17,7 +17,6 @@ export function AddressSearchSlot() {
             selectedAddress={address}
             coordinates={coordinates}
             isViewCoordinates={false}
-            zoom={17}
             onQueryChange={(q) => setAddress(q)}
             onSelectAddress={(addr) => setAddress(addr)}
             onSelectSuggestion={(suggestion) =>

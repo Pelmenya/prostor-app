@@ -38,33 +38,38 @@ export const StepThree: FC<TWizardStepProps> = ({ onPrev, editMode, id, onCancel
     const createRealEstate = useCreateRealEstate();
     const updateRealEstate = useUpdateRealEstate();
 
-    const realEstateData: TCreateRealEstate = {
-        address: address ?? undefined,
-        geoData: geoData ?? undefined,
-        suggestion: suggestion ?? undefined,
-        coordinates: coordinates
-            ? {
-                  type: 'Point',
-                  coordinates: [coordinates.longitude, coordinates.latitude],
-              }
-            : null,
-        activeType,
-        residents,
-        activeSource,
-        ...(depthWaterSource != null && { depthWaterSource }),
-        waterIntakePoints,
-    };
+    const hasAnyIntake = toilet + sink + bath + washingMachine + dishWasher + showerCabin > 0;
 
-    const hasAnyIntake = toilet || sink || bath || washingMachine || dishWasher || showerCabin;
+    // Progress как derived value
+    useEffect(() => {
+        setProgress(hasAnyIntake ? 100 : 80);
+    }, [hasAnyIntake, setProgress]);
 
     const handleSave = async () => {
+        const data: TCreateRealEstate = {
+            address: address ?? undefined,
+            geoData: geoData ?? undefined,
+            suggestion: suggestion ?? undefined,
+            coordinates: coordinates
+                ? {
+                      type: 'Point',
+                      coordinates: [coordinates.longitude, coordinates.latitude],
+                  }
+                : null,
+            activeType,
+            residents,
+            activeSource,
+            ...(depthWaterSource != null && { depthWaterSource }),
+            waterIntakePoints,
+        };
+
         try {
             if (editMode && id) {
-                await updateRealEstate.mutateAsync({ id: Number(id), data: realEstateData });
+                await updateRealEstate.mutateAsync({ id: Number(id), data });
                 reset();
                 router.back();
             } else {
-                await createRealEstate.mutateAsync(realEstateData);
+                await createRealEstate.mutateAsync(data);
                 reset();
                 router.push('/profile/addresses');
             }
@@ -72,14 +77,6 @@ export const StepThree: FC<TWizardStepProps> = ({ onPrev, editMode, id, onCancel
             toast.error('Не удалось сохранить объект');
         }
     };
-
-    useEffect(() => {
-        if (toilet || sink || bath || washingMachine || dishWasher || showerCabin) {
-            setProgress(100);
-        } else {
-            setProgress(80);
-        }
-    }, [toilet, sink, bath, washingMachine, dishWasher, showerCabin, setProgress]);
 
     const isSaving = createRealEstate.isPending || updateRealEstate.isPending;
 

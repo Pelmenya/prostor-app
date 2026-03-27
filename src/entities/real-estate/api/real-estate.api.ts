@@ -16,13 +16,13 @@ export function useRealEstates() {
     });
 }
 
-export function useRealEstate(id: number) {
+export function useRealEstate(id: number | undefined) {
     const api = useApi();
 
     return useQuery({
-        queryKey: realEstateKeys.detail(id),
+        queryKey: realEstateKeys.detail(id ?? 0),
         queryFn: () => api<TRealEstate>(`/real-estate/${id}`),
-        enabled: id > 0,
+        enabled: id !== undefined && id > 0,
     });
 }
 

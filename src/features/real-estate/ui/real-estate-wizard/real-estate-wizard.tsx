@@ -18,7 +18,7 @@ export const RealEstateWizard: FC<TRealEstateWizardProps> = ({ id, addressSearch
     const router = useRouter();
 
     const editMode = Boolean(id);
-    const { data, isLoading, error } = useRealEstate(Number(id) || 0);
+    const { data, isLoading, error } = useRealEstate(id ? Number(id) : undefined);
 
     const progress = useRealEstateWizardStore((s) => s.progress);
     const reset = useRealEstateWizardStore((s) => s.reset);
