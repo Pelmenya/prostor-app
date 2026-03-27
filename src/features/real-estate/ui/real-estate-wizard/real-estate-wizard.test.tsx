@@ -110,7 +110,7 @@ describe('RealEstateWizard', () => {
         });
     });
 
-    it('заголовок «Редактировать объект» в режиме редактирования', () => {
+    it('заполняет форму данными в режиме редактирования', () => {
         const editData = {
             id: 1,
             address: 'Тестовый адрес',
@@ -134,6 +134,6 @@ describe('RealEstateWizard', () => {
         };
 
         renderWithProviders(createElement(RealEstateWizard, { editData }));
-        expect(screen.getByText('Редактировать объект')).toBeInTheDocument();
+        expect(screen.getByDisplayValue('Тестовый адрес')).toBeInTheDocument();
     });
 });

@@ -1,5 +1,17 @@
 import { z } from 'zod';
 import { REAL_ESTATE_TYPES, WATER_SOURCES } from '@/shared/model';
+import type { TWaterIntakePoints } from '@/shared/model';
+
+const MAX_INTAKE = 99;
+
+const waterIntakePointsSchema = z.object({
+    toilet: z.number().min(0).max(MAX_INTAKE),
+    sink: z.number().min(0).max(MAX_INTAKE),
+    bath: z.number().min(0).max(MAX_INTAKE),
+    washingMachine: z.number().min(0).max(MAX_INTAKE),
+    dishWasher: z.number().min(0).max(MAX_INTAKE),
+    showerCabin: z.number().min(0).max(MAX_INTAKE),
+}) satisfies z.ZodType<TWaterIntakePoints>;
 
 export const realEstateSchema = z.object({
     address: z.string().min(1, 'Введите адрес'),
@@ -11,14 +23,7 @@ export const realEstateSchema = z.object({
         message: 'Выберите источник воды',
     }),
     depthWaterSource: z.number().min(0).optional(),
-    waterIntakePoints: z.object({
-        toilet: z.number().min(0),
-        sink: z.number().min(0),
-        bath: z.number().min(0),
-        washingMachine: z.number().min(0),
-        dishWasher: z.number().min(0),
-        showerCabin: z.number().min(0),
-    }),
+    waterIntakePoints: waterIntakePointsSchema,
 });
 
 export type TRealEstateForm = z.infer<typeof realEstateSchema>;

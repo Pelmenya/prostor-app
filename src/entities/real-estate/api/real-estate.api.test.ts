@@ -5,6 +5,7 @@ import { createElement, type ReactNode } from 'react';
 import {
     realEstateKeys,
     useRealEstates,
+    useRealEstate,
     useCreateRealEstate,
     useUpdateRealEstate,
     useDeleteRealEstate,
@@ -74,6 +75,26 @@ describe('real-estate API', () => {
             await waitFor(() => expect(result.current.isSuccess).toBe(true));
             expect(mockApi).toHaveBeenCalledWith('/real-estate');
             expect(result.current.data).toEqual([MOCK_REAL_ESTATE]);
+        });
+    });
+
+    describe('useRealEstate', () => {
+        it('запрашивает GET /real-estate/:id', async () => {
+            mockApi.mockResolvedValue(MOCK_REAL_ESTATE);
+            const { wrapper } = createWrapper();
+
+            const { result } = renderHook(() => useRealEstate(1), { wrapper });
+
+            await waitFor(() => expect(result.current.isSuccess).toBe(true));
+            expect(mockApi).toHaveBeenCalledWith('/real-estate/1');
+        });
+
+        it('не отправляет запрос при id <= 0', () => {
+            const { wrapper } = createWrapper();
+
+            renderHook(() => useRealEstate(0), { wrapper });
+
+            expect(mockApi).not.toHaveBeenCalled();
         });
     });
 

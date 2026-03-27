@@ -13,7 +13,7 @@ import {
     POINT_NAMES,
     TYPE_ICONS,
 } from '@/entities/real-estate';
-import { InputField, PageContainer, PageTitle } from '@/shared/ui';
+import { InputField } from '@/shared/ui';
 import {
     realEstateSchema,
     DEFAULT_FORM_VALUES,
@@ -125,184 +125,180 @@ export function RealEstateWizard({ editData, onSuccess }: TRealEstateWizardProps
     };
 
     return (
-        <PageContainer>
-            <div className="flex flex-col gap-4">
-                <PageTitle>{isEdit ? 'Редактировать объект' : 'Новый объект'}</PageTitle>
+        <div className="flex flex-col gap-4">
+            <ul className="steps steps-horizontal w-full text-xs">
+                <li className={`step ${step >= 0 ? 'step-primary' : ''}`}>Адрес</li>
+                <li className={`step ${step >= 1 ? 'step-primary' : ''}`}>Вода</li>
+                <li className={`step ${step >= 2 ? 'step-primary' : ''}`}>Точки</li>
+            </ul>
 
-                <ul className="steps steps-horizontal w-full text-xs">
-                    <li className={`step ${step >= 0 ? 'step-primary' : ''}`}>Адрес</li>
-                    <li className={`step ${step >= 1 ? 'step-primary' : ''}`}>Вода</li>
-                    <li className={`step ${step >= 2 ? 'step-primary' : ''}`}>Точки</li>
-                </ul>
+            <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
+                {/* ─── Шаг 1: Адрес + тип ─────────────────────────── */}
+                {step === 0 && (
+                    <>
+                        <InputField label="Адрес" error={errors.address?.message}>
+                            <input
+                                type="text"
+                                placeholder="Город, улица, дом, квартира"
+                                className={`input input-sm w-full ${errors.address ? 'input-error' : ''}`}
+                                {...register('address')}
+                            />
+                        </InputField>
 
-                <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
-                    {/* ─── Шаг 1: Адрес + тип ─────────────────────────── */}
-                    {step === 0 && (
-                        <>
-                            <InputField label="Адрес" error={errors.address?.message}>
+                        <div>
+                            <span className="label-text text-sm font-medium">Тип объекта</span>
+                            {errors.activeType && (
+                                <p className="text-error text-xs mt-1">
+                                    {errors.activeType.message}
+                                </p>
+                            )}
+                            <div className="flex gap-2 mt-2">
+                                {TYPE_ENTRIES.map(({ value, label, Icon }) => (
+                                    <button
+                                        key={value}
+                                        type="button"
+                                        className={`btn btn-sm flex-1 ${activeType === value ? 'btn-primary' : 'btn-outline'}`}
+                                        onClick={() => setValue('activeType', value)}
+                                    >
+                                        <Icon className="size-4" />
+                                        {label}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div>
+                            <span className="label-text text-sm font-medium">
+                                Жителей: {residents}
+                            </span>
+                            <input
+                                type="range"
+                                min={1}
+                                max={MAX_RESIDENTS}
+                                className="range range-primary range-xs mt-2"
+                                {...register('residents', { valueAsNumber: true })}
+                            />
+                            {errors.residents && (
+                                <p className="text-error text-xs mt-1">
+                                    {errors.residents.message}
+                                </p>
+                            )}
+                        </div>
+                    </>
+                )}
+
+                {/* ─── Шаг 2: Источник воды ───────────────────────── */}
+                {step === 1 && (
+                    <>
+                        <div>
+                            <span className="label-text text-sm font-medium">Источник воды</span>
+                            <div className="grid grid-cols-2 gap-2 mt-2">
+                                {SOURCE_ENTRIES.map(({ value, label }) => (
+                                    <button
+                                        key={value}
+                                        type="button"
+                                        className={`btn btn-sm ${activeSource === value ? 'btn-primary' : 'btn-outline'}`}
+                                        onClick={() => setValue('activeSource', value)}
+                                    >
+                                        {label}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {(activeSource === 'borehole' || activeSource === 'well') && (
+                            <InputField label="Глубина источника (м)">
                                 <input
-                                    type="text"
-                                    placeholder="Город, улица, дом, квартира"
-                                    className={`input input-sm w-full ${errors.address ? 'input-error' : ''}`}
-                                    {...register('address')}
+                                    type="number"
+                                    min={0}
+                                    placeholder="Например, 25"
+                                    className="input input-sm w-full"
+                                    {...register('depthWaterSource', { valueAsNumber: true })}
                                 />
                             </InputField>
+                        )}
+                    </>
+                )}
 
-                            <div>
-                                <span className="label-text text-sm font-medium">Тип объекта</span>
-                                {errors.activeType && (
-                                    <p className="text-error text-xs mt-1">
-                                        {errors.activeType.message}
-                                    </p>
-                                )}
-                                <div className="flex gap-2 mt-2">
-                                    {TYPE_ENTRIES.map(({ value, label, Icon }) => (
-                                        <button
-                                            key={value}
-                                            type="button"
-                                            className={`btn btn-sm flex-1 ${activeType === value ? 'btn-primary' : 'btn-outline'}`}
-                                            onClick={() => setValue('activeType', value)}
-                                        >
-                                            <Icon className="size-4" />
-                                            {label}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <div>
-                                <span className="label-text text-sm font-medium">
-                                    Жителей: {residents}
-                                </span>
-                                <input
-                                    type="range"
-                                    min={1}
-                                    max={MAX_RESIDENTS}
-                                    className="range range-primary range-xs mt-2"
-                                    {...register('residents', { valueAsNumber: true })}
-                                />
-                                {errors.residents && (
-                                    <p className="text-error text-xs mt-1">
-                                        {errors.residents.message}
-                                    </p>
-                                )}
-                            </div>
-                        </>
-                    )}
-
-                    {/* ─── Шаг 2: Источник воды ───────────────────────── */}
-                    {step === 1 && (
-                        <>
-                            <div>
-                                <span className="label-text text-sm font-medium">
-                                    Источник воды
-                                </span>
-                                <div className="grid grid-cols-2 gap-2 mt-2">
-                                    {SOURCE_ENTRIES.map(({ value, label }) => (
-                                        <button
-                                            key={value}
-                                            type="button"
-                                            className={`btn btn-sm ${activeSource === value ? 'btn-primary' : 'btn-outline'}`}
-                                            onClick={() => setValue('activeSource', value)}
-                                        >
-                                            {label}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {(activeSource === 'borehole' || activeSource === 'well') && (
-                                <InputField label="Глубина источника (м)">
-                                    <input
-                                        type="number"
-                                        min={0}
-                                        placeholder="Например, 25"
-                                        className="input input-sm w-full"
-                                        {...register('depthWaterSource', { valueAsNumber: true })}
-                                    />
-                                </InputField>
-                            )}
-                        </>
-                    )}
-
-                    {/* ─── Шаг 3: Точки водозабора ────────────────────── */}
-                    {step === 2 && (
-                        <div className="flex flex-col gap-3">
-                            <span className="label-text text-sm font-medium">Точки водозабора</span>
-                            {WATER_POINT_ENTRIES.map(({ key, label }) => (
-                                <Controller
-                                    key={key}
-                                    name={`waterIntakePoints.${key}`}
-                                    control={control}
-                                    render={({ field }) => (
-                                        <div className="flex items-center justify-between bg-base-100 rounded-xl p-3 border border-base-300">
-                                            <span className="text-sm">{label}</span>
-                                            <div className="flex items-center gap-3">
-                                                <button
-                                                    type="button"
-                                                    className="btn btn-xs btn-circle btn-outline"
-                                                    aria-label={`Уменьшить ${label}`}
-                                                    onClick={() =>
-                                                        field.onChange(Math.max(0, field.value - 1))
-                                                    }
-                                                >
-                                                    <MinusIcon className="size-3" />
-                                                </button>
-                                                <span className="w-6 text-center font-semibold">
-                                                    {field.value}
-                                                </span>
-                                                <button
-                                                    type="button"
-                                                    className="btn btn-xs btn-circle btn-outline"
-                                                    aria-label={`Увеличить ${label}`}
-                                                    onClick={() => field.onChange(field.value + 1)}
-                                                >
-                                                    <PlusIcon className="size-3" />
-                                                </button>
-                                            </div>
+                {/* ─── Шаг 3: Точки водозабора ────────────────────── */}
+                {step === 2 && (
+                    <div className="flex flex-col gap-3">
+                        <span className="label-text text-sm font-medium">Точки водозабора</span>
+                        {WATER_POINT_ENTRIES.map(({ key, label }) => (
+                            <Controller
+                                key={key}
+                                name={`waterIntakePoints.${key}`}
+                                control={control}
+                                render={({ field }) => (
+                                    <div className="flex items-center justify-between bg-base-100 rounded-xl p-3 border border-base-300">
+                                        <span className="text-sm">{label}</span>
+                                        <div className="flex items-center gap-3">
+                                            <button
+                                                type="button"
+                                                className="btn btn-xs btn-circle btn-outline"
+                                                aria-label={`Уменьшить ${label}`}
+                                                onClick={() =>
+                                                    field.onChange(Math.max(0, field.value - 1))
+                                                }
+                                            >
+                                                <MinusIcon className="size-3" />
+                                            </button>
+                                            <span className="w-6 text-center font-semibold">
+                                                {field.value}
+                                            </span>
+                                            <button
+                                                type="button"
+                                                className="btn btn-xs btn-circle btn-outline"
+                                                aria-label={`Увеличить ${label}`}
+                                                onClick={() =>
+                                                    field.onChange(Math.min(99, field.value + 1))
+                                                }
+                                            >
+                                                <PlusIcon className="size-3" />
+                                            </button>
                                         </div>
-                                    )}
-                                />
-                            ))}
-                        </div>
-                    )}
-
-                    {serverError && <div className="alert alert-error text-sm">{serverError}</div>}
-
-                    {/* ─── Навигация ──────────────────────────────────── */}
-                    <div className="flex gap-2 mt-2">
-                        {step > 0 && (
-                            <button
-                                type="button"
-                                className="btn btn-sm btn-outline flex-1"
-                                onClick={prevStep}
-                            >
-                                Назад
-                            </button>
-                        )}
-                        {step < LAST_STEP ? (
-                            <button
-                                type="button"
-                                className="btn btn-sm btn-primary flex-1"
-                                onClick={nextStep}
-                            >
-                                Далее
-                            </button>
-                        ) : (
-                            <button
-                                type="submit"
-                                className="btn btn-sm btn-primary flex-1"
-                                disabled={isSubmitting}
-                            >
-                                {isSubmitting && (
-                                    <span className="loading loading-spinner loading-xs" />
+                                    </div>
                                 )}
-                                {isEdit ? 'Сохранить' : 'Добавить объект'}
-                            </button>
-                        )}
+                            />
+                        ))}
                     </div>
-                </form>
-            </div>
-        </PageContainer>
+                )}
+
+                {serverError && <div className="alert alert-error text-sm">{serverError}</div>}
+
+                {/* ─── Навигация ──────────────────────────────────── */}
+                <div className="flex gap-2 mt-2">
+                    {step > 0 && (
+                        <button
+                            type="button"
+                            className="btn btn-sm btn-outline flex-1"
+                            onClick={prevStep}
+                        >
+                            Назад
+                        </button>
+                    )}
+                    {step < LAST_STEP ? (
+                        <button
+                            type="button"
+                            className="btn btn-sm btn-primary flex-1"
+                            onClick={nextStep}
+                        >
+                            Далее
+                        </button>
+                    ) : (
+                        <button
+                            type="submit"
+                            className="btn btn-sm btn-primary flex-1"
+                            disabled={isSubmitting}
+                        >
+                            {isSubmitting && (
+                                <span className="loading loading-spinner loading-xs" />
+                            )}
+                            {isEdit ? 'Сохранить' : 'Добавить объект'}
+                        </button>
+                    )}
+                </div>
+            </form>
+        </div>
     );
 }
