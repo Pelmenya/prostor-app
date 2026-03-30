@@ -19,6 +19,7 @@ import {
     CheckoutServicesList,
 } from '@/features/checkout';
 import type { TUserWithWorkDays, TWorkDay } from '@/features/checkout';
+import { PageContainer, PageTitle } from '@/shared/ui';
 import { formatDateRu } from '@/shared/lib';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -262,196 +263,198 @@ export function CheckoutPage() {
     };
 
     return (
-        <div className="relative bg-base-300 min-h-dvh">
-            <div
-                className={`flex flex-col gap-4 pb-24 p-4 ${isSubmitting ? 'pointer-events-none opacity-50' : ''}`}
-            >
-                <h1 className="text-xl font-semibold">Оформление</h1>
+        <>
+            <PageContainer className={isSubmitting ? 'pointer-events-none opacity-50' : ''}>
+                <div className="flex flex-col gap-4 pb-4">
+                    <PageTitle>Оформление</PageTitle>
 
-                <CheckoutAddressSelector onChange={handleAddressChange} />
+                    <CheckoutAddressSelector onChange={handleAddressChange} />
 
-                {selectedRealEstateId && hasContent && (
-                    <>
-                        {/* Доставка (только если есть товары) */}
-                        {hasProducts && (
-                            <div className="flex flex-col gap-3">
-                                <h4 className="text-lg font-semibold">Доставка</h4>
+                    {selectedRealEstateId && hasContent && (
+                        <>
+                            {/* Доставка (только если есть товары) */}
+                            {hasProducts && (
+                                <div className="flex flex-col gap-3">
+                                    <h4 className="text-lg font-semibold">Доставка</h4>
 
-                                <div role="tablist" className="tabs tabs-border">
-                                    {tabs
-                                        .filter((t) => t.show)
-                                        .map((tab) => (
+                                    <div role="tablist" className="tabs tabs-border">
+                                        {tabs
+                                            .filter((t) => t.show)
+                                            .map((tab) => (
+                                                <button
+                                                    key={tab.key}
+                                                    role="tab"
+                                                    type="button"
+                                                    className={`tab ${activeTab === tab.key ? 'tab-active' : ''}`}
+                                                    onClick={() => {
+                                                        setActiveTab(tab.key);
+                                                        if (tab.key !== 'pickup')
+                                                            setSelectedPickupStore(null);
+                                                        if (
+                                                            tab.key !== 'master_delivery' &&
+                                                            isMasterDelivery
+                                                        ) {
+                                                            setSelectedExecutor(null);
+                                                        }
+                                                    }}
+                                                >
+                                                    {tab.label}
+                                                </button>
+                                            ))}
+                                    </div>
+
+                                    {activeTab === 'pickup' && (
+                                        <PickupStoreSelector
+                                            realEstateId={selectedRealEstateId}
+                                            selectedStoreId={selectedPickupStore?.id}
+                                            onSelect={setSelectedPickupStore}
+                                            onHasStoresChange={setHasPickupStores}
+                                        />
+                                    )}
+
+                                    {activeTab === 'master_delivery' && (
+                                        <div className="flex flex-col gap-3">
+                                            <div className="rounded-xl bg-base-100 p-4 text-sm">
+                                                <p className="font-medium">
+                                                    Доставка мастером — бесплатно
+                                                </p>
+                                                <p className="text-xs opacity-60 mt-1">
+                                                    Мастер привезёт товары при выезде.
+                                                </p>
+                                            </div>
+
+                                            <VisitPriceBlock
+                                                isLoading={executorsSearchStatus === 'loading'}
+                                                clientVisitPrice={clientVisitPriceData}
+                                                minVisitPrice={minVisitPrice}
+                                            />
+
+                                            {selectedExecutor && (
+                                                <ExecutorPreview executor={selectedExecutor} />
+                                            )}
+
                                             <button
-                                                key={tab.key}
-                                                role="tab"
-                                                type="button"
-                                                className={`tab ${activeTab === tab.key ? 'tab-active' : ''}`}
-                                                onClick={() => {
-                                                    setActiveTab(tab.key);
-                                                    if (tab.key !== 'pickup')
-                                                        setSelectedPickupStore(null);
-                                                    if (
-                                                        tab.key !== 'master_delivery' &&
-                                                        isMasterDelivery
-                                                    ) {
-                                                        setSelectedExecutor(null);
-                                                    }
-                                                }}
+                                                onClick={() => setScheduleDialogOpen(true)}
+                                                className="btn btn-primary btn-outline w-full"
+                                                disabled={executorsSearchStatus === 'loading'}
                                             >
-                                                {tab.label}
+                                                {executorsSearchStatus === 'loading' ? (
+                                                    <>
+                                                        <span className="loading loading-spinner loading-xs" />
+                                                        Поиск мастеров...
+                                                    </>
+                                                ) : selectedExecutor ? (
+                                                    'Изменить мастера или дату'
+                                                ) : (
+                                                    'Выбрать мастера и дату'
+                                                )}
                                             </button>
-                                        ))}
-                                </div>
+                                        </div>
+                                    )}
 
-                                {activeTab === 'pickup' && (
-                                    <PickupStoreSelector
-                                        realEstateId={selectedRealEstateId}
-                                        selectedStoreId={selectedPickupStore?.id}
-                                        onSelect={setSelectedPickupStore}
-                                        onHasStoresChange={setHasPickupStores}
-                                    />
-                                )}
-
-                                {activeTab === 'master_delivery' && (
-                                    <div className="flex flex-col gap-3">
+                                    {activeTab === 'transport_company' && (
                                         <div className="rounded-xl bg-base-100 p-4 text-sm">
                                             <p className="font-medium">
-                                                Доставка мастером — бесплатно
+                                                Доставка транспортной компанией
                                             </p>
                                             <p className="text-xs opacity-60 mt-1">
-                                                Мастер привезёт товары при выезде.
+                                                Стоимость рассчитает менеджер после оформления.
                                             </p>
                                         </div>
-
-                                        <VisitPriceBlock
-                                            isLoading={executorsSearchStatus === 'loading'}
-                                            clientVisitPrice={clientVisitPriceData}
-                                            minVisitPrice={minVisitPrice}
-                                        />
-
-                                        {selectedExecutor && (
-                                            <ExecutorPreview executor={selectedExecutor} />
-                                        )}
-
-                                        <button
-                                            onClick={() => setScheduleDialogOpen(true)}
-                                            className="btn btn-primary btn-outline w-full"
-                                            disabled={executorsSearchStatus === 'loading'}
-                                        >
-                                            {executorsSearchStatus === 'loading' ? (
-                                                <>
-                                                    <span className="loading loading-spinner loading-xs" />
-                                                    Поиск мастеров...
-                                                </>
-                                            ) : selectedExecutor ? (
-                                                'Изменить мастера или дату'
-                                            ) : (
-                                                'Выбрать мастера и дату'
-                                            )}
-                                        </button>
-                                    </div>
-                                )}
-
-                                {activeTab === 'transport_company' && (
-                                    <div className="rounded-xl bg-base-100 p-4 text-sm">
-                                        <p className="font-medium">
-                                            Доставка транспортной компанией
-                                        </p>
-                                        <p className="text-xs opacity-60 mt-1">
-                                            Стоимость рассчитает менеджер после оформления.
-                                        </p>
-                                    </div>
-                                )}
-                            </div>
-                        )}
-
-                        {/* Список товаров */}
-                        {hasProducts && (
-                            <div className="flex flex-col gap-2">
-                                <h4 className="text-lg font-semibold">Товары</h4>
-                                <CheckoutProductsList items={selectedItems} />
-                            </div>
-                        )}
-
-                        {/* Список услуг */}
-                        {hasServices && (
-                            <div className="flex flex-col gap-2">
-                                <h4 className="text-lg font-semibold">Услуги</h4>
-                                <CheckoutServicesList items={selectedItems} />
-                            </div>
-                        )}
-
-                        {/* Секция мастера (для услуг без master_delivery) */}
-                        {needServiceMasterSection && (
-                            <div className="flex flex-col gap-3">
-                                <VisitPriceBlock
-                                    isLoading={executorsSearchStatus === 'loading'}
-                                    clientVisitPrice={clientVisitPriceData}
-                                    minVisitPrice={minVisitPrice}
-                                />
-
-                                {selectedExecutor && (
-                                    <ExecutorPreview executor={selectedExecutor} />
-                                )}
-
-                                {desiredIntervalDate && (
-                                    <div>
-                                        <p className="text-sm">Желаемый интервал:</p>
-                                        <p className="badge badge-warning mt-1">
-                                            {formatDateRu(desiredIntervalDate[0].date ?? '')} —{' '}
-                                            {formatDateRu(desiredIntervalDate[1].date ?? '')}
-                                        </p>
-                                    </div>
-                                )}
-
-                                <button
-                                    onClick={() => setScheduleDialogOpen(true)}
-                                    className="btn btn-primary btn-outline w-full"
-                                >
-                                    {hasMasters === true
-                                        ? desiredIntervalDate || selectedExecutor
-                                            ? 'Изменить исполнителя и (или) дату'
-                                            : 'Выбрать исполнителя и дату'
-                                        : desiredIntervalDate
-                                          ? 'Изменить интервал дат'
-                                          : 'Выбрать желаемый интервал дат'}
-                                </button>
-                            </div>
-                        )}
-
-                        {/* Email для чека */}
-                        <div className="flex flex-col gap-1">
-                            <input
-                                type="email"
-                                value={receiptEmail}
-                                onChange={(e) => setReceiptEmail(e.target.value)}
-                                placeholder="Email для чека"
-                                className={`input input-bordered input-md w-full ${receiptEmail && !isEmailValid ? 'input-error' : ''}`}
-                            />
-                            {receiptEmail && !isEmailValid && (
-                                <span className="text-xs text-error">Введите корректный email</span>
+                                    )}
+                                </div>
                             )}
+
+                            {/* Список товаров */}
+                            {hasProducts && (
+                                <div className="flex flex-col gap-2">
+                                    <h4 className="text-lg font-semibold">Товары</h4>
+                                    <CheckoutProductsList items={selectedItems} />
+                                </div>
+                            )}
+
+                            {/* Список услуг */}
+                            {hasServices && (
+                                <div className="flex flex-col gap-2">
+                                    <h4 className="text-lg font-semibold">Услуги</h4>
+                                    <CheckoutServicesList items={selectedItems} />
+                                </div>
+                            )}
+
+                            {/* Секция мастера (для услуг без master_delivery) */}
+                            {needServiceMasterSection && (
+                                <div className="flex flex-col gap-3">
+                                    <VisitPriceBlock
+                                        isLoading={executorsSearchStatus === 'loading'}
+                                        clientVisitPrice={clientVisitPriceData}
+                                        minVisitPrice={minVisitPrice}
+                                    />
+
+                                    {selectedExecutor && (
+                                        <ExecutorPreview executor={selectedExecutor} />
+                                    )}
+
+                                    {desiredIntervalDate && (
+                                        <div>
+                                            <p className="text-sm">Желаемый интервал:</p>
+                                            <p className="badge badge-warning mt-1">
+                                                {formatDateRu(desiredIntervalDate[0].date ?? '')} —{' '}
+                                                {formatDateRu(desiredIntervalDate[1].date ?? '')}
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    <button
+                                        onClick={() => setScheduleDialogOpen(true)}
+                                        className="btn btn-primary btn-outline w-full"
+                                    >
+                                        {hasMasters === true
+                                            ? desiredIntervalDate || selectedExecutor
+                                                ? 'Изменить исполнителя и (или) дату'
+                                                : 'Выбрать исполнителя и дату'
+                                            : desiredIntervalDate
+                                              ? 'Изменить интервал дат'
+                                              : 'Выбрать желаемый интервал дат'}
+                                    </button>
+                                </div>
+                            )}
+
+                            {/* Email для чека */}
+                            <div className="flex flex-col gap-1">
+                                <input
+                                    type="email"
+                                    value={receiptEmail}
+                                    onChange={(e) => setReceiptEmail(e.target.value)}
+                                    placeholder="Email для чека"
+                                    className={`input input-bordered input-md w-full ${receiptEmail && !isEmailValid ? 'input-error' : ''}`}
+                                />
+                                {receiptEmail && !isEmailValid && (
+                                    <span className="text-xs text-error">
+                                        Введите корректный email
+                                    </span>
+                                )}
+                            </div>
+
+                            {orderError && <p className="text-error text-sm">{orderError}</p>}
+
+                            {/* Комментарий */}
+                            <input
+                                type="text"
+                                value={clientComment}
+                                onChange={(e) => setClientComment(e.target.value)}
+                                placeholder="Комментарий к заказу (необязательно)"
+                                className="input input-bordered input-md w-full"
+                            />
+                        </>
+                    )}
+
+                    {selectedRealEstateId && !hasContent && (
+                        <div className="text-center py-8 opacity-60">
+                            В корзине нет выбранных позиций
                         </div>
-
-                        {orderError && <p className="text-error text-sm">{orderError}</p>}
-
-                        {/* Комментарий */}
-                        <input
-                            type="text"
-                            value={clientComment}
-                            onChange={(e) => setClientComment(e.target.value)}
-                            placeholder="Комментарий к заказу (необязательно)"
-                            className="input input-bordered input-md w-full"
-                        />
-                    </>
-                )}
-
-                {selectedRealEstateId && !hasContent && (
-                    <div className="text-center py-8 opacity-60">
-                        В корзине нет выбранных позиций
-                    </div>
-                )}
-            </div>
+                    )}
+                </div>
+            </PageContainer>
 
             {selectedRealEstateId && hasContent && (
                 <CheckoutTotal
@@ -495,7 +498,7 @@ export function CheckoutPage() {
                 searchStatus={executorsSearchStatus}
                 visitPrices={visitPrices}
             />
-        </div>
+        </>
     );
 }
 
