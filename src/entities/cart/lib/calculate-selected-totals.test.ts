@@ -3,7 +3,7 @@ import { describe, it, expect } from 'vitest';
 import { EServiceCategory } from '@/shared/model';
 import type { TCartItem } from '@/entities/cart';
 
-import { calculateSelectedTotals } from '@/entities/cart';
+import { calculateSelectedTotals } from './calculate-selected-totals';
 
 // ---- Фабрики ----
 
