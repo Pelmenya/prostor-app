@@ -101,42 +101,38 @@ export function ProductPage({ productId }: TProductPageProps) {
 
     // ---- Рендер ----
     return (
-        <>
-            <PageContainer bg="bg-base-100">
-                <div className="pb-4">
-                    <Breadcrumbs items={breadcrumbs} isLoading={isLoadingPath} />
-                </div>
+        <PageContainer bg="bg-base-100" footer={<ProductTotal cartItem={cartItem} />}>
+            <div className="pb-4">
+                <Breadcrumbs items={breadcrumbs} isLoading={isLoadingPath} />
+            </div>
 
-                <ProductSlider productId={product.id} />
+            <ProductSlider productId={product.id} />
 
-                <div className="bg-base-100 pt-4 flex flex-col">
-                    <h1 className="text-lg leading-[110%] font-medium">{product.name}</h1>
+            <div className="bg-base-100 pt-4 flex flex-col">
+                <h1 className="text-lg leading-[110%] font-medium">{product.name}</h1>
 
-                    <ProductTabSwitcher
+                <ProductTabSwitcher
+                    activeTab={effectiveTab}
+                    onTabChange={setActiveTab}
+                    hasInstallationServices={hasInstallationServices}
+                    hasServiceServices={hasServiceServices}
+                />
+
+                <div className="mt-4">
+                    <ProductTabContent
                         activeTab={effectiveTab}
-                        onTabChange={setActiveTab}
-                        hasInstallationServices={hasInstallationServices}
-                        hasServiceServices={hasServiceServices}
+                        product={product}
+                        cartItem={cartItem}
+                        isVisible={isVisible}
+                        filteredServices={filteredServices}
+                        onProductIncrement={handleProductIncrement}
+                        onProductDecrement={handleProductDecrement}
+                        onServiceIncrement={handleServiceIncrement}
+                        onServiceDecrement={handleServiceDecrement}
+                        onCheckboxChange={handleCheckboxChange}
                     />
-
-                    <div className="mt-4">
-                        <ProductTabContent
-                            activeTab={effectiveTab}
-                            product={product}
-                            cartItem={cartItem}
-                            isVisible={isVisible}
-                            filteredServices={filteredServices}
-                            onProductIncrement={handleProductIncrement}
-                            onProductDecrement={handleProductDecrement}
-                            onServiceIncrement={handleServiceIncrement}
-                            onServiceDecrement={handleServiceDecrement}
-                            onCheckboxChange={handleCheckboxChange}
-                        />
-                    </div>
                 </div>
-            </PageContainer>
-
-            <ProductTotal cartItem={cartItem} />
-        </>
+            </div>
+        </PageContainer>
     );
 }

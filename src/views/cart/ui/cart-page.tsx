@@ -37,72 +37,68 @@ export function CartPage() {
     const dialog = useCartConfirmDialog();
 
     return (
-        <>
-            <PageContainer>
-                <div className="flex flex-col gap-4 lg:gap-6">
-                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                        <div className="flex items-center gap-4">
-                            <PageTitle>Корзина</PageTitle>
-                            {totalCount > 0 && (
-                                <span className="badge badge-sm badge-primary">{totalCount}</span>
-                            )}
-                        </div>
-
-                        {hasItems && (
-                            <div className="flex items-center justify-between gap-6">
-                                <label className="flex cursor-pointer items-center gap-2">
-                                    <input
-                                        type="checkbox"
-                                        className="checkbox checkbox-sm"
-                                        checked={allSelected}
-                                        onChange={(e) => toggleAllSelected(e.target.checked)}
-                                    />
-                                    <span className="text-sm">Выбрать все</span>
-                                </label>
-                                <button
-                                    className="btn btn-outline btn-xs"
-                                    onClick={dialog.requestRemoveSelected}
-                                    disabled={!hasSelected}
-                                    aria-label="Удалить выбранные"
-                                >
-                                    <ArchiveBoxXMarkIcon className="size-2.75" />
-                                </button>
-                            </div>
+        <PageContainer footer={<CartTotal />}>
+            <div className="flex flex-col gap-4 lg:gap-6">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex items-center gap-4">
+                        <PageTitle>Корзина</PageTitle>
+                        {totalCount > 0 && (
+                            <span className="badge badge-sm badge-primary">{totalCount}</span>
                         )}
                     </div>
 
-                    {!hydrated ? (
-                        <div className="flex justify-center py-12">
-                            <span className="loading loading-spinner loading-md" />
+                    {hasItems && (
+                        <div className="flex items-center justify-between gap-6">
+                            <label className="flex cursor-pointer items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    className="checkbox checkbox-sm"
+                                    checked={allSelected}
+                                    onChange={(e) => toggleAllSelected(e.target.checked)}
+                                />
+                                <span className="text-sm">Выбрать все</span>
+                            </label>
+                            <button
+                                className="btn btn-outline btn-xs"
+                                onClick={dialog.requestRemoveSelected}
+                                disabled={!hasSelected}
+                                aria-label="Удалить выбранные"
+                            >
+                                <ArchiveBoxXMarkIcon className="size-2.75" />
+                            </button>
                         </div>
-                    ) : hasItems ? (
-                        <CartItemList
-                            items={items}
-                            imageUrls={imageUrls}
-                            imageLoadingIds={loadingIds}
-                            onToggleProduct={toggleProductSelected}
-                            onToggleService={toggleServiceSelected}
-                            onUpdateProductCount={updateProductCount}
-                            onUpdateServiceCount={updateServiceCount}
-                            onRemoveProduct={dialog.requestRemoveProduct}
-                            onRemoveService={dialog.requestRemoveService}
-                        />
-                    ) : (
-                        <CartEmpty />
                     )}
                 </div>
 
-                <ConfirmDialog
-                    isOpen={dialog.isOpen}
-                    onClose={dialog.close}
-                    onConfirm={dialog.confirm}
-                    title={dialog.title}
-                    message={dialog.message}
-                    confirmText="Удалить"
-                />
-            </PageContainer>
+                {!hydrated ? (
+                    <div className="flex justify-center py-12">
+                        <span className="loading loading-spinner loading-md" />
+                    </div>
+                ) : hasItems ? (
+                    <CartItemList
+                        items={items}
+                        imageUrls={imageUrls}
+                        imageLoadingIds={loadingIds}
+                        onToggleProduct={toggleProductSelected}
+                        onToggleService={toggleServiceSelected}
+                        onUpdateProductCount={updateProductCount}
+                        onUpdateServiceCount={updateServiceCount}
+                        onRemoveProduct={dialog.requestRemoveProduct}
+                        onRemoveService={dialog.requestRemoveService}
+                    />
+                ) : (
+                    <CartEmpty />
+                )}
+            </div>
 
-            <CartTotal />
-        </>
+            <ConfirmDialog
+                isOpen={dialog.isOpen}
+                onClose={dialog.close}
+                onConfirm={dialog.confirm}
+                title={dialog.title}
+                message={dialog.message}
+                confirmText="Удалить"
+            />
+        </PageContainer>
     );
 }

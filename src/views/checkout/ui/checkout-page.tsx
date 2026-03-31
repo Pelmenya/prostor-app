@@ -263,9 +263,22 @@ export function CheckoutPage() {
         setIsSubmitting(false);
     };
 
+    const checkoutFooter =
+        selectedRealEstateId && hasContent ? (
+            <CheckoutTotal
+                clientVisitPrice={visitPriceForTotal}
+                onAction={handleSubmit}
+                disabled={!canSubmit}
+                isLoading={isSubmitting}
+            />
+        ) : undefined;
+
     return (
         <>
-            <PageContainer className={isSubmitting ? 'pointer-events-none opacity-50' : ''}>
+            <PageContainer
+                className={isSubmitting ? 'pointer-events-none opacity-50' : ''}
+                footer={checkoutFooter}
+            >
                 <div className="flex flex-col gap-4 pb-4">
                     <PageTitle>Оформление</PageTitle>
 
@@ -452,15 +465,6 @@ export function CheckoutPage() {
                     )}
                 </div>
             </PageContainer>
-
-            {selectedRealEstateId && hasContent && (
-                <CheckoutTotal
-                    clientVisitPrice={visitPriceForTotal}
-                    onAction={handleSubmit}
-                    disabled={!canSubmit}
-                    isLoading={isSubmitting}
-                />
-            )}
 
             <OrderScheduleDialog
                 isOpen={isScheduleDialogOpen}
