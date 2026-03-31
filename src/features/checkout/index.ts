@@ -6,5 +6,6 @@ export { OrderScheduleDialog } from './ui/order-schedule-dialog/order-schedule-d
 export { CheckoutTotal } from './ui/checkout-total/checkout-total';
 export { CheckoutProductsList } from './ui/checkout-items/checkout-products-list';
 export { CheckoutServicesList } from './ui/checkout-items/checkout-services-list';
+export { CheckoutSection } from './ui/checkout-section';
 export type { TUserWithWorkDays } from './model/types/t-user-with-work-days';
 export type { TWorkDay } from '@/entities/order';

@@ -27,7 +27,7 @@ export function RealEstateCard({ realEstate, onDelete, onClick }: TRealEstateCar
                     <h3 className="font-semibold text-sm">
                         {getRealEstateTypeName(realEstate.activeType)}
                     </h3>
-                    <p className="text-xs text-base-content/70 line-clamp-2 break-words">
+                    <p className="text-xs text-base-content/70 line-clamp-2 wrap-break-word">
                         {realEstate.address || 'Адрес не указан'}
                     </p>
                     <div className="flex gap-2 text-xs text-base-content/50">

@@ -4,7 +4,6 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { PlusCircleIcon } from '@heroicons/react/24/solid';
-import { toast } from 'react-toastify';
 import { useRealEstates, useDeleteRealEstate, RealEstateCard } from '@/entities/real-estate';
 import { PageContainer, PageTitle, ConfirmDialog } from '@/shared/ui';
 
@@ -18,9 +17,8 @@ export function AddressesPage() {
         if (deletingId === null) return;
         try {
             await deleteRealEstate.mutateAsync(deletingId);
-            toast.success('Адрес удалён');
         } catch {
-            toast.error('Не удалось удалить адрес');
+            // TODO: уведомление об ошибке (когда определимся с решением)
         } finally {
             setDeletingId(null);
         }

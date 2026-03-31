@@ -2,7 +2,6 @@
 
 import { FC, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { toast } from 'react-toastify';
 import { useCreateRealEstate, useUpdateRealEstate } from '@/entities/real-estate';
 import { useRealEstateWizardStore } from '../../../../model/real-estate-wizard.store';
 import { WaterIntakePoint } from './components/water-intake-point/water-intake-point';
@@ -73,7 +72,7 @@ export const StepThree: FC<TWizardStepProps> = ({ onPrev, editMode, id, onCancel
                 router.push('/real-estate');
             }
         } catch {
-            toast.error('Не удалось сохранить объект');
+            // TODO: уведомление об ошибке (когда определимся с решением)
         }
     };
 

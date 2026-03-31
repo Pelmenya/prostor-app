@@ -17,6 +17,7 @@ import {
     CheckoutTotal,
     CheckoutProductsList,
     CheckoutServicesList,
+    CheckoutSection,
 } from '@/features/checkout';
 import type { TUserWithWorkDays, TWorkDay } from '@/features/checkout';
 import { PageContainer, PageTitle } from '@/shared/ui';
@@ -274,9 +275,7 @@ export function CheckoutPage() {
                         <>
                             {/* Доставка (только если есть товары) */}
                             {hasProducts && (
-                                <div className="flex flex-col gap-3">
-                                    <h4 className="text-lg font-semibold">Доставка</h4>
-
+                                <CheckoutSection title="Доставка">
                                     <div role="tablist" className="tabs tabs-border">
                                         {tabs
                                             .filter((t) => t.show)
@@ -362,28 +361,26 @@ export function CheckoutPage() {
                                             </p>
                                         </div>
                                     )}
-                                </div>
+                                </CheckoutSection>
                             )}
 
                             {/* Список товаров */}
                             {hasProducts && (
-                                <div className="flex flex-col gap-2">
-                                    <h4 className="text-lg font-semibold">Товары</h4>
+                                <CheckoutSection title="Товары">
                                     <CheckoutProductsList items={selectedItems} />
-                                </div>
+                                </CheckoutSection>
                             )}
 
                             {/* Список услуг */}
                             {hasServices && (
-                                <div className="flex flex-col gap-2">
-                                    <h4 className="text-lg font-semibold">Услуги</h4>
+                                <CheckoutSection title="Услуги">
                                     <CheckoutServicesList items={selectedItems} />
-                                </div>
+                                </CheckoutSection>
                             )}
 
                             {/* Секция мастера (для услуг без master_delivery) */}
                             {needServiceMasterSection && (
-                                <div className="flex flex-col gap-3">
+                                <CheckoutSection title="Исполнитель">
                                     <VisitPriceBlock
                                         isLoading={executorsSearchStatus === 'loading'}
                                         clientVisitPrice={clientVisitPriceData}
@@ -416,7 +413,7 @@ export function CheckoutPage() {
                                               ? 'Изменить интервал дат'
                                               : 'Выбрать желаемый интервал дат'}
                                     </button>
-                                </div>
+                                </CheckoutSection>
                             )}
 
                             {/* Email для чека */}
@@ -524,7 +521,7 @@ function VisitPriceBlock({ isLoading, clientVisitPrice, minVisitPrice }: TVisitP
             <div className="rounded-xl bg-base-100 p-3 text-sm">
                 <div className="flex justify-between">
                     <span>Выезд к клиенту ({clientVisitPrice.distanceKm} км)</span>
-                    <span className="font-semibold">
+                    <span className="font-semibold text-primary">
                         {(clientVisitPrice.totalPrice / 100).toLocaleString('ru-RU')} ₽
                     </span>
                 </div>
@@ -537,7 +534,7 @@ function VisitPriceBlock({ isLoading, clientVisitPrice, minVisitPrice }: TVisitP
             <div className="rounded-xl bg-base-100 p-3 text-sm">
                 <div className="flex justify-between">
                     <span>Выезд к клиенту</span>
-                    <span className="font-semibold">
+                    <span className="font-semibold text-primary">
                         от {(minVisitPrice / 100).toLocaleString('ru-RU')} ₽
                     </span>
                 </div>
@@ -555,7 +552,6 @@ type TExecutorPreviewProps = {
 function ExecutorPreview({ executor }: TExecutorPreviewProps) {
     return (
         <div className="flex flex-col gap-2">
-            <h4 className="text-sm font-semibold">Исполнитель</h4>
             <div className="flex items-center gap-2">
                 {executor.user.photo_url && (
                     <Image

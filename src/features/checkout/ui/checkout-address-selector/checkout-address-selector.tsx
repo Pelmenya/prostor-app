@@ -3,6 +3,7 @@
 import { useRealEstates } from '@/entities/real-estate';
 import { RealEstateCard } from '@/entities/real-estate';
 import { useCheckoutStore } from '../../model/checkout.store';
+import { CheckoutSection } from '../checkout-section';
 
 type TCheckoutAddressSelectorProps = {
     onChange?: () => void;
@@ -29,7 +30,7 @@ export function CheckoutAddressSelector({ onChange }: TCheckoutAddressSelectorPr
         return (
             <div className="flex flex-col gap-4">
                 <div className="skeleton h-4 w-20" />
-                <div className="skeleton h-[106px] w-full rounded-2xl" />
+                <div className="skeleton h-26.5 w-full rounded-2xl" />
             </div>
         );
     }
@@ -47,8 +48,7 @@ export function CheckoutAddressSelector({ onChange }: TCheckoutAddressSelectorPr
     }
 
     return (
-        <div className="flex flex-col gap-2">
-            <h4 className="text-sm font-semibold opacity-70">Адрес</h4>
+        <CheckoutSection title="Адрес">
             {displayed.map((re) => (
                 <div
                     key={re.id}
@@ -57,6 +57,6 @@ export function CheckoutAddressSelector({ onChange }: TCheckoutAddressSelectorPr
                     <RealEstateCard realEstate={re} onClick={handleSelect} />
                 </div>
             ))}
-        </div>
+        </CheckoutSection>
     );
 }
