@@ -11,7 +11,8 @@ import {
     CartItemList,
     useCartHydrated,
 } from '@/entities/cart';
-import { CartTotal, useCartImages, useCartConfirmDialog } from '@/features/cart';
+import { CartTotal, useCartConfirmDialog } from '@/features/cart';
+import { useProductThumbnails } from '@/entities/product';
 import { PageContainer, PageTitle, ConfirmDialog } from '@/shared/ui';
 
 export function CartPage() {
@@ -29,7 +30,7 @@ export function CartPage() {
     const productIds = Object.entries(items)
         .filter(([, item]) => item.count > 0)
         .map(([id]) => id);
-    const { imageUrls, loadingIds } = useCartImages(productIds);
+    const { imageUrls, loadingIds } = useProductThumbnails(productIds);
     const totalCount = selectTotalItems(items);
     const allSelected = selectAreAllSelected(items);
     const hasSelected = selectHasSelectedItems(items);

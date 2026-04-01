@@ -139,9 +139,9 @@ function IntervalPicker({ onSelect, onClose }: TIntervalPickerProps) {
 
     return (
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <p className="text-warning text-sm">
-                Не удалось найти мастеров по вашему адресу. Выберите желаемый интервал — мы
-                что-нибудь придумаем.
+            <p className="text-sm text-base-content/70">
+                Не удалось найти мастеров по вашему адресу. Выберите желаемый интервал — мы подберем
+                подходящего мастера
             </p>
             <div className="flex flex-col gap-2">
                 <label className="text-sm">С</label>

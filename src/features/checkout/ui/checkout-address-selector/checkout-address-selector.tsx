@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { PencilSquareIcon, PlusCircleIcon } from '@heroicons/react/24/outline';
+import { PlusCircleIcon } from '@heroicons/react/24/outline';
 import { useRealEstates } from '@/entities/real-estate';
 import { RealEstateCard } from '@/entities/real-estate';
 import { CompactModal } from '@/shared/ui';
@@ -62,11 +62,10 @@ export function CheckoutAddressSelector({ onChange }: TCheckoutAddressSelectorPr
             <CheckoutSection title="Адрес">
                 {selectedRealEstate ? (
                     <div
-                        className="relative rounded-2xl ring-2 ring-primary transition-opacity active:opacity-70 cursor-pointer"
+                        className="rounded-2xl ring-2 ring-primary transition-opacity active:opacity-70 cursor-pointer"
                         onClick={() => setIsModalOpen(true)}
                     >
-                        <RealEstateCard realEstate={selectedRealEstate} />
-                        <PencilSquareIcon className="absolute top-4 right-4 size-6 pointer-events-none" />
+                        <RealEstateCard realEstate={selectedRealEstate} showEditIcon />
                     </div>
                 ) : (
                     <div className="flex flex-col gap-2">

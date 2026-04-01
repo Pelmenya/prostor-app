@@ -9,11 +9,16 @@ import { TYPE_ICONS } from '../../lib/real-estate-type-icons';
 type TRealEstateCardProps = {
     realEstate: TRealEstate;
     onDelete?: (id: number) => void;
-    onEdit?: (id: number) => void;
+    showEditIcon?: boolean;
     onClick?: (id: number) => void;
 };
 
-export function RealEstateCard({ realEstate, onDelete, onEdit, onClick }: TRealEstateCardProps) {
+export function RealEstateCard({
+    realEstate,
+    onDelete,
+    showEditIcon,
+    onClick,
+}: TRealEstateCardProps) {
     const Icon = TYPE_ICONS[realEstate.activeType] ?? HomeModernIcon;
 
     return (
@@ -36,18 +41,7 @@ export function RealEstateCard({ realEstate, onDelete, onEdit, onClick }: TRealE
                         <span>{getWaterSourceName(realEstate.activeSource)}</span>
                     </div>
                 </div>
-                {onEdit && (
-                    <button
-                        className="btn btn-ghost btn-sm btn-square shrink-0"
-                        aria-label="Изменить адрес"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onEdit(realEstate.id);
-                        }}
-                    >
-                        <PencilSquareIcon className="size-4" />
-                    </button>
-                )}
+                {showEditIcon && <PencilSquareIcon className="size-6" />}
                 {onDelete && (
                     <button
                         className="btn btn-ghost btn-sm btn-square shrink-0"
