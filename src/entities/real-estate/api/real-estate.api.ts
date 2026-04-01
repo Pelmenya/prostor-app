@@ -89,14 +89,13 @@ export function useNearestRetailStores(params: TNearestRetailStoresParams | null
             : ['real-estate', 'nearest-stores', null],
         queryFn: () => {
             const { realEstateId, limit = 10, cartItems } = params!;
-            const search = new URLSearchParams({
-                realEstateId: String(realEstateId),
-                limit: String(limit),
-            });
-            return api<TRetailStoreWithRouteInfo[]>(`/real-estate/nearest-stores?${search}`, {
-                method: 'POST',
-                body: cartItems ? { cartItems } : {},
-            });
+            const search = new URLSearchParams({ limit: String(limit) });
+            if (cartItems?.length) {
+                search.set('cartItems', JSON.stringify(cartItems));
+            }
+            return api<TRetailStoreWithRouteInfo[]>(
+                `/real-estate/${realEstateId}/retail-stores?${search}`,
+            );
         },
         enabled: params !== null,
     });
