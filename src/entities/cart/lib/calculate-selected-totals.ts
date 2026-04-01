@@ -1,4 +1,4 @@
-import type { TCartItem } from '@/entities/cart';
+import type { TCartItem } from '../model/cart.store';
 import { EServiceCategory } from '@/shared/model';
 
 export type TSelectedTotals = {

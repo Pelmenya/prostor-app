@@ -29,5 +29,3 @@ export type {
     TUpdateRealEstate,
     TRetailStoreWithRouteInfo,
 } from './t-real-estate';
-
-export type { TCreateCheckoutSession, TCheckoutSessionResponse } from './t-checkout-session';

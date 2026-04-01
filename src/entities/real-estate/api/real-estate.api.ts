@@ -85,7 +85,7 @@ export function useNearestRetailStores(params: TNearestRetailStoresParams | null
 
     return useQuery({
         queryKey: params
-            ? realEstateKeys.nearestStores(params.realEstateId)
+            ? [...realEstateKeys.nearestStores(params.realEstateId), params.cartItems ?? []]
             : ['real-estate', 'nearest-stores', null],
         queryFn: () => {
             const { realEstateId, limit = 10, cartItems } = params!;

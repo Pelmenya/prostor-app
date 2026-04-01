@@ -3,7 +3,7 @@
 import { CompactModal } from '@/shared/ui';
 import { formatDateRu } from '@/shared/lib';
 import type { TUserWithWorkDays } from '../../model/types/t-user-with-work-days';
-import type { TWorkDay } from '../../model/types/t-work-day';
+import type { TWorkDay } from '@/entities/order';
 import type { TClientVisitPriceItem } from '@/entities/delivery';
 
 type TOrderScheduleDialogProps = {
@@ -125,6 +125,14 @@ function IntervalPicker({ onSelect, onClose }: TIntervalPickerProps) {
         const from = fd.get('from') as string;
         const to = fd.get('to') as string;
         if (!from || !to) return;
+        if (from > to) {
+            (e.currentTarget.elements.namedItem('to') as HTMLInputElement).setCustomValidity(
+                'Дата окончания должна быть не раньше даты начала',
+            );
+            (e.currentTarget.elements.namedItem('to') as HTMLInputElement).reportValidity();
+            return;
+        }
+        (e.currentTarget.elements.namedItem('to') as HTMLInputElement).setCustomValidity('');
         onSelect({ user: null, workDays: [makeWorkDay(from), makeWorkDay(to)] });
         onClose();
     };

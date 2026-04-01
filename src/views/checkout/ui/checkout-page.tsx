@@ -1,16 +1,16 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { useCartStore, selectSelectedItems, CART_QUERY_KEY } from '@/entities/cart';
-import { useCart } from '@/entities/cart';
+import { useCartStore, selectSelectedItems } from '@/entities/cart';
 import { useAuth } from '@/shared/lib/platform';
-import { useCreateOrder, EDeliveryType } from '@/entities/order';
+import { EDeliveryType } from '@/entities/order';
 import { useClientVisitPrices } from '@/entities/delivery';
 import {
     useCheckoutStore,
-    useFilteredExecutors,
+    useCheckoutExecutors,
+    useCheckoutSubmit,
+    isEmailValid,
     CheckoutAddressSelector,
     PickupStoreSelector,
     OrderScheduleDialog,
@@ -22,27 +22,18 @@ import {
 import type { TUserWithWorkDays, TWorkDay } from '@/features/checkout';
 import { PageContainer, PageTitle } from '@/shared/ui';
 import { formatDateRu } from '@/shared/lib';
-import { useQueryClient } from '@tanstack/react-query';
 
 type TDeliveryTab = 'pickup' | 'master_delivery' | 'transport_company';
 
-const sleep = (ms: number) => new Promise<void>((res) => setTimeout(res, ms));
-const expBackoff = (attempt: number) => Math.min(400 * Math.pow(2, attempt), 3000);
-
 export function CheckoutPage() {
-    const router = useRouter();
-    const queryClient = useQueryClient();
     const { user } = useAuth();
     const items = useCartStore((s) => s.items);
     const selectedItems = selectSelectedItems(items);
-
-    const { data: cartData } = useCart();
 
     const selectedRealEstateId = useCheckoutStore((s) => s.selectedRealEstateId);
     const selectedPickupStore = useCheckoutStore((s) => s.selectedPickupStore);
     const setSelectedPickupStore = useCheckoutStore((s) => s.setSelectedPickupStore);
 
-    // Подсчёт что в корзине
     const hasProducts = Object.values(selectedItems).some(
         (item) => item.selectedForCheckout && item.count > 0,
     );
@@ -53,7 +44,6 @@ export function CheckoutPage() {
     );
     const hasContent = hasProducts || hasServices;
 
-    // ID услуг и товаров для фильтрации мастеров
     const serviceIdsForFilter: string[] = [];
     const productItemsForFilter: { productId: string; count: number }[] = [];
     for (const [productId, item] of Object.entries(selectedItems)) {
@@ -67,45 +57,19 @@ export function CheckoutPage() {
         }
     }
 
-    // Мастера
-    const { mutateAsync: fetchFilteredExecutors } = useFilteredExecutors();
-    const [executorsWithWorkDays, setExecutorsWithWorkDays] = useState<TUserWithWorkDays[]>([]);
-    const [executorsSearchStatus, setExecutorsSearchStatus] = useState<
-        'idle' | 'loading' | 'success' | 'failed'
-    >('idle');
-    const [hasMasters, setHasMasters] = useState<boolean | null>(null);
-    const [allMastersRejectedByCargo, setAllMastersRejectedByCargo] = useState(false);
-    const [hasProductsWithoutDimensions, setHasProductsWithoutDimensions] = useState(false);
+    const {
+        executorsWithWorkDays,
+        executorsSearchStatus,
+        hasMasters,
+        allMastersRejectedByCargo,
+        hasProductsWithoutDimensions,
+        loadExecutors,
+        resetExecutors,
+    } = useCheckoutExecutors({
+        serviceIds: serviceIdsForFilter,
+        productItems: productItemsForFilter,
+    });
 
-    const loadExecutors = async (realEstateId: number) => {
-        setExecutorsSearchStatus('loading');
-        const MAX_ATTEMPTS = 3;
-        for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
-            try {
-                const result = await fetchFilteredExecutors({
-                    realEstateId,
-                    serviceIds: serviceIdsForFilter.length > 0 ? serviceIdsForFilter : undefined,
-                    productItems:
-                        productItemsForFilter.length > 0 ? productItemsForFilter : undefined,
-                });
-                setExecutorsWithWorkDays(result.executors);
-                setHasMasters(result.executors.length > 0);
-                setAllMastersRejectedByCargo(result.allMastersRejectedByCargo);
-                setHasProductsWithoutDimensions(result.hasProductsWithoutDimensions);
-                setExecutorsSearchStatus('success');
-                return;
-            } catch {
-                if (attempt === MAX_ATTEMPTS - 1) {
-                    setExecutorsSearchStatus('failed');
-                    setHasMasters(false);
-                } else {
-                    await sleep(expBackoff(attempt));
-                }
-            }
-        }
-    };
-
-    // Цены выезда
     const executorIds = executorsWithWorkDays.map((e) => Number(e.user.id));
     const { data: visitPrices } = useClientVisitPrices({
         realEstateId: selectedRealEstateId ?? 0,
@@ -114,25 +78,20 @@ export function CheckoutPage() {
             !!selectedRealEstateId && executorIds.length > 0 && executorsSearchStatus === 'success',
     });
 
-    // Доставка
     const [activeTab, setActiveTab] = useState<TDeliveryTab>('pickup');
     const [hasPickupStores, setHasPickupStores] = useState(true);
-
-    // Мастер / дата
     const [selectedExecutor, setSelectedExecutor] = useState<TUserWithWorkDays | null>(null);
     const [desiredIntervalDate, setDesiredIntervalDate] = useState<[TWorkDay, TWorkDay] | null>(
         null,
     );
     const [isScheduleDialogOpen, setScheduleDialogOpen] = useState(false);
-
-    // Поля формы
     const [clientComment, setClientComment] = useState('');
     const [receiptEmail, setReceiptEmail] = useState(user?.email ?? '');
-    const [orderError, setOrderError] = useState<string | null>(null);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const submittingLockRef = useRef(false);
 
-    const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(receiptEmail);
+    const isMasterDelivery = hasProducts && activeTab === 'master_delivery';
+    const needServiceMasterSection = hasServices && !isMasterDelivery;
+    const masterAvailable =
+        hasMasters === true && !allMastersRejectedByCargo && !hasProductsWithoutDimensions;
 
     const deliveryType: EDeliveryType | undefined = hasProducts
         ? activeTab === 'pickup'
@@ -141,12 +100,6 @@ export function CheckoutPage() {
               ? EDeliveryType.MASTER_DELIVERY
               : EDeliveryType.TRANSPORT_COMPANY
         : undefined;
-
-    const isMasterDelivery = hasProducts && activeTab === 'master_delivery';
-    const needServiceMasterSection = hasServices && !isMasterDelivery;
-
-    const masterAvailable =
-        hasMasters === true && !allMastersRejectedByCargo && !hasProductsWithoutDimensions;
 
     const clientVisitPriceData =
         visitPrices && selectedExecutor?.user?.id
@@ -168,12 +121,13 @@ export function CheckoutPage() {
           : (!!selectedExecutor && (selectedExecutor.workDays?.length ?? 0) > 0) ||
             !!desiredIntervalDate;
 
+    const emailValid = isEmailValid(receiptEmail);
+
     const canSubmit =
         !!user &&
         !!selectedRealEstateId &&
         hasContent &&
-        isEmailValid &&
-        !isSubmitting &&
+        emailValid &&
         !(hasProducts && activeTab === 'pickup' && !selectedPickupStore) &&
         !(
             hasProducts &&
@@ -182,16 +136,23 @@ export function CheckoutPage() {
         ) &&
         hasSchedule;
 
+    const { isSubmitting, orderError, handleSubmit } = useCheckoutSubmit({
+        deliveryType,
+        hasProducts,
+        activeTab,
+        selectedExecutor,
+        desiredIntervalDate,
+        clientComment,
+        receiptEmail,
+    });
+
     const handleAddressChange = () => {
         setSelectedPickupStore(null);
         setSelectedExecutor(null);
         setDesiredIntervalDate(null);
-        setHasMasters(null);
-        setExecutorsWithWorkDays([]);
-        setExecutorsSearchStatus('idle');
+        resetExecutors();
     };
 
-    // При смене адреса — сбрасываем и загружаем мастеров
     useEffect(() => {
         handleAddressChange();
         if (selectedRealEstateId) {
@@ -207,68 +168,12 @@ export function CheckoutPage() {
         { key: 'transport_company', label: 'ТК', show: !showMasterTab },
     ];
 
-    const { mutateAsync: createOrder } = useCreateOrder();
-
-    const handleSubmit = async () => {
-        if (submittingLockRef.current || isSubmitting || !canSubmit) return;
-        submittingLockRef.current = true;
-        setIsSubmitting(true);
-        setOrderError(null);
-
-        const cartId = cartData?.id;
-        if (!cartId) {
-            setOrderError('Корзина не синхронизирована. Попробуйте ещё раз.');
-            submittingLockRef.current = false;
-            setIsSubmitting(false);
-            return;
-        }
-
-        const MAX_ATTEMPTS = 3;
-        for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
-            try {
-                const order = await createOrder({
-                    clientId: user!.id,
-                    realEstateId: selectedRealEstateId!,
-                    cartId,
-                    deliveryType,
-                    pickupStoreId:
-                        hasProducts && activeTab === 'pickup' ? selectedPickupStore?.id : undefined,
-                    organizationId:
-                        hasProducts && activeTab === 'pickup'
-                            ? selectedPickupStore?.organizationMoySkladId
-                            : undefined,
-                    executorId: selectedExecutor?.user?.id,
-                    scheduledDate: selectedExecutor?.workDays?.[0],
-                    desiredIntervalDate: desiredIntervalDate ?? undefined,
-                    clientComment: clientComment || undefined,
-                    email: receiptEmail || undefined,
-                });
-
-                await queryClient.invalidateQueries({ queryKey: CART_QUERY_KEY });
-                router.replace(`/orders/${order.id}`);
-                return;
-            } catch (err) {
-                if (attempt === MAX_ATTEMPTS - 1) {
-                    console.error('[checkout] handleSubmit error:', err);
-                    setOrderError(
-                        'Ошибка при оформлении. Проверьте соединение и попробуйте ещё раз.',
-                    );
-                } else {
-                    await sleep(expBackoff(attempt));
-                }
-            }
-        }
-
-        submittingLockRef.current = false;
-        setIsSubmitting(false);
-    };
-
     const checkoutFooter =
         selectedRealEstateId && hasContent ? (
             <CheckoutTotal
                 clientVisitPrice={visitPriceForTotal}
                 onAction={handleSubmit}
-                disabled={!canSubmit}
+                disabled={!canSubmit || isSubmitting}
                 isLoading={isSubmitting}
             />
         ) : undefined;
@@ -286,7 +191,6 @@ export function CheckoutPage() {
 
                     {selectedRealEstateId && hasContent && (
                         <>
-                            {/* Доставка (только если есть товары) */}
                             {hasProducts && (
                                 <CheckoutSection title="Доставка">
                                     <div role="tablist" className="tabs tabs-border">
@@ -377,21 +281,18 @@ export function CheckoutPage() {
                                 </CheckoutSection>
                             )}
 
-                            {/* Список товаров */}
                             {hasProducts && (
                                 <CheckoutSection title="Товары">
                                     <CheckoutProductsList items={selectedItems} />
                                 </CheckoutSection>
                             )}
 
-                            {/* Список услуг */}
                             {hasServices && (
                                 <CheckoutSection title="Услуги">
                                     <CheckoutServicesList items={selectedItems} />
                                 </CheckoutSection>
                             )}
 
-                            {/* Секция мастера (для услуг без master_delivery) */}
                             {needServiceMasterSection && (
                                 <CheckoutSection title="Исполнитель">
                                     <VisitPriceBlock
@@ -429,16 +330,15 @@ export function CheckoutPage() {
                                 </CheckoutSection>
                             )}
 
-                            {/* Email для чека */}
                             <div className="flex flex-col gap-1">
                                 <input
                                     type="email"
                                     value={receiptEmail}
                                     onChange={(e) => setReceiptEmail(e.target.value)}
                                     placeholder="Email для чека"
-                                    className={`input input-bordered input-md w-full ${receiptEmail && !isEmailValid ? 'input-error' : ''}`}
+                                    className={`input input-bordered input-md w-full ${receiptEmail && !emailValid ? 'input-error' : ''}`}
                                 />
-                                {receiptEmail && !isEmailValid && (
+                                {receiptEmail && !emailValid && (
                                     <span className="text-xs text-error">
                                         Введите корректный email
                                     </span>
@@ -447,7 +347,6 @@ export function CheckoutPage() {
 
                             {orderError && <p className="text-error text-sm">{orderError}</p>}
 
-                            {/* Комментарий */}
                             <input
                                 type="text"
                                 value={clientComment}

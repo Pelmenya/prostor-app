@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo } from 'react';
+import { useEffect } from 'react';
 import { MapPinIcon as MapPinIconSolid } from '@heroicons/react/24/solid';
 import { MapPinIcon as MapPinIconOutline } from '@heroicons/react/24/outline';
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -24,13 +24,9 @@ export function PickupStoreSelector({
 }: TPickupStoreSelectorProps) {
     const items = useCartStore((s) => s.items);
 
-    const cartItemsForQuery = useMemo(
-        () =>
-            Object.entries(items)
-                .filter(([, item]) => item.selectedForCheckout && item.count > 0)
-                .map(([productId, item]) => ({ productId, count: item.count })),
-        [items],
-    );
+    const cartItemsForQuery = Object.entries(items)
+        .filter(([, item]) => item.selectedForCheckout && item.count > 0)
+        .map(([productId, item]) => ({ productId, count: item.count }));
 
     const {
         data: stores,
@@ -42,10 +38,7 @@ export function PickupStoreSelector({
         cartItems: cartItemsForQuery.length > 0 ? cartItemsForQuery : undefined,
     });
 
-    const filteredStores = useMemo(
-        () => (stores ?? []).filter((s) => s.availability === 'full'),
-        [stores],
-    );
+    const filteredStores = (stores ?? []).filter((s) => s.availability === 'full');
 
     useEffect(() => {
         if (isLoading || error) return;

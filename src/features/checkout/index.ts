@@ -1,4 +1,6 @@
 export { useCheckoutStore } from './model/checkout.store';
+export { useCheckoutExecutors } from './lib/use-checkout-executors';
+export { useCheckoutSubmit, isEmailValid } from './lib/use-checkout-submit';
 export { useFilteredExecutors } from './api/executor.api';
 export { CheckoutAddressSelector } from './ui/checkout-address-selector/checkout-address-selector';
 export { PickupStoreSelector } from './ui/pickup-store-selector/pickup-store-selector';
