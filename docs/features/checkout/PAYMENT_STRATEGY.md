@@ -7,9 +7,10 @@
 | 0   | Бэк: рефакторинг очереди — BullMQ вместо самописной | Бэк       | ⬜ 0%    |
 | 1   | Бэк: `YookassaService.createPayment()` + webhook    | Бэк       | ⬜ 0%    |
 | 2   | Бэк: `PaymentWebController` (web/create + webhook)  | Бэк       | ⬜ 0%    |
-| 3   | Фронт: `WebAdapter.pay()` (redirect/iframe ЮKassa)  | Web       | ⬜ 0%    |
-| 4   | Фронт: checkout-page интеграция с adapter.pay()     | Web       | ⬜ 0%    |
-| 5   | Тесты                                               | Оба       | ⬜ 0%    |
+| 3   | Бэк: уведомления по заказу — адаптер нотификаций    | Бэк       | ⬜ 0%    |
+| 4   | Фронт: `WebAdapter.pay()` (redirect/iframe ЮKassa)  | Web       | ⬜ 0%    |
+| 5   | Фронт: checkout-page интеграция с adapter.pay()     | Web       | ⬜ 0%    |
+| 6   | Тесты                                               | Оба       | ⬜ 0%    |
 
 ## Текущее состояние
 
@@ -195,7 +196,156 @@ async handleYookassaWebhook(@Body() body: YookassaWebhookDto) {
 - IP whitelist ЮKassa: `185.71.76.0/27`, `185.71.77.0/27`, `77.75.153.0/25`
 - Или проверка через `GET /payments/{id}` после получения webhook
 
-## Шаг 3: Фронт — WebAdapter.pay()
+## Шаг 3: Бэкенд — уведомления по заказу (NotificationAdapter)
+
+### Текущее состояние
+
+Сейчас уведомления работают **только через Telegram Bot**:
+
+```
+OrderCreated → BotService.sendOrderNotification()     → Telegram message клиенту
+OrderPaid    → BotService.sendPaymentConfirmation()   → Telegram message клиенту
+OrderAssigned→ BotService.notifyMaster()              → Telegram message мастеру
+StatusChanged→ BotService.notifyStatusUpdate()        → Telegram message клиенту + куратору
+```
+
+На вебе Telegram Bot **не доступен** — нужны email и web push.
+
+### Архитектура: Event-Driven + NotificationAdapter
+
+Паттерн уже заложен — `@nestjs/event-emitter` используется для email (welcome, verification, reset). Расширяем на заказы:
+
+```
+OrderService → eventEmitter.emit('order.created', event)
+                    ↓
+              NotificationListener (слушает ВСЕ order.* события)
+                    ↓
+              NotificationAdapter.notify(event, user)
+                    ├── TelegramNotificationAdapter  → Bot API (если user из Telegram)
+                    ├── EmailNotificationAdapter      → react-email + SMTP
+                    └── WebPushNotificationAdapter    → web-push (VAPID)
+```
+
+Адаптер выбирается по `UserIdentity.platform`:
+
+- `telegram` → Telegram Bot message
+- `web` → Email + Web Push
+
+### Жизненный цикл заказа — все точки уведомлений
+
+| Событие                | Получатель | Telegram | Email            | Web Push |
+| ---------------------- | ---------- | -------- | ---------------- | -------- |
+| `order.created`        | Клиент     | ✅ уже   | ⬜               | ⬜       |
+| `order.created`        | Куратор    | ✅ уже   | ⬜               | ⬜       |
+| `order.paid`           | Клиент     | ✅ уже   | ⬜               | ⬜       |
+| `order.assigned`       | Мастер     | ✅ уже   | ⬜               | ⬜       |
+| `order.status_changed` | Клиент     | ✅ уже   | ⬜               | ⬜       |
+| `order.completed`      | Клиент     | ✅ уже   | ⬜               | ⬜       |
+| `order.completed`      | Клиент     | —        | ⬜ запрос отзыва | —        |
+| `payment.failed`       | Клиент     | ⬜       | ⬜               | ⬜       |
+| `payment.refunded`     | Клиент     | ⬜       | ⬜               | ⬜       |
+
+### Email-шаблоны (react-email)
+
+Уже используется `@react-email/render` для welcome/verification/reset. Добавить шаблоны:
+
+```
+src/modules/notifications/emails/
+├── welcome.email.tsx           ← уже есть
+├── verify-email.email.tsx      ← уже есть
+├── reset-password.email.tsx    ← уже есть
+├── order-created.email.tsx     ← добавить
+├── order-paid.email.tsx        ← добавить
+├── order-assigned.email.tsx    ← добавить
+├── order-completed.email.tsx   ← добавить
+├── order-feedback.email.tsx    ← добавить
+└── payment-failed.email.tsx    ← добавить
+```
+
+### Web Push
+
+VAPID ключи уже есть, `RegisterSW` на фронте работает, `sw.js` обрабатывает push. Нужно:
+
+1. **Бэк:** хранить push-подписку (`PushSubscription` entity)
+2. **Бэк:** `WebPushService.send(subscription, payload)` через `web-push` npm
+3. **Фронт:** уже готов (`usePushNotifications` в features)
+
+### NotificationAdapter
+
+```typescript
+// src/modules/notifications/adapters/notification-adapter.interface.ts
+interface INotificationAdapter {
+    notify(event: TOrderEvent, recipient: User): Promise<void>;
+}
+
+// src/modules/notifications/adapters/telegram-notification.adapter.ts
+class TelegramNotificationAdapter implements INotificationAdapter {
+    // Существующая логика из BotService — вынести сюда
+}
+
+// src/modules/notifications/adapters/email-notification.adapter.ts
+class EmailNotificationAdapter implements INotificationAdapter {
+    // react-email render + SMTP send
+}
+
+// src/modules/notifications/adapters/web-push-notification.adapter.ts
+class WebPushNotificationAdapter implements INotificationAdapter {
+    // web-push npm
+}
+```
+
+### Listener (единая точка входа)
+
+```typescript
+// src/modules/notifications/listeners/order-notification.listener.ts
+@Injectable()
+export class OrderNotificationListener {
+    @OnEvent('order.created')
+    async onOrderCreated(event: OrderCreatedEvent) {
+        const adapters = this.resolveAdapters(event.user);
+        // Telegram user → TelegramAdapter
+        // Web user → EmailAdapter + WebPushAdapter
+        await Promise.allSettled(adapters.map((a) => a.notify(event, event.user)));
+    }
+}
+```
+
+### Определение платформы
+
+```typescript
+resolveAdapters(user: User): INotificationAdapter[] {
+    const identities = await this.userIdentityService.findAllByUser(user.id);
+    const adapters = [];
+
+    if (identities.some(i => i.platform === 'telegram')) {
+        adapters.push(this.telegramAdapter);
+    }
+
+    if (identities.some(i => i.platform === 'web')) {
+        adapters.push(this.emailAdapter);
+        if (user.pushSubscription) {
+            adapters.push(this.webPushAdapter);
+        }
+    }
+
+    return adapters;
+}
+```
+
+### BullMQ очереди для уведомлений
+
+```
+Событие → BullMQ queue 'notification'
+            ├── job: { type: 'email', to, template, data }
+            ├── job: { type: 'telegram', chatId, message }
+            └── job: { type: 'web-push', subscription, payload }
+```
+
+Каждый тип обрабатывается своим процессором. Retry, backoff, dead letter — из коробки.
+
+---
+
+## Шаг 4: Фронт — WebAdapter.pay()
 
 ```typescript
 // shared/lib/platform/adapters/web-adapter.ts
@@ -239,7 +389,7 @@ async pay(params: {
 
 **Решение:** начать с redirect (проще), потом перейти на виджет (лучший UX).
 
-## Шаг 4: Checkout-page интеграция
+## Шаг 5: Checkout-page интеграция
 
 ```typescript
 // views/checkout/ui/checkout-page.tsx
@@ -255,7 +405,7 @@ const handlePay = async () => {
 
 Checkout-page **не импортирует** ЮKassa SDK, Telegram Payments, MAX Payments. Только `adapter.pay()`.
 
-## Шаг 5: Тесты
+## Шаг 6: Тесты
 
 ### Бэкенд
 
