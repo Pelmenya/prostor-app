@@ -18,7 +18,7 @@ export function RealEstateCard({ realEstate, onDelete, onEdit, onClick }: TRealE
 
     return (
         <div
-            className={`card bg-base-100 border border-base-300 shadow-sm transition-all ${onClick ? 'cursor-pointer hover:shadow-md' : ''}`}
+            className={`bg-base-100 border border-base-300 shadow-sm rounded-2xl transition-all ${onClick ? 'cursor-pointer hover:shadow-md' : ''}`}
             onClick={onClick ? () => onClick(realEstate.id) : undefined}
         >
             <div className="card-body p-4 flex-row items-center gap-3">

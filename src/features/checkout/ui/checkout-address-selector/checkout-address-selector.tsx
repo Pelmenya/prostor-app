@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { PencilSquareIcon } from '@heroicons/react/24/outline';
+import Link from 'next/link';
+import { PencilSquareIcon, PlusCircleIcon } from '@heroicons/react/24/outline';
 import { useRealEstates } from '@/entities/real-estate';
 import { RealEstateCard } from '@/entities/real-estate';
 import { CompactModal } from '@/shared/ui';
@@ -41,9 +42,18 @@ export function CheckoutAddressSelector({ onChange }: TCheckoutAddressSelectorPr
 
     if (!data?.length) {
         return (
-            <div className="rounded-2xl bg-base-100 p-4 text-sm text-center opacity-60">
-                Нет добавленных объектов недвижимости
-            </div>
+            <CheckoutSection title="Адрес">
+                <div className="rounded-2xl bg-base-100 p-4 flex flex-col items-center gap-3 text-sm text-center">
+                    <p className="opacity-60">Нет добавленных адресов</p>
+                    <Link
+                        href="/real-estate/add?returnTo=/checkout"
+                        className="btn btn-primary btn-sm"
+                    >
+                        <PlusCircleIcon className="size-4" />
+                        Добавить адрес
+                    </Link>
+                </div>
+            </CheckoutSection>
         );
     }
 
@@ -52,13 +62,11 @@ export function CheckoutAddressSelector({ onChange }: TCheckoutAddressSelectorPr
             <CheckoutSection title="Адрес">
                 {selectedRealEstate ? (
                     <div
-                        className={`relative rounded-2xl ring-2 ring-primary transition-opacity active:opacity-70 ${data.length > 1 ? 'cursor-pointer' : ''}`}
-                        onClick={data.length > 1 ? () => setIsModalOpen(true) : undefined}
+                        className="relative rounded-2xl ring-2 ring-primary transition-opacity active:opacity-70 cursor-pointer"
+                        onClick={() => setIsModalOpen(true)}
                     >
                         <RealEstateCard realEstate={selectedRealEstate} />
-                        {data.length > 1 && (
-                            <PencilSquareIcon className="absolute top-4 right-4 size-6 pointer-events-none" />
-                        )}
+                        <PencilSquareIcon className="absolute top-4 right-4 size-6 pointer-events-none" />
                     </div>
                 ) : (
                     <div className="flex flex-col gap-2">
@@ -83,6 +91,13 @@ export function CheckoutAddressSelector({ onChange }: TCheckoutAddressSelectorPr
                             <RealEstateCard realEstate={re} onClick={handleSelect} />
                         </div>
                     ))}
+                    <Link
+                        href="/real-estate/add?returnTo=/checkout"
+                        className="btn btn-outline btn-sm w-full mt-1"
+                    >
+                        <PlusCircleIcon className="size-4" />
+                        Добавить новый адрес
+                    </Link>
                 </div>
             </CompactModal>
         </>

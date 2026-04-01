@@ -11,9 +11,14 @@ import { useRealEstateWizardStore } from '../../model/real-estate-wizard.store';
 type TRealEstateWizardProps = {
     id?: string;
     addressSearchSlot?: ReactNode;
+    onSuccess?: (newId: number) => void;
 };
 
-export const RealEstateWizard: FC<TRealEstateWizardProps> = ({ id, addressSearchSlot }) => {
+export const RealEstateWizard: FC<TRealEstateWizardProps> = ({
+    id,
+    addressSearchSlot,
+    onSuccess,
+}) => {
     const [step, setStep] = useState(1);
     const router = useRouter();
 
@@ -105,6 +110,7 @@ export const RealEstateWizard: FC<TRealEstateWizardProps> = ({ id, addressSearch
                     id={id}
                     onPrev={() => setStep(2)}
                     onCancel={handleCancel}
+                    onSuccess={onSuccess}
                 />
             )}
         </div>

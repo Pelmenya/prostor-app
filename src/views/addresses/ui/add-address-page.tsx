@@ -4,10 +4,14 @@ import { PageContainer } from '@/shared/ui';
 import { RealEstateWizard } from '@/features/real-estate';
 import { AddressSearchSlot } from './address-search-slot';
 
-export function AddAddressPage() {
+type TAddAddressPageProps = {
+    onSuccess?: (newId: number) => void;
+};
+
+export function AddAddressPage({ onSuccess }: TAddAddressPageProps) {
     return (
         <PageContainer>
-            <RealEstateWizard addressSearchSlot={<AddressSearchSlot />} />
+            <RealEstateWizard addressSearchSlot={<AddressSearchSlot />} onSuccess={onSuccess} />
         </PageContainer>
     );
 }

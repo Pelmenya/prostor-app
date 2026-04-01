@@ -12,15 +12,17 @@ export function AddressesPage() {
     const { data: realEstates, isLoading, isError } = useRealEstates();
     const deleteRealEstate = useDeleteRealEstate();
     const [deletingId, setDeletingId] = useState<number | null>(null);
+    const [deleteError, setDeleteError] = useState<string | null>(null);
 
     const handleConfirmDelete = async () => {
         if (deletingId === null) return;
+        setDeleteError(null);
         try {
             await deleteRealEstate.mutateAsync(deletingId);
-        } catch {
-            // TODO: уведомление об ошибке (когда определимся с решением)
-        } finally {
             setDeletingId(null);
+        } catch {
+            setDeletingId(null);
+            setDeleteError('Невозможно удалить адрес — по нему есть заказы');
         }
     };
 
@@ -46,11 +48,13 @@ export function AddressesPage() {
                     <div className="alert alert-error text-sm">Не удалось загрузить адреса</div>
                 )}
 
+                {deleteError && <div className="alert alert-error text-sm">{deleteError}</div>}
+
                 {!isLoading && !isError && (!realEstates || realEstates.length === 0) && (
                     <div className="card bg-base-100 border border-base-300 p-8 text-center">
                         <p className="text-base-content/60 mb-4">У вас пока нет адресов</p>
                         <Link href="/real-estate/add" className="btn btn-primary btn-sm mx-auto">
-                            Добавить первый адрес
+                            Добавить адрес
                         </Link>
                     </div>
                 )}
