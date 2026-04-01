@@ -2,13 +2,14 @@
 
 ## Прогресс
 
-| Шаг | Описание                                           | Платформа | Прогресс |
-| --- | -------------------------------------------------- | --------- | -------- |
-| 1   | Бэк: `YookassaService.createPayment()` + webhook   | Бэк       | ⬜ 0%    |
-| 2   | Бэк: `PaymentWebController` (web/create + webhook) | Бэк       | ⬜ 0%    |
-| 3   | Фронт: `WebAdapter.pay()` (redirect/iframe ЮKassa) | Web       | ⬜ 0%    |
-| 4   | Фронт: checkout-page интеграция с adapter.pay()    | Web       | ⬜ 0%    |
-| 5   | Тесты                                              | Оба       | ⬜ 0%    |
+| Шаг | Описание                                            | Платформа | Прогресс |
+| --- | --------------------------------------------------- | --------- | -------- |
+| 0   | Бэк: рефакторинг очереди — BullMQ вместо самописной | Бэк       | ⬜ 0%    |
+| 1   | Бэк: `YookassaService.createPayment()` + webhook    | Бэк       | ⬜ 0%    |
+| 2   | Бэк: `PaymentWebController` (web/create + webhook)  | Бэк       | ⬜ 0%    |
+| 3   | Фронт: `WebAdapter.pay()` (redirect/iframe ЮKassa)  | Web       | ⬜ 0%    |
+| 4   | Фронт: checkout-page интеграция с adapter.pay()     | Web       | ⬜ 0%    |
+| 5   | Тесты                                               | Оба       | ⬜ 0%    |
 
 ## Текущее состояние
 
@@ -40,6 +41,70 @@ features/checkout → PlatformAdapter.pay(order)
 ```
 
 Чекаут-страница **не знает** про конкретную платёжку. Вызывает `adapter.pay()` — адаптер решает как платить.
+
+## Шаг 0: Бэкенд — рефакторинг очереди на BullMQ
+
+### Проблема
+
+Сейчас очередь платежей — **самописная**: Redis list + cron каждые 30 сек (`PaymentWebhookQueueService`). Для MVP это работало, но для реальных платежей это ненадёжно:
+
+- **Нет retry с backoff** — если обработка упала, платёж потерян до следующего cron-цикла
+- **Нет dead letter queue** — перманентно failed платежи крутятся в цикле
+- **Нет concurrency control** — при нагрузке cron может запустить обработку дважды
+- **Нет мониторинга** — нет dashboard, нет метрик, нет alerting
+- **30 сек задержка** — пользователь ждёт полминуты между оплатой и подтверждением
+
+### Решение: BullMQ
+
+BullMQ уже в плане (CLAUDE.md, шаг 4 Strangle Fig Migration). NestJS имеет нативную интеграцию `@nestjs/bullmq`.
+
+```
+npm install @nestjs/bullmq bullmq
+```
+
+### Что заменяем
+
+| Сейчас (самописное)                           | BullMQ                                                       |
+| --------------------------------------------- | ------------------------------------------------------------ |
+| `PaymentWebhookQueueService.enqueuePayment()` | `paymentQueue.add('process-payment', data)`                  |
+| Cron каждые 30 сек                            | Event-driven: обработка мгновенно при добавлении в очередь   |
+| Нет retry                                     | `attempts: 3, backoff: { type: 'exponential', delay: 5000 }` |
+| Нет dead letter                               | `removeOnFail: false` → видно в dashboard                    |
+| Нет мониторинга                               | Bull Board dashboard (`@bull-board/nestjs`)                  |
+
+### Архитектура
+
+```typescript
+// payment-queue.module.ts
+@Module({
+    imports: [BullModule.registerQueue({ name: 'payment' })],
+    providers: [PaymentQueueProcessor],
+})
+// payment-queue.processor.ts
+@Processor('payment')
+export class PaymentQueueProcessor {
+    @Process('process-payment')
+    async handle(job: Job<TPaymentJob>) {
+        // Существующая логика из PaymentWebhookQueueService.processPayment()
+        // Retry, backoff, dead letter — BullMQ делает автоматически
+    }
+}
+```
+
+### Очереди для других задач (заодно)
+
+| Очередь         | Задача                                          |
+| --------------- | ----------------------------------------------- |
+| `payment`       | Обработка платежей (МойСклад sync, уведомления) |
+| `email`         | Отправка email (welcome, verification, reset)   |
+| `notification`  | Push-уведомления                                |
+| `moysklad-sync` | Фоновая синхронизация с МойСклад                |
+
+### Ветка
+
+`feature/bullmq-queues` от `main`
+
+---
 
 ## Шаг 1: Бэкенд — YookassaService.createPayment()
 
