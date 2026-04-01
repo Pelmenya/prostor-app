@@ -440,6 +440,58 @@ Checkout-page **не импортирует** ЮKassa SDK, Telegram Payments, MA
 - `WebAdapter.pay()` — ~20 строк
 - Страница `/checkout/success` — ~30 строк
 
+## Feature Flag: ENABLE_PAYMENTS
+
+Оплата управляется переменной окружения на **обоих** уровнях:
+
+### Бэкенд (`ENABLE_PAYMENTS`)
+
+Уже реализовано для Telegram Payments. При `false`:
+
+- `POST /checkout/session` — не создаёт invoice, заказ создаётся без оплаты
+- `POST /payment/create-invoice` — возвращает ошибку
+- Telegram Bot не обрабатывает `pre_checkout_query` и `successful_payment`
+
+При `true` — полный платёжный флоу (invoice → оплата → webhook → Order).
+
+### Фронтенд (`NEXT_PUBLIC_ENABLE_PAYMENTS`)
+
+При `false`:
+
+- Кнопка «Оплатить» скрыта
+- Статусы платежей не отображаются
+- Заказ создаётся без оплаты (только `POST /order/create-from-cart`)
+- Checkout-page показывает только «Оформить заказ» без платёжного UI
+
+При `true`:
+
+- Показывается кнопка «Оплатить»
+- `adapter.pay()` инициирует платёж
+- Отображаются статусы (pending, succeeded, failed)
+
+### Использование на фронте
+
+```typescript
+const PAYMENTS_ENABLED = process.env.NEXT_PUBLIC_ENABLE_PAYMENTS === 'true';
+
+// В checkout-page:
+{PAYMENTS_ENABLED ? (
+    <button onClick={handlePay}>Оплатить</button>
+) : (
+    <button onClick={handleCreateOrder}>Оформить заказ</button>
+)}
+```
+
+### Текущее состояние
+
+| Среда               | Бэк    | Фронт   | Результат                                   |
+| ------------------- | ------ | ------- | ------------------------------------------- |
+| **Прод (Telegram)** | `true` | —       | Оплата через Telegram Payments работает     |
+| **Прод (Web)**      | `true` | `false` | Заказ без оплаты (бэк для web ещё не готов) |
+| **Dev**             | `true` | `false` | Заказ без оплаты                            |
+
+Когда бэк для web-платежей будет готов (шаги 1-2) — включаем `NEXT_PUBLIC_ENABLE_PAYMENTS=true`.
+
 ## Конфигурация
 
 ### .env (бэк) — уже есть
@@ -452,10 +504,10 @@ YOOKASSA_VAT_RATE=22
 ENABLE_PAYMENTS=true
 ```
 
-### .env (фронт) — добавить
+### .env (фронт)
 
 ```env
-NEXT_PUBLIC_ENABLE_PAYMENTS=true   # показать/скрыть кнопку оплаты
+NEXT_PUBLIC_ENABLE_PAYMENTS=false   # включить после готовности бэка
 ```
 
 ## Ветки
