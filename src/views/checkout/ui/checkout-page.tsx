@@ -401,6 +401,7 @@ export function CheckoutPage() {
                 }
                 executorsWithWorkDays={executorsWithWorkDays}
                 selectedExecutor={selectedExecutor ?? undefined}
+                desiredIntervalDate={desiredIntervalDate}
                 searchStatus={executorsSearchStatus}
                 visitPrices={visitPrices}
             />

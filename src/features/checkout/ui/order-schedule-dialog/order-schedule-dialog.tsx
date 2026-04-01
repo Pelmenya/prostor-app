@@ -12,6 +12,7 @@ type TOrderScheduleDialogProps = {
     onSelect: (executor: { user: TUserWithWorkDays['user'] | null; workDays: TWorkDay[] }) => void;
     executorsWithWorkDays: TUserWithWorkDays[];
     selectedExecutor?: TUserWithWorkDays;
+    desiredIntervalDate?: [TWorkDay, TWorkDay] | null;
     searchStatus?: 'idle' | 'loading' | 'success' | 'failed';
     visitPrices?: TClientVisitPriceItem[];
 };
@@ -22,6 +23,7 @@ export function OrderScheduleDialog({
     onSelect,
     executorsWithWorkDays,
     selectedExecutor,
+    desiredIntervalDate,
     searchStatus = 'idle',
     visitPrices,
 }: TOrderScheduleDialogProps) {
@@ -48,7 +50,12 @@ export function OrderScheduleDialog({
                     <span className="loading loading-spinner loading-lg" />
                 </div>
             ) : showIntervalFallback ? (
-                <IntervalPicker onSelect={onSelect} onClose={onClose} />
+                <IntervalPicker
+                    onSelect={onSelect}
+                    onClose={onClose}
+                    initialFrom={desiredIntervalDate?.[0]?.date ?? undefined}
+                    initialTo={desiredIntervalDate?.[1]?.date ?? undefined}
+                />
             ) : (
                 <ul className="space-y-4">
                     {executorsWithWorkDays.map((executor) => {
@@ -106,9 +113,11 @@ export function OrderScheduleDialog({
 type TIntervalPickerProps = {
     onSelect: (executor: { user: null; workDays: TWorkDay[] }) => void;
     onClose: () => void;
+    initialFrom?: string;
+    initialTo?: string;
 };
 
-function IntervalPicker({ onSelect, onClose }: TIntervalPickerProps) {
+function IntervalPicker({ onSelect, onClose, initialFrom, initialTo }: TIntervalPickerProps) {
     const makeWorkDay = (date: string): TWorkDay => ({
         date,
         startHour: 9,
@@ -143,25 +152,32 @@ function IntervalPicker({ onSelect, onClose }: TIntervalPickerProps) {
                 Не удалось найти мастеров по вашему адресу. Выберите желаемый интервал — мы подберем
                 подходящего мастера
             </p>
-            <div className="flex flex-col gap-2">
-                <label className="text-sm">С</label>
-                <input
-                    type="date"
-                    name="from"
-                    min={today}
-                    required
-                    className="input input-bordered input-sm"
-                />
-            </div>
-            <div className="flex flex-col gap-2">
-                <label className="text-sm">По</label>
-                <input
-                    type="date"
-                    name="to"
-                    min={today}
-                    required
-                    className="input input-bordered input-sm"
-                />
+            <div className="flex gap-2">
+                <div className="flex flex-col gap-2 flex-1">
+                    <label className="text-sm">С</label>
+                    <input
+                        type="date"
+                        name="from"
+                        min={today}
+                        defaultValue={initialFrom}
+                        required
+                        className="input input-bordered input-sm w-full"
+                        onClick={(e) => e.currentTarget.showPicker()}
+                    />
+                </div>
+                <div className="flex flex-col gap-2 flex-1">
+                    <label className="text-sm">По</label>
+                    <input
+                        type="date"
+                        name="to"
+                        min={today}
+                        defaultValue={initialTo}
+                        required
+                        className="input input-bordered input-sm w-full"
+                        onClick={(e) => e.currentTarget.showPicker()}
+                        onChange={(e) => e.currentTarget.setCustomValidity('')}
+                    />
+                </div>
             </div>
             <button type="submit" className="btn btn-primary btn-sm">
                 Выбрать

@@ -18,5 +18,7 @@ export default function AddRealEstateRoute() {
           }
         : undefined;
 
-    return <AddAddressPage onSuccess={handleSuccess} />;
+    const handleCancel = returnTo ? () => router.replace(returnTo) : undefined;
+
+    return <AddAddressPage onSuccess={handleSuccess} onCancel={handleCancel} />;
 }

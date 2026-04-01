@@ -6,12 +6,17 @@ import { AddressSearchSlot } from './address-search-slot';
 
 type TAddAddressPageProps = {
     onSuccess?: (newId: number) => void;
+    onCancel?: () => void;
 };
 
-export function AddAddressPage({ onSuccess }: TAddAddressPageProps) {
+export function AddAddressPage({ onSuccess, onCancel }: TAddAddressPageProps) {
     return (
         <PageContainer>
-            <RealEstateWizard addressSearchSlot={<AddressSearchSlot />} onSuccess={onSuccess} />
+            <RealEstateWizard
+                addressSearchSlot={<AddressSearchSlot />}
+                onSuccess={onSuccess}
+                onCancel={onCancel}
+            />
         </PageContainer>
     );
 }
