@@ -80,6 +80,12 @@ export function CheckoutPage() {
 
     const [activeTab, setActiveTab] = useState<TDeliveryTab>('pickup');
     const [hasPickupStores, setHasPickupStores] = useState(true);
+
+    useEffect(() => {
+        if (!hasPickupStores && activeTab === 'pickup') {
+            setActiveTab('transport_company');
+        }
+    }, [hasPickupStores, activeTab]);
     const [selectedExecutor, setSelectedExecutor] = useState<TUserWithWorkDays | null>(null);
     const [desiredIntervalDate, setDesiredIntervalDate] = useState<[TWorkDay, TWorkDay] | null>(
         null,
