@@ -10,4 +10,3 @@ export { CheckoutProductsList } from './ui/checkout-items/checkout-products-list
 export { CheckoutServicesList } from './ui/checkout-items/checkout-services-list';
 export { CheckoutSection } from './ui/checkout-section';
 export type { TUserWithWorkDays } from './model/types/t-user-with-work-days';
-export type { TWorkDay } from '@/entities/order';

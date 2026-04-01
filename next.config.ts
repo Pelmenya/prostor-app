@@ -32,6 +32,15 @@ const nextConfig: NextConfig = {
                 protocol: 'http',
                 hostname: 'localhost',
             },
+            // Telegram CDN — аватары пользователей (photo_url мастеров)
+            {
+                protocol: 'https',
+                hostname: '**.telegram.org',
+            },
+            {
+                protocol: 'https',
+                hostname: '**.t.me',
+            },
         ],
     },
 };

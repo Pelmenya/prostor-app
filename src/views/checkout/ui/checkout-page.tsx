@@ -19,9 +19,10 @@ import {
     CheckoutServicesList,
     CheckoutSection,
 } from '@/features/checkout';
-import type { TUserWithWorkDays, TWorkDay } from '@/features/checkout';
+import type { TUserWithWorkDays } from '@/features/checkout';
+import type { TWorkDay } from '@/entities/order';
 import { PageContainer, PageTitle } from '@/shared/ui';
-import { formatDateRu } from '@/shared/lib';
+import { formatDateRu, formatPrice } from '@/shared/lib';
 
 type TDeliveryTab = 'pickup' | 'master_delivery' | 'transport_company';
 
@@ -378,13 +379,19 @@ export function CheckoutPage() {
                     isMasterDelivery
                         ? (executor) => {
                               if (executor.user) {
-                                  setSelectedExecutor(executor as TUserWithWorkDays);
+                                  setSelectedExecutor({
+                                      user: executor.user,
+                                      workDays: executor.workDays,
+                                  });
                               }
                               setScheduleDialogOpen(false);
                           }
                         : (executor) => {
                               if (executor.user) {
-                                  setSelectedExecutor(executor as TUserWithWorkDays);
+                                  setSelectedExecutor({
+                                      user: executor.user,
+                                      workDays: executor.workDays,
+                                  });
                                   setDesiredIntervalDate(null);
                               } else if (executor.workDays.length === 2) {
                                   setSelectedExecutor(null);
@@ -432,7 +439,7 @@ function VisitPriceBlock({ isLoading, clientVisitPrice, minVisitPrice }: TVisitP
                 <div className="flex justify-between">
                     <span>Выезд к клиенту ({clientVisitPrice.distanceKm} км)</span>
                     <span className="font-semibold text-primary">
-                        {(clientVisitPrice.totalPrice / 100).toLocaleString('ru-RU')} ₽
+                        {formatPrice(clientVisitPrice.totalPrice)}
                     </span>
                 </div>
                 <p className="text-xs opacity-60 mt-1">от: {clientVisitPrice.departureName}</p>
@@ -445,7 +452,7 @@ function VisitPriceBlock({ isLoading, clientVisitPrice, minVisitPrice }: TVisitP
                 <div className="flex justify-between">
                     <span>Выезд к клиенту</span>
                     <span className="font-semibold text-primary">
-                        от {(minVisitPrice / 100).toLocaleString('ru-RU')} ₽
+                        от {formatPrice(minVisitPrice)}
                     </span>
                 </div>
                 <p className="text-xs opacity-60 mt-1">Точная стоимость зависит от мастера</p>

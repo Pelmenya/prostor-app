@@ -1,7 +1,7 @@
 'use client';
 
 import { CompactModal } from '@/shared/ui';
-import { formatDateRu } from '@/shared/lib';
+import { formatDateRu, formatPrice } from '@/shared/lib';
 import type { TUserWithWorkDays } from '../../model/types/t-user-with-work-days';
 import type { TWorkDay } from '@/entities/order';
 import type { TClientVisitPriceItem } from '@/entities/delivery';
@@ -71,9 +71,7 @@ export function OrderScheduleDialog({
                                     </span>
                                     {visitPrice && (
                                         <span className="text-xs opacity-70">
-                                            Выезд:{' '}
-                                            {(visitPrice.totalPrice / 100).toLocaleString('ru-RU')}{' '}
-                                            ₽
+                                            Выезд: {formatPrice(visitPrice.totalPrice)}
                                         </span>
                                     )}
                                 </div>

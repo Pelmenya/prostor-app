@@ -7,15 +7,12 @@ import { z } from 'zod';
 import { useCreateOrder, EDeliveryType } from '@/entities/order';
 import { useCart, CART_QUERY_KEY } from '@/entities/cart';
 import { useAuth } from '@/shared/lib/platform';
+import { sleep, expBackoff, MAX_RETRY_ATTEMPTS } from '@/shared/lib';
 import { useCheckoutStore } from '../model/checkout.store';
 import type { TUserWithWorkDays } from '../model/types/t-user-with-work-days';
 import type { TWorkDay } from '@/entities/order';
 
 const emailSchema = z.string().email();
-
-const sleep = (ms: number) => new Promise<void>((res) => setTimeout(res, ms));
-const expBackoff = (attempt: number) => Math.min(400 * Math.pow(2, attempt), 3000);
-const MAX_ATTEMPTS = 3;
 
 type TUseCheckoutSubmitParams = {
     deliveryType: EDeliveryType | undefined;
@@ -68,7 +65,7 @@ export function useCheckoutSubmit({
             return;
         }
 
-        for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+        for (let attempt = 0; attempt < MAX_RETRY_ATTEMPTS; attempt++) {
             try {
                 const order = await createOrder({
                     clientId: user.id,
@@ -89,10 +86,11 @@ export function useCheckoutSubmit({
                 });
 
                 await queryClient.invalidateQueries({ queryKey: CART_QUERY_KEY });
+                submittingLockRef.current = false;
                 router.replace(`/orders/${order.id}`);
                 return;
             } catch (err) {
-                if (attempt === MAX_ATTEMPTS - 1) {
+                if (attempt === MAX_RETRY_ATTEMPTS - 1) {
                     console.error('[checkout] handleSubmit error:', err);
                     setOrderError(
                         'Ошибка при оформлении. Проверьте соединение и попробуйте ещё раз.',

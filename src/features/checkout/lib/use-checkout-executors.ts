@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { sleep, expBackoff, MAX_RETRY_ATTEMPTS } from '@/shared/lib';
 import { useFilteredExecutors } from '../api/executor.api';
 import type { TUserWithWorkDays } from '../model/types/t-user-with-work-days';
 
@@ -20,10 +21,6 @@ type TUseCheckoutExecutorsReturn = {
     loadExecutors: (realEstateId: number) => Promise<void>;
     resetExecutors: () => void;
 };
-
-const sleep = (ms: number) => new Promise<void>((res) => setTimeout(res, ms));
-const expBackoff = (attempt: number) => Math.min(400 * Math.pow(2, attempt), 3000);
-const MAX_ATTEMPTS = 3;
 
 export function useCheckoutExecutors({
     serviceIds,
@@ -49,7 +46,7 @@ export function useCheckoutExecutors({
     const loadExecutors = async (realEstateId: number) => {
         setExecutorsSearchStatus('loading');
 
-        for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+        for (let attempt = 0; attempt < MAX_RETRY_ATTEMPTS; attempt++) {
             try {
                 const result = await fetchFilteredExecutors({
                     realEstateId,
@@ -64,7 +61,7 @@ export function useCheckoutExecutors({
                 setExecutorsSearchStatus('success');
                 return;
             } catch {
-                if (attempt === MAX_ATTEMPTS - 1) {
+                if (attempt === MAX_RETRY_ATTEMPTS - 1) {
                     setExecutorsSearchStatus('failed');
                     setHasMasters(false);
                 } else {
