@@ -19,8 +19,8 @@ function hasCheckedServicesByCategory(
     return items.some((it) =>
         Object.values(it.services || {}).some((s: TCartServiceItem) =>
             s.checked && (category === undefined
-                ? s.serviceInfo.category === undefined
-                : s.serviceInfo.category === category),
+                ? s.serviceInfo?.category === undefined
+                : s.serviceInfo?.category === category),
         ),
     );
 }
@@ -68,8 +68,8 @@ function ServicesSection({
                         s.checked &&
                         s.count > 0 &&
                         (category === undefined
-                            ? s.serviceInfo.category === undefined
-                            : s.serviceInfo.category === category),
+                            ? s.serviceInfo?.category === undefined
+                            : s.serviceInfo?.category === category),
                 );
 
                 if (checkedServices.length === 0) return null;
