@@ -32,7 +32,13 @@ vi.mock('@/shared/lib/platform', () => ({
 
 vi.mock('@/shared/lib', async (importOriginal) => {
     const mod = await importOriginal<typeof import('@/shared/lib')>();
-    return { ...mod, sleep: vi.fn().mockResolvedValue(undefined) };
+    return {
+        ...mod,
+        sleep: vi.fn().mockResolvedValue(undefined),
+        // retryAsync вызывает sleep внутри того же модуля — мокаем его целиком,
+        // чтобы тесты не зависели от реальных задержек
+        retryAsync: vi.fn().mockImplementation((fn: () => Promise<unknown>) => fn()),
+    };
 });
 
 const defaultParams = {

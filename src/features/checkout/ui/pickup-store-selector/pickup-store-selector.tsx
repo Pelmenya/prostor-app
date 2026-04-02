@@ -6,14 +6,16 @@ import { MapPinIcon as MapPinIconOutline } from '@heroicons/react/24/outline';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/css';
 import { useNearestRetailStores } from '@/entities/real-estate';
-import { useCartStore } from '@/entities/cart';
 import type { TRetailStoreWithRouteInfo } from '@/shared/model';
+
+const NEAREST_STORES_LIMIT = 10;
 
 type TPickupStoreSelectorProps = {
     realEstateId: number;
     selectedStoreId?: string | null;
     onSelect: (store: TRetailStoreWithRouteInfo) => void;
     onHasStoresChange?: (hasStores: boolean) => void;
+    cartItems: { productId: string; count: number }[];
 };
 
 export function PickupStoreSelector({
@@ -21,21 +23,16 @@ export function PickupStoreSelector({
     selectedStoreId,
     onSelect,
     onHasStoresChange,
+    cartItems,
 }: TPickupStoreSelectorProps) {
-    const items = useCartStore((s) => s.items);
-
-    const cartItemsForQuery = Object.entries(items)
-        .filter(([, item]) => item.selectedForCheckout && item.count > 0)
-        .map(([productId, item]) => ({ productId, count: item.count }));
-
     const {
         data: stores,
         isLoading,
         error,
     } = useNearestRetailStores({
         realEstateId,
-        limit: 10,
-        cartItems: cartItemsForQuery.length > 0 ? cartItemsForQuery : undefined,
+        limit: NEAREST_STORES_LIMIT,
+        cartItems: cartItems.length > 0 ? cartItems : undefined,
     });
 
     const filteredStores = (stores ?? []).filter((s) => s.availability === 'full');

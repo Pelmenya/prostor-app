@@ -5,4 +5,4 @@ export { getSafeRedirect } from './get-safe-redirect';
 export { formatPrice, formatDateRu, formatUserInitials } from './format';
 export { useClickOutside } from './use-click-outside';
 export { useAuthStore, mapUserToPlatformUser } from './auth';
-export { sleep, expBackoff, MAX_RETRY_ATTEMPTS } from './retry';
+export { sleep, expBackoff, MAX_RETRY_ATTEMPTS, retryAsync } from './retry';

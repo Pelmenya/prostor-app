@@ -29,10 +29,13 @@ export function useClientVisitPrices({
 
     return useQuery({
         queryKey: deliveryKeys.visitPrices(realEstateId, executorIds),
-        queryFn: () =>
-            api<TClientVisitPriceItem[]>(
-                `/delivery/client-visit-prices?realEstateId=${realEstateId}&executorIds=${executorIds.join(',')}`,
-            ),
+        queryFn: () => {
+            const params = new URLSearchParams({ realEstateId: String(realEstateId) });
+            for (const id of executorIds) {
+                params.append('executorIds', String(id));
+            }
+            return api<TClientVisitPriceItem[]>(`/delivery/client-visit-prices?${params}`);
+        },
         enabled: enabled && realEstateId > 0 && executorIds.length > 0,
     });
 }

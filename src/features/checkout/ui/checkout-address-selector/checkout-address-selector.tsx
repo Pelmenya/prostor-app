@@ -10,7 +10,7 @@ import { useCheckoutStore } from '../../model/checkout.store';
 import { CheckoutSection } from '../checkout-section';
 
 type TCheckoutAddressSelectorProps = {
-    onChange?: () => void;
+    onChange?: (id: number) => void;
 };
 
 export function CheckoutAddressSelector({ onChange }: TCheckoutAddressSelectorProps) {
@@ -24,7 +24,7 @@ export function CheckoutAddressSelector({ onChange }: TCheckoutAddressSelectorPr
     const handleSelect = (id: number) => {
         setSelectedRealEstateId(id);
         setIsModalOpen(false);
-        onChange?.();
+        onChange?.(id);
     };
 
     if (isLoading) {

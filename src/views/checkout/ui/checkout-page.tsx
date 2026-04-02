@@ -1,16 +1,15 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import Image from 'next/image';
-import { useCartStore, selectSelectedItems } from '@/entities/cart';
+import { useState } from 'react';
+import { useCartStore } from '@/entities/cart';
 import { useAuth } from '@/shared/lib/platform';
-import { EDeliveryType } from '@/entities/order';
 import { useClientVisitPrices } from '@/entities/delivery';
 import {
     useCheckoutStore,
     useCheckoutExecutors,
     useCheckoutSubmit,
-    isEmailValid,
+    getCheckoutCartItems,
+    getCheckoutDerivedState,
     CheckoutAddressSelector,
     PickupStoreSelector,
     OrderScheduleDialog,
@@ -18,45 +17,42 @@ import {
     CheckoutProductsList,
     CheckoutServicesList,
     CheckoutSection,
+    VisitPriceBlock,
+    ExecutorPreview,
 } from '@/features/checkout';
-import type { TUserWithWorkDays } from '@/features/checkout';
+import type { TUserWithWorkDays, TDeliveryTab } from '@/features/checkout';
 import type { TWorkDay } from '@/entities/order';
 import { PageContainer, PageTitle } from '@/shared/ui';
-import { formatDateRu, formatPrice } from '@/shared/lib';
-
-type TDeliveryTab = 'pickup' | 'master_delivery' | 'transport_company';
+import { formatDateRu } from '@/shared/lib';
 
 export function CheckoutPage() {
     const { user } = useAuth();
     const items = useCartStore((s) => s.items);
-    const selectedItems = selectSelectedItems(items);
 
     const selectedRealEstateId = useCheckoutStore((s) => s.selectedRealEstateId);
     const selectedPickupStore = useCheckoutStore((s) => s.selectedPickupStore);
     const setSelectedPickupStore = useCheckoutStore((s) => s.setSelectedPickupStore);
 
-    const hasProducts = Object.values(selectedItems).some(
-        (item) => item.selectedForCheckout && item.count > 0,
+    const [activeTab, setActiveTab] = useState<TDeliveryTab>('pickup');
+    const [hasPickupStores, setHasPickupStores] = useState(true);
+    const [selectedExecutor, setSelectedExecutor] = useState<TUserWithWorkDays | null>(null);
+    const [desiredIntervalDate, setDesiredIntervalDate] = useState<[TWorkDay, TWorkDay] | null>(
+        null,
     );
-    const hasServices = Object.values(selectedItems).some((item) =>
-        Object.values(item.services).some(
-            (svc) => svc.checked && svc.count > 0 && svc.selectedForCheckout,
-        ),
-    );
-    const hasContent = hasProducts || hasServices;
+    const [isScheduleDialogOpen, setScheduleDialogOpen] = useState(false);
+    const [clientComment, setClientComment] = useState('');
+    const [receiptEmail, setReceiptEmail] = useState(user?.email ?? '');
 
-    const serviceIdsForFilter: string[] = [];
-    const productItemsForFilter: { productId: string; count: number }[] = [];
-    for (const [productId, item] of Object.entries(selectedItems)) {
-        if (item.selectedForCheckout && item.count > 0) {
-            productItemsForFilter.push({ productId, count: item.count });
+    const handleHasPickupStoresChange = (hasStores: boolean) => {
+        setHasPickupStores(hasStores);
+        if (!hasStores && activeTab === 'pickup') {
+            setActiveTab('transport_company');
         }
-        for (const [serviceId, svc] of Object.entries(item.services)) {
-            if (svc.checked && svc.count > 0 && svc.selectedForCheckout) {
-                serviceIdsForFilter.push(serviceId);
-            }
-        }
-    }
+    };
+
+    // Шаг 1: данные из корзины — нужны до вызова useCheckoutExecutors
+    const { serviceIdsForFilter, productItemsForFilter, ...cartItems } =
+        getCheckoutCartItems(items);
 
     const {
         executorsWithWorkDays,
@@ -79,69 +75,39 @@ export function CheckoutPage() {
             !!selectedRealEstateId && executorIds.length > 0 && executorsSearchStatus === 'success',
     });
 
-    const [activeTab, setActiveTab] = useState<TDeliveryTab>('pickup');
-    const [hasPickupStores, setHasPickupStores] = useState(true);
-
-    useEffect(() => {
-        if (!hasPickupStores && activeTab === 'pickup') {
-            setActiveTab('transport_company');
-        }
-    }, [hasPickupStores, activeTab]);
-    const [selectedExecutor, setSelectedExecutor] = useState<TUserWithWorkDays | null>(null);
-    const [desiredIntervalDate, setDesiredIntervalDate] = useState<[TWorkDay, TWorkDay] | null>(
-        null,
-    );
-    const [isScheduleDialogOpen, setScheduleDialogOpen] = useState(false);
-    const [clientComment, setClientComment] = useState('');
-    const [receiptEmail, setReceiptEmail] = useState(user?.email ?? '');
-
-    const isMasterDelivery = hasProducts && activeTab === 'master_delivery';
-    const needServiceMasterSection = hasServices && !isMasterDelivery;
-    const masterAvailable =
-        hasMasters === true && !allMastersRejectedByCargo && !hasProductsWithoutDimensions;
-
-    const deliveryType: EDeliveryType | undefined = hasProducts
-        ? activeTab === 'pickup'
-            ? EDeliveryType.PICKUP
-            : activeTab === 'master_delivery'
-              ? EDeliveryType.MASTER_DELIVERY
-              : EDeliveryType.TRANSPORT_COMPANY
-        : undefined;
-
-    const clientVisitPriceData =
-        visitPrices && selectedExecutor?.user?.id
-            ? visitPrices.find((p) => Number(p.executorId) === Number(selectedExecutor.user.id))
-            : undefined;
-
-    const minVisitPrice =
-        visitPrices && visitPrices.length > 0
-            ? Math.min(...visitPrices.map((p) => p.totalPrice))
-            : undefined;
-
-    const visitPriceForTotal =
-        isMasterDelivery || needServiceMasterSection ? clientVisitPriceData?.totalPrice : undefined;
-
-    const hasSchedule = !hasServices
-        ? true
-        : isMasterDelivery
-          ? !!selectedExecutor && (selectedExecutor.workDays?.length ?? 0) > 0
-          : (!!selectedExecutor && (selectedExecutor.workDays?.length ?? 0) > 0) ||
-            !!desiredIntervalDate;
-
-    const emailValid = isEmailValid(receiptEmail);
-
-    const canSubmit =
-        !!user &&
-        !!selectedRealEstateId &&
-        hasContent &&
-        emailValid &&
-        !(hasProducts && activeTab === 'pickup' && !selectedPickupStore) &&
-        !(
-            hasProducts &&
-            activeTab === 'master_delivery' &&
-            (!selectedExecutor || !selectedExecutor.workDays?.length)
-        ) &&
-        hasSchedule;
+    // Шаг 2: все производные значения
+    const {
+        selectedItems,
+        hasProducts,
+        hasServices,
+        hasContent,
+        isMasterDelivery,
+        needServiceMasterSection,
+        masterAvailable,
+        deliveryType,
+        clientVisitPriceData,
+        minVisitPrice,
+        visitPriceForTotal,
+        emailValid,
+        canSubmit,
+        isExecutorsLoading,
+    } = getCheckoutDerivedState({
+        ...cartItems,
+        serviceIdsForFilter,
+        productItemsForFilter,
+        activeTab,
+        selectedExecutor,
+        desiredIntervalDate,
+        selectedPickupStore,
+        executorsSearchStatus,
+        hasMasters,
+        allMastersRejectedByCargo,
+        hasProductsWithoutDimensions,
+        visitPrices,
+        receiptEmail,
+        userId: user?.id,
+        selectedRealEstateId,
+    });
 
     const { isSubmitting, orderError, handleSubmit } = useCheckoutSubmit({
         deliveryType,
@@ -153,20 +119,13 @@ export function CheckoutPage() {
         receiptEmail,
     });
 
-    const handleAddressChange = () => {
+    const handleAddressChange = (newId: number) => {
         setSelectedPickupStore(null);
         setSelectedExecutor(null);
         setDesiredIntervalDate(null);
         resetExecutors();
+        loadExecutors(newId);
     };
-
-    useEffect(() => {
-        handleAddressChange();
-        if (selectedRealEstateId) {
-            loadExecutors(selectedRealEstateId);
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selectedRealEstateId]);
 
     const showMasterTab = hasServices && masterAvailable;
     const tabs: { key: TDeliveryTab; label: string; show: boolean }[] = [
@@ -231,7 +190,8 @@ export function CheckoutPage() {
                                             realEstateId={selectedRealEstateId}
                                             selectedStoreId={selectedPickupStore?.id}
                                             onSelect={setSelectedPickupStore}
-                                            onHasStoresChange={setHasPickupStores}
+                                            onHasStoresChange={handleHasPickupStoresChange}
+                                            cartItems={productItemsForFilter}
                                         />
                                     )}
 
@@ -247,7 +207,7 @@ export function CheckoutPage() {
                                             </div>
 
                                             <VisitPriceBlock
-                                                isLoading={executorsSearchStatus === 'loading'}
+                                                isLoading={isExecutorsLoading}
                                                 clientVisitPrice={clientVisitPriceData}
                                                 minVisitPrice={minVisitPrice}
                                             />
@@ -259,9 +219,9 @@ export function CheckoutPage() {
                                             <button
                                                 onClick={() => setScheduleDialogOpen(true)}
                                                 className="btn btn-primary btn-outline w-full"
-                                                disabled={executorsSearchStatus === 'loading'}
+                                                disabled={isExecutorsLoading}
                                             >
-                                                {executorsSearchStatus === 'loading' ? (
+                                                {isExecutorsLoading ? (
                                                     <>
                                                         <span className="loading loading-spinner loading-xs" />
                                                         Поиск мастеров...
@@ -303,7 +263,7 @@ export function CheckoutPage() {
                             {needServiceMasterSection && (
                                 <CheckoutSection title="Исполнитель">
                                     <VisitPriceBlock
-                                        isLoading={executorsSearchStatus === 'loading'}
+                                        isLoading={isExecutorsLoading}
                                         clientVisitPrice={clientVisitPriceData}
                                         minVisitPrice={minVisitPrice}
                                     />
@@ -312,15 +272,17 @@ export function CheckoutPage() {
                                         <ExecutorPreview executor={selectedExecutor} />
                                     )}
 
-                                    {desiredIntervalDate && (
-                                        <div>
-                                            <p className="text-sm">Желаемый интервал:</p>
-                                            <p className="badge badge-warning mt-1">
-                                                {formatDateRu(desiredIntervalDate[0].date ?? '')} —{' '}
-                                                {formatDateRu(desiredIntervalDate[1].date ?? '')}
-                                            </p>
-                                        </div>
-                                    )}
+                                    {desiredIntervalDate &&
+                                        desiredIntervalDate[0].date &&
+                                        desiredIntervalDate[1].date && (
+                                            <div>
+                                                <p className="text-sm">Желаемый интервал:</p>
+                                                <p className="badge badge-warning mt-1">
+                                                    {formatDateRu(desiredIntervalDate[0].date)} —{' '}
+                                                    {formatDateRu(desiredIntervalDate[1].date)}
+                                                </p>
+                                            </div>
+                                        )}
 
                                     <button
                                         onClick={() => setScheduleDialogOpen(true)}
@@ -413,83 +375,5 @@ export function CheckoutPage() {
                 visitPrices={visitPrices}
             />
         </>
-    );
-}
-
-// --- Вспомогательные компоненты ---
-
-type TVisitPriceBlockProps = {
-    isLoading: boolean;
-    clientVisitPrice?: { totalPrice: number; distanceKm: number; departureName: string };
-    minVisitPrice?: number;
-};
-
-function VisitPriceBlock({ isLoading, clientVisitPrice, minVisitPrice }: TVisitPriceBlockProps) {
-    if (isLoading) {
-        return (
-            <div className="flex items-center gap-2 text-sm">
-                <span className="loading loading-spinner loading-xs" />
-                Рассчитываем стоимость выезда...
-            </div>
-        );
-    }
-    if (clientVisitPrice) {
-        return (
-            <div className="rounded-xl bg-base-100 p-3 text-sm">
-                <div className="flex justify-between">
-                    <span>Выезд к клиенту ({clientVisitPrice.distanceKm} км)</span>
-                    <span className="font-semibold text-primary">
-                        {formatPrice(clientVisitPrice.totalPrice)}
-                    </span>
-                </div>
-                <p className="text-xs opacity-60 mt-1">от: {clientVisitPrice.departureName}</p>
-            </div>
-        );
-    }
-    if (minVisitPrice !== undefined) {
-        return (
-            <div className="rounded-xl bg-base-100 p-3 text-sm">
-                <div className="flex justify-between">
-                    <span>Выезд к клиенту</span>
-                    <span className="font-semibold text-primary">
-                        от {formatPrice(minVisitPrice)}
-                    </span>
-                </div>
-                <p className="text-xs opacity-60 mt-1">Точная стоимость зависит от мастера</p>
-            </div>
-        );
-    }
-    return null;
-}
-
-type TExecutorPreviewProps = {
-    executor: TUserWithWorkDays;
-};
-
-function ExecutorPreview({ executor }: TExecutorPreviewProps) {
-    return (
-        <div className="flex flex-col gap-2">
-            <div className="flex items-center gap-2">
-                {executor.user.photo_url && (
-                    <Image
-                        src={executor.user.photo_url}
-                        alt={executor.user.last_name}
-                        width={40}
-                        height={40}
-                        className="rounded-full object-cover"
-                    />
-                )}
-                <div>
-                    <p className="font-medium text-sm">
-                        {executor.user.first_name} {executor.user.last_name}
-                    </p>
-                </div>
-            </div>
-            {executor.workDays?.[0]?.date && (
-                <p className="badge badge-warning">
-                    Дата: {formatDateRu(executor.workDays[0].date)}
-                </p>
-            )}
-        </div>
     );
 }

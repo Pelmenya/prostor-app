@@ -129,8 +129,8 @@ function IntervalPicker({ onSelect, onClose, initialFrom, initialTo }: TInterval
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const fd = new FormData(e.currentTarget);
-        const from = fd.get('from') as string;
-        const to = fd.get('to') as string;
+        const from = String(fd.get('from') ?? '');
+        const to = String(fd.get('to') ?? '');
         if (!from || !to) return;
         if (from > to) {
             (e.currentTarget.elements.namedItem('to') as HTMLInputElement).setCustomValidity(

@@ -1,11 +1,11 @@
 'use client';
 
-import { useState } from 'react';
-import { sleep, expBackoff, MAX_RETRY_ATTEMPTS } from '@/shared/lib';
+import { useState, useRef } from 'react';
+import { retryAsync } from '@/shared/lib';
 import { useFilteredExecutors } from '../api/executor.api';
 import type { TUserWithWorkDays } from '../model/types/t-user-with-work-days';
 
-type TExecutorsSearchStatus = 'idle' | 'loading' | 'success' | 'failed';
+export type TExecutorsSearchStatus = 'idle' | 'loading' | 'success' | 'failed';
 
 type TUseCheckoutExecutorsParams = {
     serviceIds: string[];
@@ -27,47 +27,51 @@ export function useCheckoutExecutors({
     productItems,
 }: TUseCheckoutExecutorsParams): TUseCheckoutExecutorsReturn {
     const { mutateAsync: fetchFilteredExecutors } = useFilteredExecutors();
+    // requestIdRef предотвращает race condition при быстрой смене адреса
+    const requestIdRef = useRef(0);
 
     const [executorsWithWorkDays, setExecutorsWithWorkDays] = useState<TUserWithWorkDays[]>([]);
     const [executorsSearchStatus, setExecutorsSearchStatus] =
         useState<TExecutorsSearchStatus>('idle');
-    const [hasMasters, setHasMasters] = useState<boolean | null>(null);
     const [allMastersRejectedByCargo, setAllMastersRejectedByCargo] = useState(false);
     const [hasProductsWithoutDimensions, setHasProductsWithoutDimensions] = useState(false);
+
+    // Вычисляемое значение — отдельный стейт не нужен
+    const hasMasters =
+        executorsSearchStatus === 'idle' || executorsSearchStatus === 'loading'
+            ? null
+            : executorsWithWorkDays.length > 0;
 
     const resetExecutors = () => {
         setExecutorsWithWorkDays([]);
         setExecutorsSearchStatus('idle');
-        setHasMasters(null);
         setAllMastersRejectedByCargo(false);
         setHasProductsWithoutDimensions(false);
     };
 
     const loadExecutors = async (realEstateId: number) => {
+        const currentRequestId = ++requestIdRef.current;
         setExecutorsSearchStatus('loading');
 
-        for (let attempt = 0; attempt < MAX_RETRY_ATTEMPTS; attempt++) {
-            try {
-                const result = await fetchFilteredExecutors({
+        try {
+            const result = await retryAsync(() =>
+                fetchFilteredExecutors({
                     realEstateId,
                     serviceIds: serviceIds.length > 0 ? serviceIds : undefined,
                     productItems: productItems.length > 0 ? productItems : undefined,
-                });
+                }),
+            );
 
-                setExecutorsWithWorkDays(result.executors);
-                setHasMasters(result.executors.length > 0);
-                setAllMastersRejectedByCargo(result.allMastersRejectedByCargo);
-                setHasProductsWithoutDimensions(result.hasProductsWithoutDimensions);
-                setExecutorsSearchStatus('success');
-                return;
-            } catch {
-                if (attempt === MAX_RETRY_ATTEMPTS - 1) {
-                    setExecutorsSearchStatus('failed');
-                    setHasMasters(false);
-                } else {
-                    await sleep(expBackoff(attempt));
-                }
-            }
+            // Игнорируем устаревший ответ — адрес успел смениться
+            if (requestIdRef.current !== currentRequestId) return;
+
+            setExecutorsWithWorkDays(result.executors);
+            setAllMastersRejectedByCargo(result.allMastersRejectedByCargo);
+            setHasProductsWithoutDimensions(result.hasProductsWithoutDimensions);
+            setExecutorsSearchStatus('success');
+        } catch {
+            if (requestIdRef.current !== currentRequestId) return;
+            setExecutorsSearchStatus('failed');
         }
     };
 

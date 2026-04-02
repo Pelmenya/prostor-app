@@ -7,7 +7,7 @@ import { z } from 'zod';
 import { useCreateOrder, EDeliveryType } from '@/entities/order';
 import { useCart, CART_QUERY_KEY } from '@/entities/cart';
 import { useAuth } from '@/shared/lib/platform';
-import { sleep, expBackoff, MAX_RETRY_ATTEMPTS } from '@/shared/lib';
+import { retryAsync } from '@/shared/lib';
 import { useCheckoutStore } from '../model/checkout.store';
 import type { TUserWithWorkDays } from '../model/types/t-user-with-work-days';
 import type { TWorkDay } from '@/entities/order';
@@ -65,9 +65,9 @@ export function useCheckoutSubmit({
             return;
         }
 
-        for (let attempt = 0; attempt < MAX_RETRY_ATTEMPTS; attempt++) {
-            try {
-                const order = await createOrder({
+        try {
+            const order = await retryAsync(() =>
+                createOrder({
                     clientId: user.id,
                     realEstateId: selectedRealEstateId,
                     cartId,
@@ -83,26 +83,19 @@ export function useCheckoutSubmit({
                     desiredIntervalDate: desiredIntervalDate ?? undefined,
                     clientComment: clientComment || undefined,
                     email: receiptEmail || undefined,
-                });
+                }),
+            );
 
-                await queryClient.invalidateQueries({ queryKey: CART_QUERY_KEY });
-                submittingLockRef.current = false;
-                router.replace(`/orders/${order.id}`);
-                return;
-            } catch (err) {
-                if (attempt === MAX_RETRY_ATTEMPTS - 1) {
-                    console.error('[checkout] handleSubmit error:', err);
-                    setOrderError(
-                        'Ошибка при оформлении. Проверьте соединение и попробуйте ещё раз.',
-                    );
-                } else {
-                    await sleep(expBackoff(attempt));
-                }
-            }
+            await queryClient.invalidateQueries({ queryKey: CART_QUERY_KEY });
+            submittingLockRef.current = false;
+            setIsSubmitting(false);
+            router.replace(`/orders/${order.id}`);
+        } catch (err) {
+            console.error('[checkout] handleSubmit error:', err);
+            setOrderError('Ошибка при оформлении. Проверьте соединение и попробуйте ещё раз.');
+            submittingLockRef.current = false;
+            setIsSubmitting(false);
         }
-
-        submittingLockRef.current = false;
-        setIsSubmitting(false);
     };
 
     return { isSubmitting, orderError, handleSubmit };
