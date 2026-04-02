@@ -3,11 +3,11 @@
 import { useQueries } from '@tanstack/react-query';
 import { apiClient } from '@/shared/api';
 import type { TImage } from '@/shared/model';
-import { getImageProxyUrl } from '@/entities/product';
+import { getImageProxyUrl } from './product.api';
 
 const BASE = '/moysklad';
 
-export function useCartImages(productIds: string[]) {
+export function useProductThumbnails(productIds: string[]) {
     const queries = useQueries({
         queries: productIds.map((id) => ({
             queryKey: ['catalog', 'product-images', id],

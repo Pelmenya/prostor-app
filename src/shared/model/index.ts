@@ -27,4 +27,5 @@ export type {
     TRealEstate,
     TCreateRealEstate,
     TUpdateRealEstate,
+    TRetailStoreWithRouteInfo,
 } from './t-real-estate';

@@ -141,7 +141,7 @@ export const AddressSearchWithMap: FC<TAddressSearchWithMapProps> = ({
                                                 className={`block px-4 py-3 text-base
                                                     ${focus ? 'bg-primary/10 text-primary font-semibold' : ''}
                                                     ${selected ? 'bg-primary/20' : ''}
-                                                    whitespace-normal break-words
+                                                    whitespace-normal wrap-break-word
                                                 `}
                                             >
                                                 {suggestion.value}

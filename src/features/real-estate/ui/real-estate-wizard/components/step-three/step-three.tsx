@@ -2,7 +2,6 @@
 
 import { FC, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { toast } from 'react-toastify';
 import { useCreateRealEstate, useUpdateRealEstate } from '@/entities/real-estate';
 import { useRealEstateWizardStore } from '../../../../model/real-estate-wizard.store';
 import { WaterIntakePoint } from './components/water-intake-point/water-intake-point';
@@ -15,7 +14,7 @@ import { ShowerCabin } from './components/shower-cabin';
 import type { TWizardStepProps } from '../../types/t-wizard-step-props';
 import type { TCreateRealEstate } from '@/shared/model';
 
-export const StepThree: FC<TWizardStepProps> = ({ onPrev, editMode, id, onCancel }) => {
+export const StepThree: FC<TWizardStepProps> = ({ onPrev, editMode, id, onCancel, onSuccess }) => {
     const router = useRouter();
 
     const address = useRealEstateWizardStore((s) => s.address);
@@ -68,12 +67,16 @@ export const StepThree: FC<TWizardStepProps> = ({ onPrev, editMode, id, onCancel
                 reset();
                 router.back();
             } else {
-                await createRealEstate.mutateAsync(data);
+                const created = await createRealEstate.mutateAsync(data);
                 reset();
-                router.push('/real-estate');
+                if (onSuccess) {
+                    onSuccess(created.id);
+                } else {
+                    router.push('/real-estate');
+                }
             }
         } catch {
-            toast.error('Не удалось сохранить объект');
+            // TODO: уведомление об ошибке (когда определимся с решением)
         }
     };
 

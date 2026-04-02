@@ -11,9 +11,16 @@ import { useRealEstateWizardStore } from '../../model/real-estate-wizard.store';
 type TRealEstateWizardProps = {
     id?: string;
     addressSearchSlot?: ReactNode;
+    onSuccess?: (newId: number) => void;
+    onCancel?: () => void;
 };
 
-export const RealEstateWizard: FC<TRealEstateWizardProps> = ({ id, addressSearchSlot }) => {
+export const RealEstateWizard: FC<TRealEstateWizardProps> = ({
+    id,
+    addressSearchSlot,
+    onSuccess,
+    onCancel,
+}) => {
     const [step, setStep] = useState(1);
     const router = useRouter();
 
@@ -60,9 +67,7 @@ export const RealEstateWizard: FC<TRealEstateWizardProps> = ({ id, addressSearch
         // eslint-disable-next-line react-hooks/exhaustive-deps -- Zustand setters are stable by design
     }, [editMode, data, id]);
 
-    const handleCancel = () => {
-        router.push('/real-estate');
-    };
+    const handleCancel = onCancel ?? (() => router.push('/real-estate'));
 
     if (editMode && isLoading) {
         return (
@@ -105,6 +110,7 @@ export const RealEstateWizard: FC<TRealEstateWizardProps> = ({ id, addressSearch
                     id={id}
                     onPrev={() => setStep(2)}
                     onCancel={handleCancel}
+                    onSuccess={onSuccess}
                 />
             )}
         </div>

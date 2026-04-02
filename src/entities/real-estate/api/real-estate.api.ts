@@ -1,10 +1,17 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useApi } from '@/shared/api';
-import type { TRealEstate, TCreateRealEstate, TUpdateRealEstate } from '@/shared/model';
+import type {
+    TRealEstate,
+    TCreateRealEstate,
+    TUpdateRealEstate,
+    TRetailStoreWithRouteInfo,
+} from '@/shared/model';
 
 export const realEstateKeys = {
     all: ['real-estate'] as const,
     detail: (id: number) => ['real-estate', id] as const,
+    nearestStores: (realEstateId: number) =>
+        ['real-estate', 'nearest-stores', realEstateId] as const,
 };
 
 export function useRealEstates() {
@@ -64,5 +71,32 @@ export function useDeleteRealEstate() {
             queryClient.invalidateQueries({ queryKey: realEstateKeys.all });
             queryClient.removeQueries({ queryKey: realEstateKeys.detail(id) });
         },
+    });
+}
+
+type TNearestRetailStoresParams = {
+    realEstateId: number;
+    limit?: number;
+    cartItems?: { productId: string; count: number }[];
+};
+
+export function useNearestRetailStores(params: TNearestRetailStoresParams | null) {
+    const api = useApi();
+
+    return useQuery({
+        queryKey: params
+            ? [...realEstateKeys.nearestStores(params.realEstateId), params.cartItems ?? []]
+            : ['real-estate', 'nearest-stores', null],
+        queryFn: () => {
+            const { realEstateId, limit = 10, cartItems } = params!;
+            const search = new URLSearchParams({ limit: String(limit) });
+            if (cartItems?.length) {
+                search.set('cartItems', JSON.stringify(cartItems));
+            }
+            return api<TRetailStoreWithRouteInfo[]>(
+                `/real-estate/${realEstateId}/retail-stores?${search}`,
+            );
+        },
+        enabled: params !== null,
     });
 }

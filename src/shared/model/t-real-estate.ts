@@ -46,3 +46,15 @@ export type TCreateRealEstate = {
 };
 
 export type TUpdateRealEstate = Partial<TCreateRealEstate>;
+
+export type TRetailStoreWithRouteInfo = {
+    id: string;
+    name: string;
+    address: string;
+    coordinates: TGeoJSONPoint;
+    duration: number;
+    distance: number;
+    organizationMoySkladId?: string;
+    organizationName?: string;
+    availability?: 'full' | 'partial';
+};

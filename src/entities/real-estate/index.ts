@@ -5,6 +5,7 @@ export {
     useCreateRealEstate,
     useUpdateRealEstate,
     useDeleteRealEstate,
+    useNearestRetailStores,
 } from './api/real-estate.api';
 
 export { RealEstateCard } from './ui/real-estate-card/real-estate-card';
