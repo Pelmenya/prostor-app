@@ -1,6 +1,6 @@
 'use client';
 
-import type { TTabType } from '../../lib/tab-status-presets';
+import type { TTabType } from '../lib/tab-status-presets';
 
 type TOrdersTabSwitcherProps = {
     activeTab: TTabType;

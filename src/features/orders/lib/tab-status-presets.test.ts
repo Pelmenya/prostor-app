@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { EOrderStatus } from '../model/types/e-order-status';
+import { EOrderStatus } from '@/entities/order';
 import { TAB_STATUS_PRESETS } from './tab-status-presets';
 
 describe('TAB_STATUS_PRESETS', () => {

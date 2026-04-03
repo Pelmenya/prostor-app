@@ -2,8 +2,8 @@
 
 import { useEffect } from 'react';
 import { useInView } from 'react-intersection-observer';
-import type { TOrder } from '../../model/types/t-order';
-import { OrderCard } from '../order-card/order-card';
+import type { TOrder } from '@/entities/order';
+import { OrderCard } from '@/entities/order';
 
 type TOrderListProps = {
     orders: TOrder[];

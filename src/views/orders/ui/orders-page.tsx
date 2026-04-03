@@ -2,15 +2,14 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useGetOrders, useGetOrdersCount } from '@/entities/order';
 import {
-    useGetOrders,
-    useGetOrdersCount,
     OrderList,
     OrdersTabSwitcher,
     OrdersNotFound,
     TAB_STATUS_PRESETS,
-} from '@/entities/order';
-import type { TTabType } from '@/entities/order';
+} from '@/features/orders';
+import type { TTabType } from '@/features/orders';
 import { PageContainer, PageTitle } from '@/shared/ui';
 
 export function OrdersPage() {
@@ -46,6 +45,11 @@ export function OrdersPage() {
     const hasOrders = orders.length > 0;
     const isInitialLoading = isLoading && !hasOrders;
 
+    const actualCount = actualCountData?.count ?? 0;
+    const completedCount = completedCountData?.count ?? 0;
+    const isCountsLoaded = !isActualCountLoading && !isCompletedCountLoading;
+    const hasAnyOrders = isCountsLoaded && (actualCount > 0 || completedCount > 0);
+
     const handleLoadMore = () => {
         if (hasNextPage && !isFetchingNextPage) {
             void fetchNextPage();
@@ -79,14 +83,16 @@ export function OrdersPage() {
             <div className="flex flex-col gap-4 lg:gap-6">
                 <PageTitle>Заказы</PageTitle>
 
-                <OrdersTabSwitcher
-                    activeTab={activeTab}
-                    onTabChange={handleTabChange}
-                    actualCount={actualCountData?.count}
-                    completedCount={completedCountData?.count}
-                    isActualCountLoading={isActualCountLoading}
-                    isCompletedCountLoading={isCompletedCountLoading}
-                />
+                {hasAnyOrders && (
+                    <OrdersTabSwitcher
+                        activeTab={activeTab}
+                        onTabChange={handleTabChange}
+                        actualCount={actualCountData?.count}
+                        completedCount={completedCountData?.count}
+                        isActualCountLoading={isActualCountLoading}
+                        isCompletedCountLoading={isCompletedCountLoading}
+                    />
+                )}
 
                 {isInitialLoading ? (
                     <div className="flex flex-col items-center justify-center gap-4 py-20">
@@ -100,12 +106,12 @@ export function OrdersPage() {
                         isLoading={isFetchingNextPage}
                         onLoadMore={handleLoadMore}
                     />
-                ) : (
+                ) : isCountsLoaded ? (
                     <OrdersNotFound
                         type="tab"
                         action={handleGoToCatalog}
                     />
-                )}
+                ) : null}
             </div>
         </PageContainer>
     );

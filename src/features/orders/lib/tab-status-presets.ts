@@ -1,4 +1,4 @@
-import { EOrderStatus } from '../model/types/e-order-status';
+import { EOrderStatus } from '@/entities/order';
 
 export const TAB_STATUS_PRESETS = {
     actual: [
