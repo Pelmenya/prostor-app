@@ -1,14 +1,9 @@
-import type { TOrderCartState } from '../../model/types/t-order';
-import type { TCartItem, TCartServiceItem, EServiceCategory } from '@/shared/model';
-
-// Старые заказы хранят поле `service`, новые — `serviceInfo`
-type TLegacyServiceEntry = { service?: { category?: EServiceCategory } };
-
-function getServiceCategory(s: TCartServiceItem): EServiceCategory | undefined {
-    return s.serviceInfo?.category ?? (s as TLegacyServiceEntry).service?.category;
-}
 import { CubeIcon } from '@heroicons/react/20/solid';
 import { WrenchScrewdriverIcon, ArrowPathRoundedSquareIcon } from '@heroicons/react/16/solid';
+import type { TCartItem, TCartServiceItem, EServiceCategory } from '@/shared/model';
+import { EServiceCategory as ServiceCategory } from '@/shared/model';
+import type { TOrderCartState } from '../../model/types/t-order';
+import type { TLegacyServiceEntry } from '../../model/types/t-legacy-service';
 import { OrderProductCard } from '../order-product-card/order-product-card';
 import { OrderServiceCard } from '../order-service-card/order-service-card';
 
@@ -17,6 +12,10 @@ type TOrderPositionsListProps = {
     imageUrls?: Record<string, string | undefined>;
     loadingIds?: Set<string>;
 };
+
+function getServiceCategory(s: TCartServiceItem): EServiceCategory | undefined {
+    return s.serviceInfo?.category ?? (s as TLegacyServiceEntry).service?.category as EServiceCategory | undefined;
+}
 
 function hasCheckedServicesByCategory(
     items: TCartItem[],
@@ -125,8 +124,8 @@ export function OrderPositionsList({ cartState, imageUrls, loadingIds }: TOrderP
     if (!items.length) return null;
 
     const hasProducts = items.some((it) => it?.count > 0 && it?.product);
-    const hasInstallation = hasCheckedServicesByCategory(items, 'Монтаж' as EServiceCategory);
-    const hasMaintenance = hasCheckedServicesByCategory(items, 'Сервисное обслуживание' as EServiceCategory);
+    const hasInstallation = hasCheckedServicesByCategory(items, ServiceCategory.MONTAZH);
+    const hasMaintenance = hasCheckedServicesByCategory(items, ServiceCategory.SERVISNOE_OBSLUZHIVANIE);
     const hasGeneral = hasCheckedServicesByCategory(items, undefined);
 
     return (
@@ -138,7 +137,7 @@ export function OrderPositionsList({ cartState, imageUrls, loadingIds }: TOrderP
             {hasInstallation && (
                 <ServicesSection
                     items={items}
-                    category={'Монтаж' as EServiceCategory}
+                    category={ServiceCategory.MONTAZH}
                     label="Монтаж"
                     icon={<WrenchScrewdriverIcon className="size-3" />}
                 />
@@ -147,7 +146,7 @@ export function OrderPositionsList({ cartState, imageUrls, loadingIds }: TOrderP
             {hasMaintenance && (
                 <ServicesSection
                     items={items}
-                    category={'Сервисное обслуживание' as EServiceCategory}
+                    category={ServiceCategory.SERVISNOE_OBSLUZHIVANIE}
                     label="Сервис"
                     icon={<ArrowPathRoundedSquareIcon className="size-3" />}
                 />

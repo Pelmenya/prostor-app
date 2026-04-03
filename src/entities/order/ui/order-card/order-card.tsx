@@ -3,18 +3,16 @@
 import Link from 'next/link';
 import type { TOrder } from '../../model/types/t-order';
 import { CardWrapper } from '@/shared/ui';
-import { useProductThumbnails } from '@/entities/product';
 import { OrderCardHeader } from '../order-card-header/order-card-header';
 import { OrderPositionsList } from '../order-positions-list/order-positions-list';
 
 type TOrderCardProps = {
     order: TOrder;
+    imageUrls?: Record<string, string | undefined>;
+    loadingIds?: Set<string>;
 };
 
-export function OrderCard({ order }: TOrderCardProps) {
-    const productIds = Object.keys(order.cartState?.items ?? {});
-    const { imageUrls, loadingIds } = useProductThumbnails(productIds);
-
+export function OrderCard({ order, imageUrls, loadingIds }: TOrderCardProps) {
     return (
         <li>
             <Link href={`/order/${order.id}`}>

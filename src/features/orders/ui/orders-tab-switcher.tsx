@@ -1,5 +1,6 @@
 'use client';
 
+import { cn } from '@/shared/lib';
 import type { TTabType } from '../lib/tab-status-presets';
 
 type TOrdersTabSwitcherProps = {
@@ -36,7 +37,7 @@ export function OrdersTabSwitcher({
             <button
                 role="tab"
                 type="button"
-                className={`tab ${activeTab === 'actual' ? 'tab-active' : ''}`}
+                className={cn('tab', activeTab === 'actual' && 'tab-active')}
                 onClick={() => onTabChange('actual')}
             >
                 <span className="inline-flex items-center gap-1">
@@ -47,7 +48,7 @@ export function OrdersTabSwitcher({
             <button
                 role="tab"
                 type="button"
-                className={`tab ${activeTab === 'completed' ? 'tab-active' : ''}`}
+                className={cn('tab', activeTab === 'completed' && 'tab-active')}
                 onClick={() => onTabChange('completed')}
             >
                 <span className="inline-flex items-center gap-1">

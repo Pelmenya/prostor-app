@@ -1,13 +1,11 @@
 import type { TCartServiceItem } from '@/shared/model';
+import type { TLegacyServiceEntry } from '../../model/types/t-legacy-service';
 import { OrderPositionCount } from '../order-position-count/order-position-count';
 
 type TOrderServiceCardProps = {
     service: TCartServiceItem;
     isLast: boolean;
 };
-
-// Старые заказы (Telegram-фронт) хранят поле `service`, новые — `serviceInfo`
-type TLegacyServiceEntry = { service?: { name?: string; id?: string } };
 
 export function OrderServiceCard({ service, isLast }: TOrderServiceCardProps) {
     const info = service.serviceInfo ?? (service as TLegacyServiceEntry).service;

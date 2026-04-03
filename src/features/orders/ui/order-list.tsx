@@ -10,9 +10,11 @@ type TOrderListProps = {
     hasMore: boolean;
     isLoading: boolean;
     onLoadMore: () => void;
+    imageUrls?: Record<string, string | undefined>;
+    loadingIds?: Set<string>;
 };
 
-export function OrderList({ orders, hasMore, isLoading, onLoadMore }: TOrderListProps) {
+export function OrderList({ orders, hasMore, isLoading, onLoadMore, imageUrls, loadingIds }: TOrderListProps) {
     const { ref, inView } = useInView({
         threshold: 0,
         rootMargin: '100px',
@@ -37,7 +39,7 @@ export function OrderList({ orders, hasMore, isLoading, onLoadMore }: TOrderList
         <div>
             <ul className="flex flex-col gap-4 lg:gap-6">
                 {orders.map((order) => (
-                    <OrderCard key={order.id} order={order} />
+                    <OrderCard key={order.id} order={order} imageUrls={imageUrls} loadingIds={loadingIds} />
                 ))}
             </ul>
 

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useGetOrders, useGetOrdersCount } from '@/entities/order';
+import { useProductThumbnails } from '@/entities/product';
 import {
     OrderList,
     OrdersTabSwitcher,
@@ -44,6 +45,9 @@ export function OrdersPage() {
     const orders = data?.pages.flatMap((page) => page.items) ?? [];
     const hasOrders = orders.length > 0;
     const isInitialLoading = isLoading && !hasOrders;
+
+    const productIds = orders.flatMap((order) => Object.keys(order.cartState?.items ?? {}));
+    const { imageUrls, loadingIds } = useProductThumbnails(productIds);
 
     const actualCount = actualCountData?.count ?? 0;
     const completedCount = completedCountData?.count ?? 0;
@@ -105,6 +109,8 @@ export function OrdersPage() {
                         hasMore={!!hasNextPage}
                         isLoading={isFetchingNextPage}
                         onLoadMore={handleLoadMore}
+                        imageUrls={imageUrls}
+                        loadingIds={loadingIds}
                     />
                 ) : isCountsLoaded ? (
                     <OrdersNotFound
