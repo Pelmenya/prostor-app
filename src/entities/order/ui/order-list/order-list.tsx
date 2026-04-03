@@ -24,7 +24,7 @@ export function OrderList({ orders, hasMore, isLoading, onLoadMore }: TOrderList
         }
     }, [inView, hasMore, isLoading, onLoadMore]);
 
-    if (!orders?.length) {
+    if (isLoading && !orders?.length) {
         return (
             <div className="flex flex-col items-center gap-2">
                 <span className="loading loading-spinner loading-md" />

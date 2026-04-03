@@ -1,5 +1,5 @@
 import type { TUser } from '@/shared/model';
-import type { TCartItem, TCartServiceItem } from '@/entities/cart';
+import type { TCartItem } from '@/shared/model';
 import type { EDeliveryType } from './e-delivery-type';
 import type { EOrderStatus } from './e-order-status';
 import type { EPaymentStatus } from './e-payment-status';
@@ -80,7 +80,3 @@ export type TOrder = {
     deliveryDescription?: string | null;
     pickupStore?: TPickupStoreInfo;
 };
-
-// Реэкспорт для удобства
-export type { TCartItem as TOrderCartItem };
-export type { TCartServiceItem as TOrderCartServiceItem };

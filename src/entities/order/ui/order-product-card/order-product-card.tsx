@@ -1,6 +1,3 @@
-'use client';
-
-import { useProductImages, getImageProxyUrl } from '@/entities/product';
 import { CardImage } from '@/shared/ui';
 import { OrderPositionCount } from '../order-position-count/order-position-count';
 
@@ -11,13 +8,11 @@ type TOrderProductCardProps = {
     };
     count: number;
     isLast: boolean;
+    imageUrl?: string;
+    isImageLoading?: boolean;
 };
 
-export function OrderProductCard({ product, count, isLast }: TOrderProductCardProps) {
-    const { data: images, isLoading } = useProductImages(product.id);
-    const mainImage = images?.[0];
-    const imageUrl = mainImage ? getImageProxyUrl(mainImage.meta.downloadHref) : undefined;
-
+export function OrderProductCard({ product, count, isLast, imageUrl, isImageLoading }: TOrderProductCardProps) {
     return (
         <>
             <div className="flex items-center gap-2 justify-between">
@@ -27,7 +22,7 @@ export function OrderProductCard({ product, count, isLast }: TOrderProductCardPr
                 <div className="flex items-center gap-2">
                     <OrderPositionCount count={count} />
                     <CardImage
-                        isLoading={isLoading}
+                        isLoading={isImageLoading ?? false}
                         src={imageUrl}
                         className="w-12 h-16 rounded-2xl"
                         imgClassName="size-full object-contain"

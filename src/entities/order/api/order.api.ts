@@ -1,5 +1,6 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useApi } from '@/shared/api';
+import { buildSearchParams } from '@/shared/lib';
 import type { EOrderStatus } from '../model/types/e-order-status';
 import type { EDeliveryType } from '../model/types/e-delivery-type';
 import type { TWorkDay } from '../model/types/t-work-day';
@@ -50,33 +51,6 @@ type TCreateOrderBody = {
     clientComment?: string;
     email?: string;
 };
-
-// ---- Утилита для сборки query params ----
-
-function buildSearchParams(params: Record<string, unknown>): string {
-    const urlParams = new URLSearchParams();
-
-    for (const [key, value] of Object.entries(params)) {
-        if (value === undefined || value === '') continue;
-
-        if (value === null) {
-            urlParams.append(key, 'null');
-            continue;
-        }
-
-        if (Array.isArray(value)) {
-            if (value.length > 0) {
-                for (const val of value) {
-                    urlParams.append(key, String(val));
-                }
-            }
-        } else {
-            urlParams.append(key, String(value));
-        }
-    }
-
-    return urlParams.toString();
-}
 
 // ---- Хуки ----
 
@@ -157,8 +131,7 @@ export function useUpdateOrderStatus() {
             }),
         onSuccess: (_data, variables) => {
             void queryClient.invalidateQueries({ queryKey: orderKeys.detail(variables.orderId) });
-            void queryClient.invalidateQueries({ queryKey: ['orders', 'list'] });
-            void queryClient.invalidateQueries({ queryKey: ['orders', 'count'] });
+            void queryClient.invalidateQueries({ queryKey: orderKeys.all });
         },
     });
 }

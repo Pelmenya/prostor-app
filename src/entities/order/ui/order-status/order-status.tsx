@@ -1,5 +1,3 @@
-'use client';
-
 import { EOrderStatus } from '../../model/types/e-order-status';
 import { STATUS_TEXT } from '../../lib/status-text';
 

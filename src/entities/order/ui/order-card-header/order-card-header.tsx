@@ -1,5 +1,3 @@
-'use client';
-
 import { EOrderStatus } from '../../model/types/e-order-status';
 import { OrderStatus } from '../order-status/order-status';
 import { formatDateRu } from '@/shared/lib';
