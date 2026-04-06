@@ -4,6 +4,8 @@ export function buildSearchParams(params: Record<string, unknown>): string {
     for (const [key, value] of Object.entries(params)) {
         if (value === undefined || value === '') continue;
 
+        // null передаётся как строка "null" — намеренно, для явной передачи «сброса» параметра.
+        // Убедиться, что бэкенд ожидает именно строку "null", а не отсутствие параметра.
         if (value === null) {
             urlParams.append(key, 'null');
             continue;

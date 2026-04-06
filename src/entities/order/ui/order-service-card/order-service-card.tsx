@@ -1,5 +1,5 @@
 import type { TCartServiceItem } from '@/shared/model';
-import type { TLegacyServiceEntry } from '../../model/types/t-legacy-service';
+import { getServiceInfo } from '../../lib/get-service-info';
 import { OrderPositionCount } from '../order-position-count/order-position-count';
 
 type TOrderServiceCardProps = {
@@ -8,7 +8,7 @@ type TOrderServiceCardProps = {
 };
 
 export function OrderServiceCard({ service, isLast }: TOrderServiceCardProps) {
-    const info = service.serviceInfo ?? (service as TLegacyServiceEntry).service;
+    const info = getServiceInfo(service);
     const serviceName = info?.name || info?.id || 'Без названия';
 
     return (

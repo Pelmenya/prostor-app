@@ -1,9 +1,10 @@
 import { CubeIcon } from '@heroicons/react/20/solid';
 import { WrenchScrewdriverIcon, ArrowPathRoundedSquareIcon } from '@heroicons/react/16/solid';
-import type { TCartItem, TCartServiceItem, EServiceCategory } from '@/shared/model';
+import type { TCartItem, TCartServiceItem } from '@/shared/model';
 import { EServiceCategory as ServiceCategory } from '@/shared/model';
 import type { TOrderCartState } from '../../model/types/t-order';
-import type { TLegacyServiceEntry } from '../../model/types/t-legacy-service';
+import { getServiceInfo } from '../../lib/get-service-info';
+import { useOrderPositionsGrouped } from '../../lib/use-order-positions-grouped';
 import { OrderProductCard } from '../order-product-card/order-product-card';
 import { OrderServiceCard } from '../order-service-card/order-service-card';
 
@@ -12,24 +13,6 @@ type TOrderPositionsListProps = {
     imageUrls?: Record<string, string | undefined>;
     loadingIds?: Set<string>;
 };
-
-function getServiceCategory(s: TCartServiceItem): EServiceCategory | undefined {
-    return s.serviceInfo?.category ?? (s as TLegacyServiceEntry).service?.category as EServiceCategory | undefined;
-}
-
-function hasCheckedServicesByCategory(
-    items: TCartItem[],
-    category: EServiceCategory | undefined,
-): boolean {
-    return items.some((it) =>
-        Object.values(it.services || {}).some((s: TCartServiceItem) =>
-            s?.checked &&
-            (category === undefined
-                ? getServiceCategory(s) === undefined
-                : getServiceCategory(s) === category),
-        ),
-    );
-}
 
 function ProductsSection({
     items,
@@ -72,7 +55,7 @@ function ServicesSection({
     icon,
 }: {
     items: TCartItem[];
-    category: EServiceCategory | undefined;
+    category: ServiceCategory | undefined;
     label: string;
     icon: React.ReactNode;
 }) {
@@ -80,12 +63,16 @@ function ServicesSection({
         <>
             {items.map((it) => {
                 const checkedServices = Object.values(it.services || {}).filter(
-                    (s: TCartServiceItem) =>
-                        s?.checked &&
-                        s?.count > 0 &&
-                        (category === undefined
-                            ? getServiceCategory(s) === undefined
-                            : getServiceCategory(s) === category),
+                    (s: TCartServiceItem) => {
+                        const serviceCategory = getServiceInfo(s)?.category as ServiceCategory | undefined;
+                        return (
+                            s?.checked &&
+                            s?.count > 0 &&
+                            (category === undefined
+                                ? serviceCategory === undefined
+                                : serviceCategory === category)
+                        );
+                    },
                 );
 
                 if (checkedServices.length === 0) return null;
@@ -106,7 +93,7 @@ function ServicesSection({
                         </p>
                         {checkedServices.map((serviceItem, idx) => (
                             <OrderServiceCard
-                                key={serviceItem.serviceInfo?.id ?? idx}
+                                key={getServiceInfo(serviceItem)?.id ?? idx}
                                 service={serviceItem}
                                 isLast={idx === checkedServices.length - 1}
                             />
@@ -119,14 +106,10 @@ function ServicesSection({
 }
 
 export function OrderPositionsList({ cartState, imageUrls, loadingIds }: TOrderPositionsListProps) {
-    const items: TCartItem[] = Object.values(cartState?.items ?? {});
+    const { items, hasProducts, hasInstallation, hasMaintenance, hasGeneral } =
+        useOrderPositionsGrouped(cartState);
 
     if (!items.length) return null;
-
-    const hasProducts = items.some((it) => it?.count > 0 && it?.product);
-    const hasInstallation = hasCheckedServicesByCategory(items, ServiceCategory.MONTAZH);
-    const hasMaintenance = hasCheckedServicesByCategory(items, ServiceCategory.SERVISNOE_OBSLUZHIVANIE);
-    const hasGeneral = hasCheckedServicesByCategory(items, undefined);
 
     return (
         <div className="flex flex-col w-full gap-6">

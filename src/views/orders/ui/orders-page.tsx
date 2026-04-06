@@ -1,25 +1,19 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useGetOrders, useGetOrdersCount } from '@/entities/order';
-import { useProductThumbnails } from '@/entities/product';
-import {
-    OrderList,
-    OrdersTabSwitcher,
-    OrdersNotFound,
-    TAB_STATUS_PRESETS,
-} from '@/features/orders';
+import { useOrderThumbnails, TAB_STATUS_PRESETS } from '@/features/orders';
 import type { TTabType } from '@/features/orders';
-import { PageContainer, PageTitle } from '@/shared/ui';
+import { PageContainer } from '@/shared/ui';
+import { OrdersPageContent } from './orders-page-content';
 
 export function OrdersPage() {
-    const router = useRouter();
     const [activeTab, setActiveTab] = useState<TTabType>('actual');
 
     const statusFilter = TAB_STATUS_PRESETS[activeTab];
 
-    // Список заказов
+    // TODO: добавить enabled: !!session?.user после реализации NextAuth
+    // чтобы не стрелять запросами до авторизации (сейчас защита через middleware)
     const {
         data,
         fetchNextPage,
@@ -33,11 +27,12 @@ export function OrdersPage() {
         status: [...statusFilter],
     });
 
-    // Счётчики для табов
+    // TODO: добавить enabled: !!session?.user после реализации NextAuth
     const { data: actualCountData, isLoading: isActualCountLoading } = useGetOrdersCount({
         status: [...TAB_STATUS_PRESETS.actual],
     });
 
+    // TODO: добавить enabled: !!session?.user после реализации NextAuth
     const { data: completedCountData, isLoading: isCompletedCountLoading } = useGetOrdersCount({
         status: [...TAB_STATUS_PRESETS.completed],
     });
@@ -46,8 +41,8 @@ export function OrdersPage() {
     const hasOrders = orders.length > 0;
     const isInitialLoading = isLoading && !hasOrders;
 
-    const productIds = orders.flatMap((order) => Object.keys(order.cartState?.items ?? {}));
-    const { imageUrls, loadingIds } = useProductThumbnails(productIds);
+    // Дедупликация productIds при бесконечной прокрутке
+    const { imageUrls, loadingIds } = useOrderThumbnails(orders);
 
     const actualCount = actualCountData?.count ?? 0;
     const completedCount = completedCountData?.count ?? 0;
@@ -60,15 +55,6 @@ export function OrdersPage() {
         }
     };
 
-    const handleTabChange = (tab: TTabType) => {
-        setActiveTab(tab);
-    };
-
-    const handleGoToCatalog = () => {
-        router.push('/catalog');
-    };
-
-    // Ошибка загрузки
     if (error) {
         return (
             <PageContainer>
@@ -83,42 +69,23 @@ export function OrdersPage() {
     }
 
     return (
-        <PageContainer>
-            <div className="flex flex-col gap-4 lg:gap-6">
-                <PageTitle>Заказы</PageTitle>
-
-                {hasAnyOrders && (
-                    <OrdersTabSwitcher
-                        activeTab={activeTab}
-                        onTabChange={handleTabChange}
-                        actualCount={actualCountData?.count}
-                        completedCount={completedCountData?.count}
-                        isActualCountLoading={isActualCountLoading}
-                        isCompletedCountLoading={isCompletedCountLoading}
-                    />
-                )}
-
-                {isInitialLoading ? (
-                    <div className="flex flex-col items-center justify-center gap-4 py-20">
-                        <div className="loading loading-spinner loading-lg" />
-                        <div className="text-base-content/70">Загрузка заказов...</div>
-                    </div>
-                ) : hasOrders ? (
-                    <OrderList
-                        orders={orders}
-                        hasMore={!!hasNextPage}
-                        isLoading={isFetchingNextPage}
-                        onLoadMore={handleLoadMore}
-                        imageUrls={imageUrls}
-                        loadingIds={loadingIds}
-                    />
-                ) : isCountsLoaded ? (
-                    <OrdersNotFound
-                        type="tab"
-                        action={handleGoToCatalog}
-                    />
-                ) : null}
-            </div>
-        </PageContainer>
+        <OrdersPageContent
+            orders={orders}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            hasOrders={hasOrders}
+            isInitialLoading={isInitialLoading}
+            hasAnyOrders={hasAnyOrders}
+            isCountsLoaded={isCountsLoaded}
+            hasMore={!!hasNextPage}
+            isLoadingMore={isFetchingNextPage}
+            onLoadMore={handleLoadMore}
+            actualCount={actualCountData?.count}
+            completedCount={completedCountData?.count}
+            isActualCountLoading={isActualCountLoading}
+            isCompletedCountLoading={isCompletedCountLoading}
+            imageUrls={imageUrls}
+            loadingIds={loadingIds}
+        />
     );
 }
