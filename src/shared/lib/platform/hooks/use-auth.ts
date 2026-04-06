@@ -10,6 +10,9 @@ export function useAuth() {
     const storeUser = mapUserToPlatformUser(store.user);
 
     return {
+        // TODO(NextAuth): authHeader и isAuthenticated для web — заменить на NextAuth session
+        // authHeader: session?.accessToken ? `Bearer ${session.accessToken}` : null
+        // isAuthenticated: !!session?.user
         authHeader:
             adapter?.getAuthHeader() ?? (store.accessToken ? `Bearer ${store.accessToken}` : null),
         user: adapterUser ?? storeUser,
