@@ -4,37 +4,31 @@ import { useState } from 'react';
 import { useGetOrders, useGetOrdersCount } from '@/entities/order';
 import { useOrderThumbnails, TAB_STATUS_PRESETS } from '@/features/orders';
 import type { TTabType } from '@/features/orders';
+import { useAuth } from '@/shared/lib/platform';
 import { PageContainer } from '@/shared/ui';
 import { OrdersPageContent } from './orders-page-content';
 
 export function OrdersPage() {
+    const { isAuthenticated } = useAuth();
     const [activeTab, setActiveTab] = useState<TTabType>('actual');
 
     const statusFilter = TAB_STATUS_PRESETS[activeTab];
 
-    // TODO: добавить enabled: !!session?.user после реализации NextAuth
-    // чтобы не стрелять запросами до авторизации (сейчас защита через middleware)
-    const {
-        data,
-        fetchNextPage,
-        hasNextPage,
-        isFetchingNextPage,
-        isLoading,
-        error,
-        refetch,
-    } = useGetOrders({
-        limit: 10,
-        status: [...statusFilter],
-    });
+    const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, error, refetch } =
+        useGetOrders({
+            limit: 10,
+            status: [...statusFilter],
+            enabled: isAuthenticated,
+        });
 
-    // TODO: добавить enabled: !!session?.user после реализации NextAuth
     const { data: actualCountData, isLoading: isActualCountLoading } = useGetOrdersCount({
         status: [...TAB_STATUS_PRESETS.actual],
+        enabled: isAuthenticated,
     });
 
-    // TODO: добавить enabled: !!session?.user после реализации NextAuth
     const { data: completedCountData, isLoading: isCompletedCountLoading } = useGetOrdersCount({
         status: [...TAB_STATUS_PRESETS.completed],
+        enabled: isAuthenticated,
     });
 
     const orders = data?.pages.flatMap((page) => page.items) ?? [];

@@ -22,10 +22,12 @@ export type TOrdersQueryParams = {
     cursor?: string;
     sortDir?: 'asc' | 'desc';
     status?: EOrderStatus[];
+    enabled?: boolean;
 };
 
 export type TOrdersCountParams = {
     status?: EOrderStatus[];
+    enabled?: boolean;
 };
 
 type TOrdersPaginatedResponse = {
@@ -57,7 +59,7 @@ type TCreateOrderBody = {
 /**
  * Бесконечный список заказов с cursor-пагинацией
  */
-export function useGetOrders(params: TOrdersQueryParams) {
+export function useGetOrders({ enabled = true, ...params }: TOrdersQueryParams) {
     const api = useApi();
 
     return useInfiniteQuery({
@@ -73,13 +75,14 @@ export function useGetOrders(params: TOrdersQueryParams) {
         getNextPageParam: (lastPage) =>
             lastPage.hasMore ? (lastPage.nextCursor ?? undefined) : undefined,
         staleTime: 30_000,
+        enabled,
     });
 }
 
 /**
  * Счётчик заказов по фильтрам (для бейджей на табах)
  */
-export function useGetOrdersCount(params: TOrdersCountParams) {
+export function useGetOrdersCount({ enabled = true, ...params }: TOrdersCountParams) {
     const api = useApi();
 
     return useQuery({
@@ -89,6 +92,7 @@ export function useGetOrdersCount(params: TOrdersCountParams) {
             return api<TOrdersCountResponse>(`/order/count?${queryString}`);
         },
         staleTime: 30_000,
+        enabled,
     });
 }
 
