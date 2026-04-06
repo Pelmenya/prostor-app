@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { OrdersPage } from '@/views/orders';
+import { OrdersClient } from './orders-client';
 
 export const metadata: Metadata = {
     title: 'Мои заказы — PROSTOR',
@@ -7,5 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function OrdersRoute() {
-    return <OrdersPage />;
+    return <OrdersClient />;
 }
