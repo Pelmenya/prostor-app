@@ -32,5 +32,6 @@ export { OrderStatus } from './ui/order-status/order-status';
 export { OrderCardHeader } from './ui/order-card-header/order-card-header';
 export { OrderCard } from './ui/order-card/order-card';
 export { OrderPositionsList } from './ui/order-positions-list/order-positions-list';
+export { OrderReadonlyItems } from './ui/order-readonly-items';
 export { OrderProductCard } from './ui/order-product-card/order-product-card';
 export { OrderServiceCard } from './ui/order-service-card/order-service-card';

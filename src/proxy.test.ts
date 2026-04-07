@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { proxy } from './proxy';
 
 const BASE_URL = process.env.NEXT_PUBLIC_WEB_APP_URL ?? 'http://localhost:3050';

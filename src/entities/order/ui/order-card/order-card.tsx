@@ -15,7 +15,7 @@ type TOrderCardProps = {
 export function OrderCard({ order, imageUrls, loadingIds }: TOrderCardProps) {
     return (
         <li>
-            <Link href={`/order/${order.id}`}>
+            <Link href={`/orders/${order.id}`}>
                 <CardWrapper className="flex-col gap-6 w-full">
                     <OrderCardHeader
                         title={String(order.id)}
