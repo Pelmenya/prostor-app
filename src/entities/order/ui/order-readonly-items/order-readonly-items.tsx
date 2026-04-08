@@ -1,15 +1,9 @@
 import Link from 'next/link';
 import type { TCartItem } from '@/shared/model';
-import { EServiceCategory } from '@/shared/model';
 import { CartCardWrapper, CardImage } from '@/shared/ui';
 import { formatPrice } from '@/shared/lib';
 import { getServiceInfo } from '../../lib/get-service-info';
-
-const SERVICE_GROUPS = [
-    { category: EServiceCategory.MONTAZH, variant: 'installation' as const },
-    { category: EServiceCategory.SERVISNOE_OBSLUZHIVANIE, variant: 'maintenance' as const },
-    { category: undefined, variant: 'service' as const },
-];
+import { SERVICE_GROUPS } from '../../lib/service-groups';
 
 type TOrderReadonlyItemsProps = {
     items: Record<string, TCartItem>;
@@ -47,7 +41,7 @@ export function OrderReadonlyItems({ items, imageUrls, loadingIds }: TOrderReado
                                         imgClassName="size-full object-contain"
                                         alt={cartItem.product.name}
                                     />
-                                    <h5 className="line-clamp-2 text-sm leading-[110%]">
+                                    <h5 className="line-clamp-2 text-sm leading-110">
                                         {cartItem.product.name}
                                     </h5>
                                 </Link>
@@ -55,10 +49,10 @@ export function OrderReadonlyItems({ items, imageUrls, loadingIds }: TOrderReado
                                 <hr className="h-px text-base-300" />
 
                                 <div className="flex items-center justify-between">
-                                    <span className="font-semibold text-primary leading-[110%]">
+                                    <span className="font-semibold text-primary leading-110">
                                         {formatPrice(cartItem.price)}
                                     </span>
-                                    <span className="font-medium leading-[110%]">
+                                    <span className="font-medium leading-110">
                                         x{cartItem.count}
                                     </span>
                                 </div>
@@ -77,16 +71,14 @@ export function OrderReadonlyItems({ items, imageUrls, loadingIds }: TOrderReado
                                         imgClassName="size-full object-contain"
                                         alt={cartItem.product.name}
                                     />
-                                    <h5 className="line-clamp-2 text-sm leading-[110%]">
+                                    <h5 className="line-clamp-2 text-sm leading-110">
                                         {cartItem.product.name}
                                     </h5>
                                 </Link>
-                                <span className="shrink-0 font-semibold text-primary leading-[110%]">
+                                <span className="shrink-0 font-semibold text-primary leading-110">
                                     {formatPrice(cartItem.price)}
                                 </span>
-                                <span className="font-medium leading-[110%]">
-                                    x{cartItem.count}
-                                </span>
+                                <span className="font-medium leading-110">x{cartItem.count}</span>
                             </div>
                         </CartCardWrapper>
 
@@ -109,27 +101,27 @@ export function OrderReadonlyItems({ items, imageUrls, loadingIds }: TOrderReado
                                             <div key={svcId}>
                                                 {/* Мобилка: 2 строки */}
                                                 <div className="flex flex-col gap-2 md:hidden">
-                                                    <p className="line-clamp-2 text-sm leading-[110%]">
+                                                    <p className="line-clamp-2 text-sm leading-110">
                                                         {info?.name}
                                                     </p>
                                                     <div className="flex items-center justify-between">
-                                                        <p className="text-sm font-semibold tracking-tight text-primary leading-[110%]">
+                                                        <p className="text-sm font-semibold tracking-tight text-primary leading-110">
                                                             {formatPrice(svc.price)}
                                                         </p>
-                                                        <span className="font-medium leading-[110%]">
+                                                        <span className="font-medium leading-110">
                                                             x{svc.count}
                                                         </span>
                                                     </div>
                                                 </div>
                                                 {/* Десктоп: 1 строка */}
                                                 <div className="hidden md:flex md:items-center md:gap-4">
-                                                    <p className="line-clamp-2 flex-1 min-w-0 text-sm leading-[110%]">
+                                                    <p className="line-clamp-2 flex-1 min-w-0 text-sm leading-110">
                                                         {info?.name}
                                                     </p>
-                                                    <p className="shrink-0 text-sm font-semibold tracking-tight text-primary leading-[110%]">
+                                                    <p className="shrink-0 text-sm font-semibold tracking-tight text-primary leading-110">
                                                         {formatPrice(svc.price)}
                                                     </p>
-                                                    <span className="font-medium leading-[110%]">
+                                                    <span className="font-medium leading-110">
                                                         x{svc.count}
                                                     </span>
                                                 </div>

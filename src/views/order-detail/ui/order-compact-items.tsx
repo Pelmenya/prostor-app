@@ -2,28 +2,22 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { getServiceInfo } from '@/entities/order';
+import { getServiceInfo, SERVICE_GROUPS } from '@/entities/order';
 import type { TCartItem } from '@/shared/model';
-import { formatPrice } from '@/shared/lib';
 import { EServiceCategory } from '@/shared/model';
+import { formatPrice } from '@/shared/lib';
 import { BottomSheetModal, CardImage } from '@/shared/ui';
 import { WrenchScrewdriverIcon, ArrowPathRoundedSquareIcon } from '@heroicons/react/16/solid';
 
-type TServiceGroup = {
-    category: EServiceCategory | undefined;
-    icon: React.ReactNode;
+const CATEGORY_ICON: Record<string, React.ReactNode> = {
+    [EServiceCategory.MONTAZH]: <WrenchScrewdriverIcon className="size-3" />,
+    [EServiceCategory.SERVISNOE_OBSLUZHIVANIE]: <ArrowPathRoundedSquareIcon className="size-3" />,
 };
 
-const SERVICE_GROUPS: TServiceGroup[] = [
-    {
-        category: EServiceCategory.MONTAZH,
-        icon: <WrenchScrewdriverIcon className="size-3" />,
-    },
-    {
-        category: EServiceCategory.SERVISNOE_OBSLUZHIVANIE,
-        icon: <ArrowPathRoundedSquareIcon className="size-3" />,
-    },
-];
+const NAMED_SERVICE_GROUPS = SERVICE_GROUPS.filter(
+    (g): g is (typeof SERVICE_GROUPS)[number] & { category: EServiceCategory } =>
+        g.category !== undefined,
+);
 
 type TOrderCompactItemsProps = {
     items: TCartItem[];
@@ -60,21 +54,21 @@ export function OrderCompactItems({ items, imageUrls, loadingIds }: TOrderCompac
                             <div key={`p-${cartItem.product.id}`} className="relative shrink-0">
                                 <CardImage {...imgProps} />
                             </div>,
-                            ...SERVICE_GROUPS.filter(({ category }) =>
+                            ...NAMED_SERVICE_GROUPS.filter(({ category }) =>
                                 Object.values(cartItem.services ?? {}).some(
                                     (s) =>
                                         s.checked &&
                                         s.count > 0 &&
                                         getServiceInfo(s)?.category === category,
                                 ),
-                            ).map(({ category, icon }) => (
+                            ).map(({ category }) => (
                                 <div
                                     key={`svc-${cartItem.product.id}-${category}`}
                                     className="relative shrink-0"
                                 >
                                     <CardImage {...imgProps} />
                                     <div className="absolute -top-1 -right-1 flex items-center justify-center size-4 rounded-full bg-primary text-primary-content">
-                                        {icon}
+                                        {CATEGORY_ICON[category]}
                                     </div>
                                 </div>
                             )),
@@ -94,7 +88,7 @@ export function OrderCompactItems({ items, imageUrls, loadingIds }: TOrderCompac
                         const imgUrl = imageUrls[cartItem.product.id];
                         const isImgLoading = loadingIds.has(cartItem.product.id);
 
-                        const activeServices = SERVICE_GROUPS.flatMap(({ category }) =>
+                        const activeServices = NAMED_SERVICE_GROUPS.flatMap(({ category }) =>
                             Object.entries(cartItem.services ?? {})
                                 .filter(
                                     ([, s]) =>
@@ -102,7 +96,7 @@ export function OrderCompactItems({ items, imageUrls, loadingIds }: TOrderCompac
                                         s.count > 0 &&
                                         getServiceInfo(s)?.category === category,
                                 )
-                                .map(([svcId, svc]) => ({ svcId, svc })),
+                                .map(([svcId, svc]) => ({ svcId, svc, category })),
                         );
 
                         return (
@@ -120,16 +114,16 @@ export function OrderCompactItems({ items, imageUrls, loadingIds }: TOrderCompac
                                         alt={cartItem.product.name}
                                     />
                                     <div className="flex flex-col gap-1 min-w-0">
-                                        <p className="text-sm line-clamp-2 leading-[110%]">
+                                        <p className="text-sm line-clamp-2 leading-110">
                                             {cartItem.product.name}
                                         </p>
-                                        <p className="text-sm font-semibold text-primary leading-[110%]">
+                                        <p className="text-sm font-semibold text-primary leading-110">
                                             {formatPrice(cartItem.price)}
                                         </p>
                                     </div>
                                 </Link>
 
-                                {activeServices.map(({ svcId, svc }) => {
+                                {activeServices.map(({ svcId, svc, category }) => {
                                     const info = getServiceInfo(svc);
                                     return (
                                         <Link
@@ -147,19 +141,14 @@ export function OrderCompactItems({ items, imageUrls, loadingIds }: TOrderCompac
                                                     alt={cartItem.product.name}
                                                 />
                                                 <div className="absolute -top-1 -right-1 flex items-center justify-center size-4 rounded-full bg-primary text-primary-content">
-                                                    {getServiceInfo(svc)?.category ===
-                                                    EServiceCategory.MONTAZH ? (
-                                                        <WrenchScrewdriverIcon className="size-3" />
-                                                    ) : (
-                                                        <ArrowPathRoundedSquareIcon className="size-3" />
-                                                    )}
+                                                    {CATEGORY_ICON[category]}
                                                 </div>
                                             </div>
                                             <div className="flex flex-col gap-1 min-w-0">
-                                                <p className="text-sm line-clamp-2 leading-[110%]">
+                                                <p className="text-sm line-clamp-2 leading-110">
                                                     {info?.name}
                                                 </p>
-                                                <p className="text-sm font-semibold text-primary leading-[110%]">
+                                                <p className="text-sm font-semibold text-primary leading-110">
                                                     {formatPrice(svc.price * svc.count)}
                                                 </p>
                                             </div>

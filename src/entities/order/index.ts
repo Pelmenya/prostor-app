@@ -24,6 +24,8 @@ export type { TWorkDay } from './model/types/t-work-day';
 
 // Lib
 export { STATUS_TEXT } from './lib/status-text';
+export { STATUS_STEP, STATUS_LABEL } from './lib/status-config';
+export { SERVICE_GROUPS } from './lib/service-groups';
 export { getServiceInfo } from './lib/get-service-info';
 export { useOrderPositionsGrouped } from './lib/use-order-positions-grouped';
 

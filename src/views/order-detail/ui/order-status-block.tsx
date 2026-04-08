@@ -1,23 +1,7 @@
-import { EOrderStatus } from '@/entities/order';
+import { EOrderStatus, STATUS_STEP, STATUS_LABEL } from '@/entities/order';
 import type { TOrder } from '@/entities/order';
 import { formatDateRu } from '@/shared/lib';
 import { CheckCircleIcon, CubeIcon, ShoppingCartIcon, TruckIcon } from '@heroicons/react/24/solid';
-
-const STATUS_STEP: Record<EOrderStatus, number> = {
-    [EOrderStatus.PENDING]: 1,
-    [EOrderStatus.CONFIRMED]: 2,
-    [EOrderStatus.IN_PROGRESS]: 3,
-    [EOrderStatus.COMPLETED]: 4,
-    [EOrderStatus.CANCELLED]: 0,
-};
-
-const STATUS_LABEL: Record<EOrderStatus, { text: string; className: string }> = {
-    [EOrderStatus.PENDING]: { text: 'Создан', className: '' },
-    [EOrderStatus.CONFIRMED]: { text: 'Подтверждён', className: '' },
-    [EOrderStatus.IN_PROGRESS]: { text: 'Запланирован', className: '' },
-    [EOrderStatus.COMPLETED]: { text: 'Выполнен', className: 'text-primary' },
-    [EOrderStatus.CANCELLED]: { text: 'Отменен', className: 'text-error' },
-};
 
 type TOrderStatusBlockProps = {
     status: EOrderStatus;
@@ -43,8 +27,8 @@ export function OrderStatusBlock({
             {!isCompact && (
                 <>
                     <div className="flex gap-2">
-                        <span className="font-semibold text-sm leading-[110%]">Дата доставки</span>
-                        <span className="text-sm leading-[110%]">
+                        <span className="font-semibold text-sm leading-110">Дата доставки</span>
+                        <span className="text-sm leading-110">
                             {scheduledDate?.date
                                 ? `${formatDateRu(scheduledDate.date)} ${String(scheduledDate.startHour).padStart(2, '0')}:${String(scheduledDate.startMinute).padStart(2, '0')}`
                                 : 'Уточняется'}
@@ -77,12 +61,10 @@ export function OrderStatusBlock({
             )}
 
             <div className="flex justify-between">
-                <span className={`text-sm leading-[110%] ${STATUS_LABEL[status].className}`}>
+                <span className={`text-sm leading-110 ${STATUS_LABEL[status].className}`}>
                     {STATUS_LABEL[status].text}
                 </span>
-                <span className="font-medium text-sm leading-[110%] opacity-60">
-                    {dateForStatus}
-                </span>
+                <span className="font-medium text-sm leading-110 opacity-60">{dateForStatus}</span>
             </div>
         </div>
     );

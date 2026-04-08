@@ -92,6 +92,10 @@
     width: calc(100% + 2 * var(--page-padding));
 }
 
+@utility leading-110 {
+    line-height: 110%;
+}
+
 @utility text-trim {
     text-box-trim: both;
     text-box-edge: cap alphabetic;
