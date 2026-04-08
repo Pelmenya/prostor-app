@@ -28,8 +28,18 @@ export function OrderDetailPage({ orderId }: TOrderDetailPageProps) {
     const productIds = Object.keys(order?.cartState?.items ?? {});
     const { imageUrls, loadingIds } = useProductThumbnails(productIds);
 
-    if (isLoading) return <p>Загрузка...</p>;
-    if (error || !order) return <p>Ошибка загрузки заказа</p>;
+    if (isLoading)
+        return (
+            <PageContainer className="flex items-center justify-center">
+                <span className="loading loading-spinner loading-lg text-primary" />
+            </PageContainer>
+        );
+    if (error || !order)
+        return (
+            <PageContainer className="flex items-center justify-center">
+                <p className="text-error font-medium">Ошибка загрузки заказа</p>
+            </PageContainer>
+        );
 
     const items = Object.values(order.cartState.items ?? {});
     const isCancelled = order.status === EOrderStatus.CANCELLED;
