@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { getServiceInfo, EOrderStatus } from '@/entities/order';
-import type { TCartItem } from '@/entities/cart';
+import { getServiceInfo } from '@/entities/order';
+import type { TCartItem } from '@/shared/model';
 import { formatPrice } from '@/shared/lib';
 import { EServiceCategory } from '@/shared/model';
 import { BottomSheetModal, CardImage } from '@/shared/ui';

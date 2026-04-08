@@ -1,5 +1,3 @@
-'use client';
-
 import Link from 'next/link';
 import type { TCartItem } from '@/shared/model';
 import { EServiceCategory } from '@/shared/model';

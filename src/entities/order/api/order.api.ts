@@ -99,13 +99,13 @@ export function useGetOrdersCount({ enabled = true, ...params }: TOrdersCountPar
 /**
  * Один заказ по ID
  */
-export function useGetOrderById(orderId: number) {
+export function useGetOrderById(orderId: number, enabled = true) {
     const api = useApi();
 
     return useQuery({
         queryKey: orderKeys.detail(orderId),
         queryFn: () => api<TOrder>(`/order/${orderId}`),
-        enabled: orderId > 0,
+        enabled: enabled && orderId > 0,
     });
 }
 

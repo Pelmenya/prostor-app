@@ -20,14 +20,18 @@ export function OrderActions({
         if (!executor) return null;
         return (
             <div className="flex gap-4">
-                <button className="flex-1 btn btn-md btn-primary">Оценить мастера</button>
+                <button type="button" disabled className="flex-1 btn btn-md btn-primary">
+                    Оценить мастера
+                </button>
             </div>
         );
     }
 
     return (
         <div className="flex gap-4">
-            <button className="flex-1 btn btn-md btn-primary">Задать вопрос</button>
+            <button type="button" disabled className="flex-1 btn btn-md btn-primary">
+                Задать вопрос
+            </button>
             <button
                 className="flex-1 btn btn-md btn-error btn-outline"
                 disabled={isCancelled || isCancelling}

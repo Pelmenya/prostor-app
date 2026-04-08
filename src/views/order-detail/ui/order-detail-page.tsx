@@ -9,6 +9,7 @@ import {
 } from '@/entities/order';
 import { useProductThumbnails } from '@/entities/product';
 import { formatPrice } from '@/shared/lib';
+import { useAuth } from '@/shared/lib/platform';
 import { ConfirmDialog, PageContainer, PageTitle } from '@/shared/ui';
 import { HomeIcon, MapPinIcon } from '@heroicons/react/24/solid';
 import { OrderCompactItems } from './order-compact-items';
@@ -22,8 +23,9 @@ type TOrderDetailPageProps = {
 export function OrderDetailPage({ orderId }: TOrderDetailPageProps) {
     const [isCancelOpen, setIsCancelOpen] = useState(false);
     const { mutate: updateStatus, isPending: isCancelling } = useUpdateOrderStatus();
+    const { isAuthenticated } = useAuth();
 
-    const { data: order, isLoading, error } = useGetOrderById(orderId);
+    const { data: order, isLoading, error } = useGetOrderById(orderId, isAuthenticated);
 
     const productIds = Object.keys(order?.cartState?.items ?? {});
     const { imageUrls, loadingIds } = useProductThumbnails(productIds);
@@ -103,7 +105,9 @@ export function OrderDetailPage({ orderId }: TOrderDetailPageProps) {
                                     <span className="text-sm leading-[110%]">
                                         {order.pickupStore.address}
                                         {order.pickupStore.phone && (
-                                            <p>Тел: {order.pickupStore.phone}</p>
+                                            <span className="block">
+                                                Тел: {order.pickupStore.phone}
+                                            </span>
                                         )}
                                     </span>
                                 </div>
