@@ -2,7 +2,6 @@
 
 import { HomeModernIcon, PencilSquareIcon, TrashIcon } from '@heroicons/react/24/outline';
 import type { TRealEstate } from '@/shared/model';
-import { getRealEstateTypeName } from '../../lib/get-real-estate-type-name';
 import { getWaterSourceName } from '../../lib/get-water-source-name';
 import { TYPE_ICONS } from '../../lib/real-estate-type-icons';
 
@@ -11,6 +10,8 @@ type TRealEstateCardProps = {
     onDelete?: (id: number) => void;
     showEditIcon?: boolean;
     onClick?: (id: number) => void;
+    criticalDaysLeft?: number | null;
+    criticalPercent?: number;
 };
 
 export function RealEstateCard({
@@ -18,8 +19,28 @@ export function RealEstateCard({
     onDelete,
     showEditIcon,
     onClick,
+    criticalDaysLeft,
+    criticalPercent,
 }: TRealEstateCardProps) {
     const Icon = TYPE_ICONS[realEstate.activeType] ?? HomeModernIcon;
+
+    const progressColor =
+        criticalPercent === undefined
+            ? 'progress-success'
+            : criticalPercent >= 50
+              ? 'progress-success'
+              : criticalPercent >= 20
+                ? 'progress-warning'
+                : 'progress-error';
+
+    const daysClassName =
+        criticalDaysLeft == null
+            ? ''
+            : criticalDaysLeft <= 7
+              ? 'text-error font-semibold'
+              : criticalDaysLeft <= 30
+                ? 'text-warning font-semibold'
+                : 'text-base-content/60';
 
     return (
         <div
@@ -30,16 +51,26 @@ export function RealEstateCard({
                 <Icon className="size-10 text-primary shrink-0" />
                 <div className="divider divider-horizontal m-0 shrink-0 self-stretch" />
                 <div className="flex flex-col gap-1 min-w-0 flex-1">
-                    <h3 className="font-semibold text-sm">
-                        {getRealEstateTypeName(realEstate.activeType)}
-                    </h3>
-                    <p className="text-xs text-base-content/70 line-clamp-2 wrap-break-word">
+                    <p className="text-sm font-semibold leading-110 line-clamp-2 wrap-break-word">
                         {realEstate.address || 'Адрес не указан'}
                     </p>
                     <div className="flex gap-2 text-xs text-base-content/50">
                         <span>{realEstate.residents} чел.</span>
                         <span>{getWaterSourceName(realEstate.activeSource)}</span>
                     </div>
+                    {criticalDaysLeft != null && (
+                        <div className="flex flex-col gap-1 mt-0.5">
+                            <progress
+                                className={`progress ${progressColor} h-1 w-full`}
+                                value={criticalPercent ?? 100}
+                                max={100}
+                            />
+                            <p className="text-xs text-base-content/50">
+                                Ближайшая замена через{' '}
+                                <span className={daysClassName}>{criticalDaysLeft} дн.</span>
+                            </p>
+                        </div>
+                    )}
                 </div>
                 {showEditIcon && <PencilSquareIcon className="size-6" />}
                 {onDelete && (

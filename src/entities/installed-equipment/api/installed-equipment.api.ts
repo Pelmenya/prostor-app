@@ -1,0 +1,81 @@
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useApi } from '@/shared/api';
+import type {
+    TInstalledEquipment,
+    TInstalledComponent,
+    TCreateInstalledEquipment,
+} from '@/shared/model';
+
+export const installedEquipmentKeys = {
+    byRealEstate: (realEstateId: number) =>
+        ['installed-equipment', 'by-real-estate', realEstateId] as const,
+    detail: (id: string) => ['installed-equipment', id] as const,
+    reminders: (daysAhead?: number) =>
+        ['installed-equipment', 'reminders', daysAhead ?? null] as const,
+};
+
+export function useInstalledEquipmentByRealEstate(realEstateId: number | undefined) {
+    const api = useApi();
+
+    return useQuery({
+        queryKey: installedEquipmentKeys.byRealEstate(realEstateId ?? 0),
+        queryFn: () =>
+            api<TInstalledEquipment[]>(`/installed-equipment/by-real-estate/${realEstateId}`),
+        enabled: !!realEstateId,
+    });
+}
+
+export function useCreateInstalledEquipment() {
+    const api = useApi();
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (data: TCreateInstalledEquipment) =>
+            api<TInstalledEquipment>('/installed-equipment', { method: 'POST', body: data }),
+        onSuccess: (result) => {
+            if (result.realEstate?.id) {
+                queryClient.invalidateQueries({
+                    queryKey: installedEquipmentKeys.byRealEstate(result.realEstate.id),
+                });
+            }
+        },
+    });
+}
+
+type TUpdateInstalledEquipment = {
+    notificationsEnabled?: boolean;
+    isActive?: boolean;
+};
+
+export function useUpdateInstalledEquipment(realEstateId: number) {
+    const api = useApi();
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: ({ id, data }: { id: string; data: TUpdateInstalledEquipment }) =>
+            api<TInstalledEquipment>(`/installed-equipment/${id}`, { method: 'PATCH', body: data }),
+        onSuccess: () => {
+            queryClient.invalidateQueries({
+                queryKey: installedEquipmentKeys.byRealEstate(realEstateId),
+            });
+        },
+    });
+}
+
+export function useReplaceComponent(realEstateId: number) {
+    const api = useApi();
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: ({ componentId, replacedAt }: { componentId: string; replacedAt?: string }) =>
+            api<TInstalledComponent>(`/installed-equipment/component/${componentId}/replace`, {
+                method: 'PATCH',
+                body: replacedAt ? { replacedAt } : {},
+            }),
+        onSuccess: () => {
+            queryClient.invalidateQueries({
+                queryKey: installedEquipmentKeys.byRealEstate(realEstateId),
+            });
+        },
+    });
+}

@@ -5,8 +5,10 @@ import { useRouter } from 'next/navigation';
 import { StepOne } from './components/step-one/step-one';
 import { StepTwo } from './components/step-two/step-two';
 import { StepThree } from './components/step-three/step-three';
+import { WizardStepper } from './components/wizard-stepper/wizard-stepper';
 import { useRealEstate } from '@/entities/real-estate';
 import { useRealEstateWizardStore } from '../../model/real-estate-wizard.store';
+import { PageTitle } from '@/shared/ui';
 
 type TRealEstateWizardProps = {
     id?: string;
@@ -27,7 +29,6 @@ export const RealEstateWizard: FC<TRealEstateWizardProps> = ({
     const editMode = Boolean(id);
     const { data, isLoading, error } = useRealEstate(id ? Number(id) : undefined);
 
-    const progress = useRealEstateWizardStore((s) => s.progress);
     const reset = useRealEstateWizardStore((s) => s.reset);
     const setAddress = useRealEstateWizardStore((s) => s.setAddress);
     const setCoordinates = useRealEstateWizardStore((s) => s.setCoordinates);
@@ -82,37 +83,38 @@ export const RealEstateWizard: FC<TRealEstateWizardProps> = ({
     }
 
     return (
-        <div className="flex flex-col items-center gap-4 lg:gap-6">
-            {!editMode && (
-                <progress className="progress progress-primary w-72" value={progress} max="100" />
-            )}
-            {step === 1 && (
-                <StepOne
-                    editMode={editMode}
-                    id={id}
-                    onNext={() => setStep(2)}
-                    onCancel={handleCancel}
-                />
-            )}
-            {step === 2 && (
-                <StepTwo
-                    editMode={editMode}
-                    id={id}
-                    onPrev={() => setStep(1)}
-                    onNext={() => setStep(3)}
-                    onCancel={handleCancel}
-                    addressSearchSlot={addressSearchSlot}
-                />
-            )}
-            {step === 3 && (
-                <StepThree
-                    editMode={editMode}
-                    id={id}
-                    onPrev={() => setStep(2)}
-                    onCancel={handleCancel}
-                    onSuccess={onSuccess}
-                />
-            )}
+        <div className="flex flex-col gap-4 w-full">
+            <PageTitle>{editMode ? 'Редактирование объекта' : 'Новый объект'}</PageTitle>
+            <div className="flex flex-col gap-4 w-full max-w-lg mx-auto">
+                <WizardStepper current={step} />
+                {step === 1 && (
+                    <StepOne
+                        editMode={editMode}
+                        id={id}
+                        onNext={() => setStep(2)}
+                        onCancel={handleCancel}
+                    />
+                )}
+                {step === 2 && (
+                    <StepTwo
+                        editMode={editMode}
+                        id={id}
+                        onPrev={() => setStep(1)}
+                        onNext={() => setStep(3)}
+                        onCancel={handleCancel}
+                        addressSearchSlot={addressSearchSlot}
+                    />
+                )}
+                {step === 3 && (
+                    <StepThree
+                        editMode={editMode}
+                        id={id}
+                        onPrev={() => setStep(2)}
+                        onCancel={handleCancel}
+                        onSuccess={onSuccess}
+                    />
+                )}
+            </div>
         </div>
     );
 };

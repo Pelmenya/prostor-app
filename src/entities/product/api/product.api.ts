@@ -109,6 +109,19 @@ export function useProductImages(productId: string) {
 }
 
 /**
+ * Поиск товаров по строке (для добавления оборудования и т.п.)
+ */
+export function useProductSearch(query: string) {
+    return useQuery({
+        queryKey: ['catalog', 'product-search', query] as const,
+        queryFn: () =>
+            apiClient<TProduct[]>(`${BASE}/product/search?q=${encodeURIComponent(query)}`),
+        enabled: query.length >= 2,
+        staleTime: 30 * 1000,
+    });
+}
+
+/**
  * Изображения bundle (для групп каталога)
  */
 export function useBundleImages(bundleId: string | undefined) {

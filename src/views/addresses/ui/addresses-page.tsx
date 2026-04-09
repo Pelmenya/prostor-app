@@ -5,7 +5,29 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { PlusCircleIcon } from '@heroicons/react/24/solid';
 import { useRealEstates, useDeleteRealEstate, RealEstateCard } from '@/entities/real-estate';
+import {
+    MOCK_INSTALLED_EQUIPMENT,
+    getResourcePercent,
+    getDaysLeft,
+} from '@/entities/installed-equipment';
 import { PageContainer, PageTitle, ConfirmDialog } from '@/shared/ui';
+
+function getCriticalStats(realEstateId: number): { daysLeft: number; percent: number } | null {
+    const equipment = MOCK_INSTALLED_EQUIPMENT.filter(
+        (e) => e.realEstate?.id === realEstateId && e.isActive,
+    );
+    const components = equipment.flatMap((e) => e.components.filter((c) => !c.isReplaced));
+    if (components.length === 0) return null;
+
+    const critical = components.reduce((min, c) =>
+        getDaysLeft(c.nextReplacementDate) < getDaysLeft(min.nextReplacementDate) ? c : min,
+    );
+
+    return {
+        daysLeft: getDaysLeft(critical.nextReplacementDate),
+        percent: getResourcePercent(critical.installedAt, critical.nextReplacementDate),
+    };
+}
 
 export function AddressesPage() {
     const router = useRouter();
@@ -61,14 +83,19 @@ export function AddressesPage() {
 
                 {realEstates && realEstates.length > 0 && (
                     <div className="flex flex-col gap-3">
-                        {realEstates.map((re) => (
-                            <RealEstateCard
-                                key={re.id}
-                                realEstate={re}
-                                onClick={(id) => router.push(`/real-estate/${id}`)}
-                                onDelete={setDeletingId}
-                            />
-                        ))}
+                        {realEstates.map((re) => {
+                            const stats = getCriticalStats(re.id);
+                            return (
+                                <RealEstateCard
+                                    key={re.id}
+                                    realEstate={re}
+                                    onClick={(id) => router.push(`/real-estate/${id}`)}
+                                    onDelete={setDeletingId}
+                                    criticalDaysLeft={stats?.daysLeft}
+                                    criticalPercent={stats?.percent}
+                                />
+                            );
+                        })}
                     </div>
                 )}
             </div>

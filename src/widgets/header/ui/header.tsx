@@ -2,7 +2,7 @@
 
 import { useState, useRef, useSyncExternalStore } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { ArrowLeftIcon, Bars3Icon } from '@heroicons/react/24/outline';
 import { useAuth } from '@/shared/lib/platform';
 import { useLogout } from '@/features/auth';
@@ -12,13 +12,30 @@ import { BurgerMenu } from './burger-menu';
 
 const NOOP_SUBSCRIBE = () => () => {};
 
+/** Паттерны роутов, которые показывают стрелку назад */
+const BACK_PATTERNS: RegExp[] = [
+    /^\/real-estate\/\d+/,
+    /^\/real-estate\/add$/,
+    /^\/orders\/\d+/,
+    /^\/product\/[^/]+/,
+    /^\/catalog\/[^/]+/,
+    /^\/profile\/.+/,
+    /^\/checkout$/,
+];
+
+function shouldShowBack(pathname: string): boolean {
+    return BACK_PATTERNS.some((pattern) => pattern.test(pathname));
+}
+
 type THeaderProps = {
     back?: boolean;
     backTo?: string;
 };
 
-export function Header({ back = false, backTo }: THeaderProps) {
+export function Header({ back: backProp, backTo }: THeaderProps) {
     const router = useRouter();
+    const pathname = usePathname();
+    const back = backProp ?? shouldShowBack(pathname);
     const { isAuthenticated, user } = useAuth();
     const logout = useLogout();
     const [isMenuOpen, setIsMenuOpen] = useState(false);

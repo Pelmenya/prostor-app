@@ -8,13 +8,7 @@ type TStepTwoProps = TWizardStepProps & {
     addressSearchSlot: ReactNode;
 };
 
-export const StepTwo: FC<TStepTwoProps> = ({
-    onNext,
-    onPrev,
-    editMode,
-    onCancel,
-    addressSearchSlot,
-}) => {
+export const StepTwo: FC<TStepTwoProps> = ({ onNext, onPrev, addressSearchSlot }) => {
     const address = useRealEstateWizardStore((s) => s.address);
     const coordinates = useRealEstateWizardStore((s) => s.coordinates);
     const setProgress = useRealEstateWizardStore((s) => s.setProgress);
@@ -28,70 +22,38 @@ export const StepTwo: FC<TStepTwoProps> = ({
     }, [hasAddress, setProgress]);
 
     return (
-        <div className="size-full flex flex-col justify-between gap-4 lg:gap-6">
-            <div className="flex flex-col justify-between gap-4 lg:gap-6">
-                <h2 className="text-lg font-bold">
-                    {editMode ? 'Редактирование объекта' : 'Добавление объекта'} — Шаг 2
-                </h2>
+        <div className="flex flex-col gap-4 w-full">
+            <div className="flex flex-col gap-3 p-4 bg-base-100 border border-base-300 rounded-2xl">
+                <span className="text-sm font-semibold">Адрес</span>
 
-                <div className="flex flex-col gap-2">
-                    <h3 className="text-sm font-semibold">Адрес</h3>
+                {!canProceed && (
+                    <p className="text-xs text-base-content/50">
+                        Начните вводить адрес и выберите вариант из списка. При необходимости
+                        подкорректируйте маркер на карте.
+                    </p>
+                )}
 
-                    {(!hasAddress || !hasCoords) && (
-                        <p className="text-xs text-info">
-                            Начните вводить адрес и <b>выберите</b> подходящий вариант из списка.
-                            После выбора можно подкорректировать точку на карте перетаскиванием
-                            маркера.
-                        </p>
-                    )}
+                {addressSearchSlot}
 
-                    {addressSearchSlot}
-
-                    {hasAddress && !hasCoords && (
-                        <div className="mt-8 alert alert-info">
-                            <div>
-                                <span className="font-medium">Почти готово.</span> Выберите адрес из
-                                списка подсказок (и при необходимости подвиньте маркер на карте),
-                                чтобы получить координаты и продолжить.
-                            </div>
-                        </div>
-                    )}
-
-                    <div className="sr-only" aria-live="polite">
-                        {hasCoords
-                            ? 'Координаты получены, можно переходить далее.'
-                            : 'Координаты не выбраны.'}
-                    </div>
-                </div>
+                {hasAddress && !hasCoords && (
+                    <p className="text-xs text-info">
+                        Выберите адрес из подсказок, чтобы получить координаты.
+                    </p>
+                )}
             </div>
 
-            <div className="w-full flex items-center justify-center">
-                <div className="join">
-                    <button className="join-item btn btn-primary min-w-[30vw]" onClick={onPrev}>
-                        Назад
-                    </button>
-                    <button className="join-item btn btn-secondary min-w-[30vw]" onClick={onCancel}>
-                        Отмена
-                    </button>
-                    <div
-                        className="join-item tooltip tooltip-left"
-                        data-tip={
-                            canProceed
-                                ? undefined
-                                : !hasAddress
-                                  ? 'Нужен адрес и координаты'
-                                  : 'Выберите подсказку и дождитесь координат'
-                        }
-                    >
-                        <button
-                            className="btn btn-primary min-w-[30vw]"
-                            onClick={onNext}
-                            disabled={!canProceed}
-                        >
-                            Далее
-                        </button>
-                    </div>
-                </div>
+            <div className="flex gap-2">
+                <button type="button" className="btn btn-ghost flex-1" onClick={onPrev}>
+                    Назад
+                </button>
+                <button
+                    type="button"
+                    className="btn btn-primary flex-1"
+                    onClick={onNext}
+                    disabled={!canProceed}
+                >
+                    Далее
+                </button>
             </div>
         </div>
     );
