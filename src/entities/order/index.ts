@@ -27,6 +27,7 @@ export { STATUS_TEXT } from './lib/status-text';
 export { STATUS_STEP, STATUS_LABEL } from './lib/status-config';
 export { SERVICE_GROUPS } from './lib/service-groups';
 export { getServiceInfo } from './lib/get-service-info';
+export { getServicesForCategory } from './lib/get-services-for-category';
 export { useOrderPositionsGrouped } from './lib/use-order-positions-grouped';
 
 // UI

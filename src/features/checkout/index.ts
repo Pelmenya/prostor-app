@@ -9,8 +9,6 @@ export { CheckoutAddressSelector } from './ui/checkout-address-selector/checkout
 export { PickupStoreSelector } from './ui/pickup-store-selector/pickup-store-selector';
 export { OrderScheduleDialog } from './ui/order-schedule-dialog/order-schedule-dialog';
 export { CheckoutTotal } from './ui/checkout-total/checkout-total';
-export { CheckoutProductsList } from './ui/checkout-items/checkout-products-list';
-export { CheckoutServicesList } from './ui/checkout-items/checkout-services-list';
 export { CheckoutSection } from './ui/checkout-section';
 export { VisitPriceBlock } from './ui/visit-price-block/visit-price-block';
 export { ExecutorPreview } from './ui/executor-preview/executor-preview';
