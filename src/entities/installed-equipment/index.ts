@@ -6,6 +6,7 @@ export { MOCK_INSTALLED_EQUIPMENT } from './lib/mock-equipment';
 export {
     installedEquipmentKeys,
     useInstalledEquipmentByRealEstate,
+    useInstalledEquipmentForRealEstates,
     useCreateInstalledEquipment,
     useUpdateInstalledEquipment,
     useReplaceComponent,

@@ -6,17 +6,18 @@ import { useRouter } from 'next/navigation';
 import { PlusCircleIcon } from '@heroicons/react/24/solid';
 import { useRealEstates, useDeleteRealEstate, RealEstateCard } from '@/entities/real-estate';
 import {
-    MOCK_INSTALLED_EQUIPMENT,
+    useInstalledEquipmentForRealEstates,
     getResourcePercent,
     getDaysLeft,
 } from '@/entities/installed-equipment';
+import type { TInstalledEquipment } from '@/shared/model';
 import { PageContainer, PageTitle, ConfirmDialog } from '@/shared/ui';
 
-function getCriticalStats(realEstateId: number): { daysLeft: number; percent: number } | null {
-    const equipment = MOCK_INSTALLED_EQUIPMENT.filter(
-        (e) => e.realEstate?.id === realEstateId && e.isActive,
-    );
-    const components = equipment.flatMap((e) => e.components.filter((c) => !c.isReplaced));
+function getCriticalStats(
+    equipment: TInstalledEquipment[],
+): { daysLeft: number; percent: number } | null {
+    const active = equipment.filter((e) => e.isActive);
+    const components = active.flatMap((e) => e.components.filter((c) => !c.isReplaced));
     if (components.length === 0) return null;
 
     const critical = components.reduce((min, c) =>
@@ -33,6 +34,9 @@ export function AddressesPage() {
     const router = useRouter();
     const { data: realEstates, isLoading, isError } = useRealEstates();
     const deleteRealEstate = useDeleteRealEstate();
+    const equipmentByRealEstate = useInstalledEquipmentForRealEstates(
+        realEstates?.map((re) => re.id) ?? [],
+    );
     const [deletingId, setDeletingId] = useState<number | null>(null);
     const [deleteError, setDeleteError] = useState<string | null>(null);
 
@@ -84,7 +88,7 @@ export function AddressesPage() {
                 {realEstates && realEstates.length > 0 && (
                     <div className="flex flex-col gap-3">
                         {realEstates.map((re) => {
-                            const stats = getCriticalStats(re.id);
+                            const stats = getCriticalStats(equipmentByRealEstate[re.id] ?? []);
                             return (
                                 <RealEstateCard
                                     key={re.id}

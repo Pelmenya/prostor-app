@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueries, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useApi } from '@/shared/api';
 import type {
     TInstalledEquipment,
@@ -13,6 +13,26 @@ export const installedEquipmentKeys = {
     reminders: (daysAhead?: number) =>
         ['installed-equipment', 'reminders', daysAhead ?? null] as const,
 };
+
+/** Оборудование для нескольких адресов — батч через useQueries */
+export function useInstalledEquipmentForRealEstates(realEstateIds: number[]) {
+    const api = useApi();
+
+    const results = useQueries({
+        queries: realEstateIds.map((id) => ({
+            queryKey: installedEquipmentKeys.byRealEstate(id),
+            queryFn: () => api<TInstalledEquipment[]>(`/installed-equipment/by-real-estate/${id}`),
+            enabled: id > 0,
+        })),
+    });
+
+    const equipmentByRealEstate: Record<number, TInstalledEquipment[]> = {};
+    realEstateIds.forEach((id, idx) => {
+        equipmentByRealEstate[id] = results[idx].data ?? [];
+    });
+
+    return equipmentByRealEstate;
+}
 
 export function useInstalledEquipmentByRealEstate(realEstateId: number | undefined) {
     const api = useApi();
