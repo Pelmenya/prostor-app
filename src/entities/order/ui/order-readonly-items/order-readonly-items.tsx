@@ -3,6 +3,7 @@ import type { TCartItem } from '@/shared/model';
 import { CartCardWrapper, CardImage } from '@/shared/ui';
 import { formatPrice } from '@/shared/lib';
 import { getServiceInfo } from '../../lib/get-service-info';
+import { getServicesForCategory } from '../../lib/get-services-for-category';
 import { SERVICE_GROUPS } from '../../lib/service-groups';
 
 type TOrderReadonlyItemsProps = {
@@ -20,10 +21,6 @@ export function OrderReadonlyItems({ items, imageUrls, loadingIds }: TOrderReado
         <>
             {visibleItems.map((cartItem) => {
                 const imgUrl = imageUrls[cartItem.product.id];
-                const serviceEntries = Object.entries(cartItem.services ?? {}).filter(
-                    ([, s]) => s?.checked && s.count > 0,
-                );
-
                 return (
                     <div key={cartItem.product.id} className="flex flex-col gap-4">
                         {/* Товар */}
@@ -84,9 +81,7 @@ export function OrderReadonlyItems({ items, imageUrls, loadingIds }: TOrderReado
 
                         {/* Услуги к товару, сгруппированные по категории */}
                         {SERVICE_GROUPS.map(({ category, variant }) => {
-                            const grouped = serviceEntries.filter(
-                                ([, svc]) => getServiceInfo(svc)?.category === category,
-                            );
+                            const grouped = getServicesForCategory(cartItem, category);
                             if (grouped.length === 0) return null;
                             return (
                                 <CartCardWrapper

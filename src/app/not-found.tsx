@@ -1,12 +1,7 @@
-'use client';
-
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 
 export default function NotFound() {
-    const router = useRouter();
-
     return (
         <div className="flex flex-col w-full h-dvh bg-base-100">
             {/* Минимальная шапка: только логотип */}
@@ -27,10 +22,9 @@ export default function NotFound() {
                         Возможно, она была удалена или вы перешли по неверной ссылке.
                     </p>
                 </div>
-                <button type="button" className="btn btn-primary" onClick={() => router.back()}>
-                    <ArrowLeftIcon className="size-4" />
-                    Вернуться
-                </button>
+                <Link href="/catalog" className="btn btn-primary">
+                    <ArrowLeftIcon className="size-4" />В каталог
+                </Link>
             </main>
         </div>
     );

@@ -73,9 +73,13 @@ export function OrderDetailPage({ orderId }: TOrderDetailPageProps) {
                 {!isCancelled && (
                     <div className="relative flex justify-between gap-4 p-4 bg-base-100 border border-base-300 rounded-2xl w-full">
                         <span className="font-medium text-sm leading-110">Доставка</span>
-                        {order.deliveryCost && order.deliveryCost > 0 ? (
+                        {order.deliveryCost != null && order.deliveryCost > 0 ? (
                             <span className="text-primary font-semibold text-sm leading-110">
                                 {formatPrice(order.deliveryCost)}
+                            </span>
+                        ) : order.deliveryCost === 0 ? (
+                            <span className="text-primary font-semibold text-sm leading-110">
+                                Бесплатно
                             </span>
                         ) : (
                             <span className="text-sm leading-110">Уточняется</span>
@@ -120,7 +124,7 @@ export function OrderDetailPage({ orderId }: TOrderDetailPageProps) {
                             <div className="flex flex-col gap-1">
                                 <span className="font-semibold text-sm leading-110">Адрес</span>
                                 <span className="text-sm leading-110">
-                                    {order.realEstate.address}
+                                    {order.realEstate?.address}
                                 </span>
                             </div>
                         </div>
