@@ -124,7 +124,7 @@ export const StepThree: FC<TWizardStepProps> = ({ onPrev, editMode, id, onSucces
             </div>
 
             <div className="flex gap-2">
-                <button type="button" className="btn btn-ghost flex-1" onClick={onPrev}>
+                <button type="button" className="btn btn-outline flex-1" onClick={onPrev}>
                     Назад
                 </button>
                 <button
