@@ -2,14 +2,14 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { getServiceInfo, getServicesForCategory, SERVICE_GROUPS } from '@/entities/order';
+import { getServiceInfo, SERVICE_GROUPS } from '@/entities/order';
 import type { TCartItem } from '@/shared/model';
 import { EServiceCategory } from '@/shared/model';
 import { formatPrice } from '@/shared/lib';
 import { BottomSheetModal, CardImage } from '@/shared/ui';
 import { WrenchScrewdriverIcon, ArrowPathRoundedSquareIcon } from '@heroicons/react/16/solid';
 
-const CATEGORY_ICON: Partial<Record<EServiceCategory, React.ReactNode>> = {
+const CATEGORY_ICON: Record<string, React.ReactNode> = {
     [EServiceCategory.MONTAZH]: <WrenchScrewdriverIcon className="size-3" />,
     [EServiceCategory.SERVISNOE_OBSLUZHIVANIE]: <ArrowPathRoundedSquareIcon className="size-3" />,
 };
@@ -54,9 +54,13 @@ export function OrderCompactItems({ items, imageUrls, loadingIds }: TOrderCompac
                             <div key={`p-${cartItem.product.id}`} className="relative shrink-0">
                                 <CardImage {...imgProps} />
                             </div>,
-                            ...NAMED_SERVICE_GROUPS.filter(
-                                ({ category }) =>
-                                    getServicesForCategory(cartItem, category).length > 0,
+                            ...NAMED_SERVICE_GROUPS.filter(({ category }) =>
+                                Object.values(cartItem.services ?? {}).some(
+                                    (s) =>
+                                        s.checked &&
+                                        s.count > 0 &&
+                                        getServiceInfo(s)?.category === category,
+                                ),
                             ).map(({ category }) => (
                                 <div
                                     key={`svc-${cartItem.product.id}-${category}`}
@@ -85,11 +89,14 @@ export function OrderCompactItems({ items, imageUrls, loadingIds }: TOrderCompac
                         const isImgLoading = loadingIds.has(cartItem.product.id);
 
                         const activeServices = NAMED_SERVICE_GROUPS.flatMap(({ category }) =>
-                            getServicesForCategory(cartItem, category).map(([svcId, svc]) => ({
-                                svcId,
-                                svc,
-                                category,
-                            })),
+                            Object.entries(cartItem.services ?? {})
+                                .filter(
+                                    ([, s]) =>
+                                        s.checked &&
+                                        s.count > 0 &&
+                                        getServiceInfo(s)?.category === category,
+                                )
+                                .map(([svcId, svc]) => ({ svcId, svc, category })),
                         );
 
                         return (

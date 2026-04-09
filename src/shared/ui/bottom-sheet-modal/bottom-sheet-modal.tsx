@@ -3,7 +3,6 @@
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import type { ReactNode } from 'react';
-import { cn } from '@/shared/lib';
 
 type TBottomSheetModalProps = {
     isOpen: boolean;
@@ -29,10 +28,7 @@ export function BottomSheetModal({
             <div className="fixed inset-0 flex items-end sm:items-center sm:justify-center sm:p-4">
                 <DialogPanel
                     transition
-                    className={cn(
-                        'flex flex-col gap-4 w-full bg-base-100 p-4 rounded-t-2xl transition duration-200 ease-out data-closed:translate-y-full sm:max-w-md sm:rounded-2xl sm:data-closed:translate-y-0 sm:data-closed:scale-95 sm:data-closed:opacity-0',
-                        className,
-                    )}
+                    className={`flex flex-col gap-4 w-full bg-base-100 p-4 rounded-t-2xl transition duration-200 ease-out data-closed:translate-y-full sm:max-w-md sm:rounded-2xl sm:data-closed:translate-y-0 sm:data-closed:scale-95 sm:data-closed:opacity-0 ${className ?? ''}`}
                 >
                     {title !== undefined && (
                         <div className="flex items-center justify-between">

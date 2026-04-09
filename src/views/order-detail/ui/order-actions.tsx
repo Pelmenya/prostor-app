@@ -33,7 +33,6 @@ export function OrderActions({
                 Задать вопрос
             </button>
             <button
-                type="button"
                 className="flex-1 btn btn-md btn-error btn-outline"
                 disabled={isCancelled || isCancelling}
                 onClick={onCancelClick}
