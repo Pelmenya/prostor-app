@@ -2,23 +2,22 @@
 
 import { useState, useRef, useSyncExternalStore } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { ArrowLeftIcon, Bars3Icon } from '@heroicons/react/24/outline';
 import { useAuth } from '@/shared/lib/platform';
 import { useLogout } from '@/features/auth';
 import { flushCartSync } from '@/features/cart';
 import { formatUserInitials } from '@/shared/lib';
 import { BurgerMenu } from './burger-menu';
+import { getBackDestination } from '../lib/get-back-destination';
 
 const NOOP_SUBSCRIBE = () => () => {};
 
-type THeaderProps = {
-    back?: boolean;
-    backTo?: string;
-};
-
-export function Header({ back = false, backTo }: THeaderProps) {
+export function Header() {
     const router = useRouter();
+    const pathname = usePathname();
+    const backTo = getBackDestination(pathname);
+    const back = backTo !== null;
     const { isAuthenticated, user } = useAuth();
     const logout = useLogout();
     const [isMenuOpen, setIsMenuOpen] = useState(false);

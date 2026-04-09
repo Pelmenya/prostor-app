@@ -1,0 +1,97 @@
+import Link from 'next/link';
+import type { TCartItem } from '@/shared/model';
+import { CartCardWrapper, CardImage } from '@/shared/ui';
+import { formatPrice } from '@/shared/lib';
+import { getServiceInfo } from '../../lib/get-service-info';
+import { getServicesForCategory } from '../../lib/get-services-for-category';
+import { SERVICE_GROUPS } from '../../lib/service-groups';
+
+type TOrderReadonlyItemsProps = {
+    items: Record<string, TCartItem>;
+    imageUrls: Record<string, string | undefined>;
+    loadingIds: Set<string>;
+};
+
+export function OrderReadonlyItems({ items, imageUrls, loadingIds }: TOrderReadonlyItemsProps) {
+    const visibleItems = Object.values(items).filter((item) => item?.product && item.count > 0);
+
+    if (visibleItems.length === 0) return null;
+
+    return (
+        <>
+            {visibleItems.map((cartItem) => {
+                const imgUrl = imageUrls[cartItem.product.id];
+
+                return (
+                    <div key={cartItem.product.id} className="flex flex-col gap-4">
+                        {/* Товар */}
+                        <CartCardWrapper variant="product">
+                            <div className="flex flex-col gap-4 md:flex-row md:items-center">
+                                <Link
+                                    href={`/product/${cartItem.product.id}`}
+                                    className="flex cursor-pointer items-center gap-2 md:flex-1 md:min-w-0"
+                                >
+                                    <CardImage
+                                        src={imgUrl}
+                                        isLoading={loadingIds.has(cartItem.product.id)}
+                                        className="h-16 w-12 shrink-0 rounded-2xl"
+                                        imgClassName="size-full object-contain"
+                                        alt={cartItem.product.name}
+                                    />
+                                    <h5 className="line-clamp-2 text-sm leading-110">
+                                        {cartItem.product.name}
+                                    </h5>
+                                </Link>
+                                <hr className="h-px text-base-300 md:hidden" />
+                                <div className="flex items-center justify-between md:justify-start md:gap-4 md:shrink-0">
+                                    <span className="font-semibold text-primary leading-110">
+                                        {formatPrice(cartItem.price)}
+                                    </span>
+                                    <span className="font-medium leading-110">
+                                        x{cartItem.count}
+                                    </span>
+                                </div>
+                            </div>
+                        </CartCardWrapper>
+
+                        {/* Услуги к товару, сгруппированные по категории */}
+                        {SERVICE_GROUPS.map(({ category, variant }) => {
+                            const grouped = getServicesForCategory(cartItem, category);
+                            if (grouped.length === 0) return null;
+                            return (
+                                <CartCardWrapper
+                                    key={variant}
+                                    variant={variant}
+                                    subtitle={`Для товара: ${cartItem.product.name}`}
+                                >
+                                    {grouped.map(([svcId, svc], idx) => {
+                                        const info = getServiceInfo(svc);
+                                        const isLast = idx === grouped.length - 1;
+                                        return (
+                                            <div key={svcId}>
+                                                <div className="flex flex-col gap-2 md:flex-row md:items-center md:gap-4">
+                                                    <p className="line-clamp-2 text-sm leading-110 md:flex-1 md:min-w-0">
+                                                        {info?.name}
+                                                    </p>
+                                                    <div className="flex items-center justify-between md:justify-start md:gap-4 md:shrink-0">
+                                                        <p className="text-sm font-semibold tracking-tight text-primary leading-110">
+                                                            {formatPrice(svc.price)}
+                                                        </p>
+                                                        <span className="font-medium leading-110">
+                                                            x{svc.count}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                {!isLast && <hr className="h-px text-base-300" />}
+                                            </div>
+                                        );
+                                    })}
+                                </CartCardWrapper>
+                            );
+                        })}
+                    </div>
+                );
+            })}
+        </>
+    );
+}
