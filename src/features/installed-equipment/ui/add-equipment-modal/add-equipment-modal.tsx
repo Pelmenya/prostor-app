@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { MagnifyingGlassIcon, XMarkIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { CompactModal, CardImage } from '@/shared/ui';
+import { ApiError } from '@/shared/api';
+import { extractErrorMessage } from '@/shared/lib';
 import { useProductSearch, useProductThumbnails } from '@/entities/product';
 import {
     useCreateInstalledEquipment,
@@ -16,6 +18,17 @@ type TAddEquipmentModalProps = {
     onClose: () => void;
     realEstateId: number;
 };
+
+function getLocalDateString() {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+/** Конвертирует строку YYYY-MM-DD в ISO, интерпретируя её как локальную дату (полдень) */
+function localDateToISO(dateStr: string): string {
+    const [y, m, d] = dateStr.split('-').map(Number);
+    return new Date(y, m - 1, d, 12, 0, 0).toISOString();
+}
 
 function SelectedProductPreview({
     product,
@@ -51,7 +64,7 @@ export function AddEquipmentModal({ isOpen, onClose, realEstateId }: TAddEquipme
     const [innerQuery, setInnerQuery] = useState('');
     const [debouncedQuery, setDebouncedQuery] = useState('');
     const [selectedProduct, setSelectedProduct] = useState<TProduct | null>(null);
-    const [installedAt, setInstalledAt] = useState(() => new Date().toISOString().slice(0, 10));
+    const [installedAt, setInstalledAt] = useState(getLocalDateString);
     const [error, setError] = useState<string | null>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
@@ -73,7 +86,7 @@ export function AddEquipmentModal({ isOpen, onClose, realEstateId }: TAddEquipme
         setInnerQuery('');
         setDebouncedQuery('');
         setSelectedProduct(null);
-        setInstalledAt(new Date().toISOString().slice(0, 10));
+        setInstalledAt(getLocalDateString());
         setError(null);
     }, []);
 
@@ -99,11 +112,15 @@ export function AddEquipmentModal({ isOpen, onClose, realEstateId }: TAddEquipme
             await createEquipment({
                 realEstateId,
                 msProductId: selectedProduct.id,
-                installedAt: new Date(installedAt).toISOString(),
+                installedAt: localDateToISO(installedAt),
             });
             handleClose();
-        } catch {
-            setError('У этого товара нет элементов обслуживания. Выберите фильтр с картриджами.');
+        } catch (err) {
+            const message =
+                err instanceof ApiError
+                    ? extractErrorMessage(err.data, 'Не удалось добавить оборудование')
+                    : 'Не удалось добавить оборудование';
+            setError(message);
         }
     };
 
@@ -125,6 +142,7 @@ export function AddEquipmentModal({ isOpen, onClose, realEstateId }: TAddEquipme
                             type="date"
                             className="input input-bordered w-full"
                             value={installedAt}
+                            max={getLocalDateString()}
                             onChange={(e) => setInstalledAt(e.target.value)}
                         />
                     </label>

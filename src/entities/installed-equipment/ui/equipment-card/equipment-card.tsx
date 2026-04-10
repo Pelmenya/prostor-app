@@ -21,7 +21,7 @@ export function EquipmentCard({
 }: TEquipmentCardProps) {
     const activeComponents = equipment.components
         .filter((c) => !c.isReplaced)
-        .sort(
+        .toSorted(
             (a, b) =>
                 new Date(a.nextReplacementDate).getTime() -
                 new Date(b.nextReplacementDate).getTime(),

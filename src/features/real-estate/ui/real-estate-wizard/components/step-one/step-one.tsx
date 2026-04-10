@@ -1,6 +1,6 @@
 'use client';
 
-import { FC } from 'react';
+import type { ComponentType } from 'react';
 import {
     HomeModernIcon,
     BuildingOffice2Icon,
@@ -8,24 +8,28 @@ import {
 } from '@heroicons/react/24/outline';
 import { Counter, Borehole, Well, Reservoir, WaterSupply, RangeSlider } from '@/shared/ui';
 import { useRealEstateWizardStore } from '../../../../model/real-estate-wizard.store';
+import { WizardStepLayout } from '../wizard-step-layout/wizard-step-layout';
 import type { TWizardStepProps } from '../../types/t-wizard-step-props';
 import type { TRealEstateType, TRealEstateSourceWater } from '@/shared/model';
 
-const TYPE_OPTIONS: { value: TRealEstateType; label: string; Icon: FC<{ className?: string }> }[] =
-    [
-        { value: 'apartment', label: 'Квартира', Icon: BuildingOffice2Icon },
-        { value: 'house', label: 'Дом', Icon: HomeModernIcon },
-        { value: 'prom', label: 'Промобъект', Icon: BuildingLibraryIcon },
-    ];
+const TYPE_OPTIONS: {
+    value: TRealEstateType;
+    label: string;
+    Icon: ComponentType<{ className?: string }>;
+}[] = [
+    { value: 'apartment', label: 'Квартира', Icon: BuildingOffice2Icon },
+    { value: 'house', label: 'Дом', Icon: HomeModernIcon },
+    { value: 'prom', label: 'Промобъект', Icon: BuildingLibraryIcon },
+];
 
-const SOURCE_OPTIONS: { value: TRealEstateSourceWater; label: string; Icon: FC }[] = [
+const SOURCE_OPTIONS: { value: TRealEstateSourceWater; label: string; Icon: ComponentType }[] = [
     { value: 'waterSupply', label: 'Водопровод', Icon: WaterSupply },
     { value: 'borehole', label: 'Скважина', Icon: Borehole },
     { value: 'well', label: 'Колодец', Icon: Well },
     { value: 'reservoir', label: 'Водоём', Icon: Reservoir },
 ];
 
-export const StepOne: FC<TWizardStepProps> = ({ onNext, onCancel }) => {
+export function StepOne({ onNext, onCancel }: TWizardStepProps) {
     const activeType = useRealEstateWizardStore((s) => s.activeType);
     const residents = useRealEstateWizardStore((s) => s.residents);
     const activeSource = useRealEstateWizardStore((s) => s.activeSource);
@@ -56,7 +60,7 @@ export const StepOne: FC<TWizardStepProps> = ({ onNext, onCancel }) => {
     const isApartment = activeType === 'apartment';
 
     return (
-        <div className="flex flex-col gap-4 w-full">
+        <WizardStepLayout onBack={onCancel} backLabel="Отмена" onForward={onNext!}>
             {/* Тип объекта */}
             <div className="grid grid-cols-3 gap-2">
                 {TYPE_OPTIONS.map(({ value, label, Icon }) => {
@@ -143,16 +147,6 @@ export const StepOne: FC<TWizardStepProps> = ({ onNext, onCancel }) => {
                     <span className="ml-auto text-xs text-base-content/40">по умолчанию</span>
                 </div>
             )}
-
-            {/* Кнопки */}
-            <div className="flex gap-2 mt-2">
-                <button type="button" className="btn btn-outline flex-1" onClick={onCancel}>
-                    Отмена
-                </button>
-                <button type="button" className="btn btn-primary flex-1" onClick={onNext}>
-                    Далее
-                </button>
-            </div>
-        </div>
+        </WizardStepLayout>
     );
-};
+}

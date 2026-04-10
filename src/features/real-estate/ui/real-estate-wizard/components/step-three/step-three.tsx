@@ -1,10 +1,11 @@
 'use client';
 
-import { FC, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCreateRealEstate, useUpdateRealEstate } from '@/entities/real-estate';
 import { Counter } from '@/shared/ui';
 import { useRealEstateWizardStore } from '../../../../model/real-estate-wizard.store';
+import { WizardStepLayout } from '../wizard-step-layout/wizard-step-layout';
 import { Toilet } from './components/toilet';
 import { Sink } from './components/sink';
 import { Bath } from './components/bath';
@@ -25,7 +26,7 @@ const INTAKE_POINTS = [
 
 type TIntakeKey = (typeof INTAKE_POINTS)[number]['key'];
 
-export const StepThree: FC<TWizardStepProps> = ({ onPrev, editMode, id, onSuccess }) => {
+export function StepThree({ onPrev, editMode, id, onSuccess }: TWizardStepProps) {
     const router = useRouter();
 
     const address = useRealEstateWizardStore((s) => s.address);
@@ -88,8 +89,21 @@ export const StepThree: FC<TWizardStepProps> = ({ onPrev, editMode, id, onSucces
         }
     };
 
+    const forwardLabel = isSaving ? (
+        <span className="loading loading-spinner loading-xs" />
+    ) : editMode ? (
+        'Изменить'
+    ) : (
+        'Сохранить'
+    );
+
     return (
-        <div className="flex flex-col gap-4 w-full">
+        <WizardStepLayout
+            onBack={onPrev!}
+            onForward={handleSave}
+            forwardLabel={forwardLabel}
+            forwardDisabled={!hasAnyIntake || isSaving}
+        >
             <div className="flex flex-col gap-3 p-4 bg-base-100 border border-base-300 rounded-2xl">
                 <span className="text-sm font-semibold">Точки водоразбора</span>
 
@@ -122,26 +136,6 @@ export const StepThree: FC<TWizardStepProps> = ({ onPrev, editMode, id, onSucces
                     })}
                 </div>
             </div>
-
-            <div className="flex gap-2">
-                <button type="button" className="btn btn-outline flex-1" onClick={onPrev}>
-                    Назад
-                </button>
-                <button
-                    type="button"
-                    className="btn btn-primary flex-1"
-                    onClick={handleSave}
-                    disabled={!hasAnyIntake || isSaving}
-                >
-                    {isSaving ? (
-                        <span className="loading loading-spinner loading-xs" />
-                    ) : editMode ? (
-                        'Изменить'
-                    ) : (
-                        'Сохранить'
-                    )}
-                </button>
-            </div>
-        </div>
+        </WizardStepLayout>
     );
-};
+}

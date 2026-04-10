@@ -4,6 +4,7 @@ import type {
     TInstalledEquipment,
     TInstalledComponent,
     TCreateInstalledEquipment,
+    TUpdateInstalledEquipment,
 } from '@/shared/model';
 
 export const installedEquipmentKeys = {
@@ -31,7 +32,10 @@ export function useInstalledEquipmentForRealEstates(realEstateIds: number[]) {
         equipmentByRealEstate[id] = results[idx].data ?? [];
     });
 
-    return equipmentByRealEstate;
+    return {
+        equipmentByRealEstate,
+        isLoading: results.some((r) => r.isLoading),
+    };
 }
 
 export function useInstalledEquipmentByRealEstate(realEstateId: number | undefined) {
@@ -61,11 +65,6 @@ export function useCreateInstalledEquipment() {
         },
     });
 }
-
-type TUpdateInstalledEquipment = {
-    notificationsEnabled?: boolean;
-    isActive?: boolean;
-};
 
 export function useUpdateInstalledEquipment(realEstateId: number) {
     const api = useApi();

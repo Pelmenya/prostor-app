@@ -32,3 +32,8 @@ export type TCreateInstalledEquipment = {
     msProductId: string;
     installedAt?: string;
 };
+
+export type TUpdateInstalledEquipment = {
+    notificationsEnabled?: boolean;
+    isActive?: boolean;
+};

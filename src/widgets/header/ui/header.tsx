@@ -14,11 +14,11 @@ const NOOP_SUBSCRIBE = () => () => {};
 
 /** Паттерны роутов, которые показывают стрелку назад */
 const BACK_PATTERNS: RegExp[] = [
-    /^\/real-estate\/\d+/,
+    /^\/real-estate\/\d+(\/|$)/,
     /^\/real-estate\/add$/,
-    /^\/orders\/\d+/,
-    /^\/product\/[^/]+/,
-    /^\/catalog\/[^/]+/,
+    /^\/orders\/\d+(\/|$)/,
+    /^\/product\/[^/]+(\/|$)/,
+    /^\/catalog\/[^/]+(\/|$)/,
     /^\/profile\/.+/,
     /^\/checkout$/,
 ];

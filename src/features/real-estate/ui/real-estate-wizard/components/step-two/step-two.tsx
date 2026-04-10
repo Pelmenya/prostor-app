@@ -1,14 +1,15 @@
 'use client';
 
-import { FC, useEffect, type ReactNode } from 'react';
+import { useEffect, type ReactNode } from 'react';
 import { useRealEstateWizardStore } from '../../../../model/real-estate-wizard.store';
+import { WizardStepLayout } from '../wizard-step-layout/wizard-step-layout';
 import type { TWizardStepProps } from '../../types/t-wizard-step-props';
 
 type TStepTwoProps = TWizardStepProps & {
     addressSearchSlot: ReactNode;
 };
 
-export const StepTwo: FC<TStepTwoProps> = ({ onNext, onPrev, addressSearchSlot }) => {
+export function StepTwo({ onNext, onPrev, addressSearchSlot }: TStepTwoProps) {
     const address = useRealEstateWizardStore((s) => s.address);
     const coordinates = useRealEstateWizardStore((s) => s.coordinates);
     const setProgress = useRealEstateWizardStore((s) => s.setProgress);
@@ -22,7 +23,7 @@ export const StepTwo: FC<TStepTwoProps> = ({ onNext, onPrev, addressSearchSlot }
     }, [hasAddress, setProgress]);
 
     return (
-        <div className="flex flex-col gap-4 w-full">
+        <WizardStepLayout onBack={onPrev!} onForward={onNext!} forwardDisabled={!canProceed}>
             <div className="flex flex-col gap-3 p-4 bg-base-100 border border-base-300 rounded-2xl">
                 <span className="text-sm font-semibold">Адрес</span>
 
@@ -41,20 +42,6 @@ export const StepTwo: FC<TStepTwoProps> = ({ onNext, onPrev, addressSearchSlot }
                     </p>
                 )}
             </div>
-
-            <div className="flex gap-2">
-                <button type="button" className="btn btn-outline flex-1" onClick={onPrev}>
-                    Назад
-                </button>
-                <button
-                    type="button"
-                    className="btn btn-primary flex-1"
-                    onClick={onNext}
-                    disabled={!canProceed}
-                >
-                    Далее
-                </button>
-            </div>
-        </div>
+        </WizardStepLayout>
     );
-};
+}

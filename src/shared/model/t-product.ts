@@ -23,6 +23,13 @@ export type TSalePrice = {
     priceType: TPrice;
 };
 
+/** Значение ссылочного атрибута МойСклад (тип entity, bundle и т.п.) */
+export type TAttributeLinkedValue = {
+    meta: { href: string; type: string };
+    id?: string;
+    name: string;
+};
+
 export type TAttribute = {
     meta: {
         href: string;
@@ -31,7 +38,7 @@ export type TAttribute = {
     id?: string;
     name: string;
     type: string;
-    value: boolean | string | number;
+    value: boolean | string | number | TAttributeLinkedValue | null;
 };
 
 export enum EServiceCategory {

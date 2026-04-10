@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { StepOne } from './components/step-one/step-one';
 import { StepTwo } from './components/step-two/step-two';
@@ -17,12 +17,12 @@ type TRealEstateWizardProps = {
     onCancel?: () => void;
 };
 
-export const RealEstateWizard: FC<TRealEstateWizardProps> = ({
+export function RealEstateWizard({
     id,
     addressSearchSlot,
     onSuccess,
     onCancel,
-}) => {
+}: TRealEstateWizardProps) {
     const [step, setStep] = useState(1);
     const router = useRouter();
 
@@ -40,32 +40,39 @@ export const RealEstateWizard: FC<TRealEstateWizardProps> = ({
     const setWaterIntakePoints = useRealEstateWizardStore((s) => s.setWaterIntakePoints);
     const setDepthWaterSource = useRealEstateWizardStore((s) => s.setDepthWaterSource);
 
+    // Храним id, для которого уже инициализировали стор.
+    // Это предотвращает перезапись изменений пользователя при refetchOnWindowFocus.
+    const initializedForId = useRef<string | undefined>(undefined);
+
     useEffect(() => {
-        if (editMode && data) {
-            reset();
-            setAddress(data.address ?? null);
-            setCoordinates(
-                data.coordinates
-                    ? {
-                          latitude: data.coordinates.coordinates[1],
-                          longitude: data.coordinates.coordinates[0],
-                      }
-                    : null,
-            );
-            setGeoData(data.geoData);
-            setSuggestion(data.suggestion);
-            setActiveType(data.activeType);
-            setResidents(data.residents);
-            setActiveSource(data.activeSource);
-            setWaterIntakePoints(data.waterIntakePoints);
-            if (data.depthWaterSource != null) {
-                setDepthWaterSource(data.depthWaterSource);
-            }
-        }
         if (!editMode) {
+            initializedForId.current = undefined;
             reset();
+            return;
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- Zustand setters are stable by design
+        if (!data || initializedForId.current === id) return;
+
+        initializedForId.current = id;
+        reset();
+        setAddress(data.address ?? null);
+        setCoordinates(
+            data.coordinates
+                ? {
+                      latitude: data.coordinates.coordinates[1],
+                      longitude: data.coordinates.coordinates[0],
+                  }
+                : null,
+        );
+        setGeoData(data.geoData);
+        setSuggestion(data.suggestion);
+        setActiveType(data.activeType);
+        setResidents(data.residents);
+        setActiveSource(data.activeSource);
+        setWaterIntakePoints(data.waterIntakePoints);
+        if (data.depthWaterSource != null) {
+            setDepthWaterSource(data.depthWaterSource);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- Zustand setters are stable, initializedForId is a ref
     }, [editMode, data, id]);
 
     const handleCancel = onCancel ?? (() => router.push('/real-estate'));
@@ -117,4 +124,4 @@ export const RealEstateWizard: FC<TRealEstateWizardProps> = ({
             </div>
         </div>
     );
-};
+}

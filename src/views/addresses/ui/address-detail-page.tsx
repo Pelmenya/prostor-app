@@ -6,7 +6,6 @@ import {
     HomeModernIcon,
     PencilSquareIcon,
     PlusCircleIcon,
-    DocumentTextIcon,
     ChevronDownIcon,
 } from '@heroicons/react/24/outline';
 import {
@@ -20,43 +19,21 @@ import {
     ArchivedEquipmentRow,
     useInstalledEquipmentByRealEstate,
     useUpdateInstalledEquipment,
-    getResourcePercent,
-    getDaysLeft,
+    getCriticalStats,
+    getProgressColor,
 } from '@/entities/installed-equipment';
 import { useProductThumbnails } from '@/entities/product';
-import { PageContainer, PageTitle } from '@/shared/ui';
+import { PageContainer, PageTitle, ConfirmDialog } from '@/shared/ui';
 import { AddEquipmentModal, ComponentRow } from '@/features/installed-equipment';
-import type { TInstalledEquipment } from '@/shared/model';
 
 type TAddressDetailPageProps = {
     id: number;
 };
 
-/** Гарантийные документы — мок */
-const MOCK_WARRANTY_DOCS = [
-    { id: '1', name: 'Гарантийный талон — Аквафор Трио', url: '#' },
-    { id: '2', name: 'Гарантийный талон — EcoWater ERR 3500', url: '#' },
-];
-
-/** Самый критичный компонент среди всего оборудования (минимум дней до замены) */
-function getCriticalDaysLeft(equipment: TInstalledEquipment[]): number | null {
-    const components = equipment.flatMap((e) => e.components.filter((c) => !c.isReplaced));
-    if (components.length === 0) return null;
-    return Math.min(...components.map((c) => getDaysLeft(c.nextReplacementDate)));
-}
-
-function getCriticalPercent(equipment: TInstalledEquipment[]): number {
-    const components = equipment.flatMap((e) => e.components.filter((c) => !c.isReplaced));
-    if (components.length === 0) return 100;
-    const percents = components.map((c) =>
-        getResourcePercent(c.installedAt, c.nextReplacementDate),
-    );
-    return Math.min(...percents);
-}
-
 export function AddressDetailPage({ id }: TAddressDetailPageProps) {
     const [isAddOpen, setIsAddOpen] = useState(false);
     const [isArchiveOpen, setIsArchiveOpen] = useState(false);
+    const [demountingId, setDemountingId] = useState<string | null>(null);
     const { data: realEstate, isLoading, error } = useRealEstate(id);
     const { data: equipment = [] } = useInstalledEquipmentByRealEstate(id);
     const { mutate: updateEquipment } = useUpdateInstalledEquipment(id);
@@ -82,14 +59,14 @@ export function AddressDetailPage({ id }: TAddressDetailPageProps) {
         );
 
     const Icon = TYPE_ICONS[realEstate.activeType] ?? HomeModernIcon;
-    const criticalDays = getCriticalDaysLeft(activeEquipment);
-    const criticalPercent = getCriticalPercent(activeEquipment);
-    const progressColor =
-        criticalPercent >= 50
-            ? 'progress-success'
-            : criticalPercent >= 20
-              ? 'progress-warning'
-              : 'progress-error';
+    const stats = getCriticalStats(activeEquipment);
+    const progressColor = stats ? getProgressColor(stats.percent) : null;
+
+    const handleConfirmDemount = () => {
+        if (!demountingId) return;
+        updateEquipment({ id: demountingId, data: { isActive: false } });
+        setDemountingId(null);
+    };
 
     return (
         <PageContainer>
@@ -118,25 +95,25 @@ export function AddressDetailPage({ id }: TAddressDetailPageProps) {
                             <span>{getWaterSourceName(realEstate.activeSource)}</span>
                         </div>
 
-                        {criticalDays !== null && (
+                        {stats && progressColor && (
                             <div className="flex flex-col gap-1 mt-1">
                                 <progress
                                     className={`progress ${progressColor} h-1 w-full`}
-                                    value={criticalPercent}
+                                    value={stats.percent}
                                     max={100}
                                 />
                                 <span className="text-xs text-base-content/40">
                                     Ближайшая замена через{' '}
                                     <span
                                         className={
-                                            criticalDays < 7
+                                            stats.daysLeft < 7
                                                 ? 'text-error font-semibold'
-                                                : criticalDays < 30
+                                                : stats.daysLeft < 30
                                                   ? 'text-warning font-semibold'
                                                   : 'text-base-content/60'
                                         }
                                     >
-                                        {criticalDays} дн.
+                                        {stats.daysLeft} дн.
                                     </span>
                                 </span>
                             </div>
@@ -179,10 +156,10 @@ export function AddressDetailPage({ id }: TAddressDetailPageProps) {
                             equipment={item}
                             imageUrl={imageUrls[item.msProductId]}
                             isImageLoading={loadingIds.has(item.msProductId)}
-                            onDemount={() =>
-                                updateEquipment({ id: item.id, data: { isActive: false } })
-                            }
-                            renderComponent={(c) => <ComponentRow key={c.id} component={c} />}
+                            onDemount={() => setDemountingId(item.id)}
+                            renderComponent={(c) => (
+                                <ComponentRow key={c.id} component={c} realEstateId={id} />
+                            )}
                         />
                     ))}
 
@@ -212,34 +189,21 @@ export function AddressDetailPage({ id }: TAddressDetailPageProps) {
                         </div>
                     )}
                 </div>
-
-                {/* Гарантийные документы */}
-                {MOCK_WARRANTY_DOCS.length > 0 && (
-                    <div className="flex flex-col gap-3">
-                        <h2 className="font-semibold text-base">Гарантийные документы</h2>
-                        <div className="flex flex-col gap-2 p-4 bg-base-100 border border-base-300 rounded-2xl">
-                            {MOCK_WARRANTY_DOCS.map((doc, idx) => (
-                                <a
-                                    key={doc.id}
-                                    href={doc.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className={`flex items-center gap-3 py-2 text-sm hover:text-primary transition-colors ${idx > 0 ? 'border-t border-base-200' : ''}`}
-                                >
-                                    <DocumentTextIcon className="size-5 shrink-0 text-base-content/40" />
-                                    <span className="flex-1 line-clamp-1">{doc.name}</span>
-                                    <span className="text-xs text-base-content/40">PDF →</span>
-                                </a>
-                            ))}
-                        </div>
-                    </div>
-                )}
             </div>
 
             <AddEquipmentModal
                 isOpen={isAddOpen}
                 onClose={() => setIsAddOpen(false)}
                 realEstateId={id}
+            />
+
+            <ConfirmDialog
+                isOpen={demountingId !== null}
+                onClose={() => setDemountingId(null)}
+                onConfirm={handleConfirmDemount}
+                title="Демонтировать оборудование?"
+                message="Оборудование будет перемещено в архив."
+                confirmText="Демонтировать"
             />
         </PageContainer>
     );

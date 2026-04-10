@@ -1,24 +1,47 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { ShoppingCartIcon } from '@heroicons/react/24/outline';
+import { ShoppingCartIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import { CheckIcon } from '@heroicons/react/24/solid';
 import type { TInstalledComponent } from '@/shared/model';
 import { formatDateRu } from '@/shared/lib';
 import { productKeys, fetchProduct } from '@/entities/product';
 import { useCartStore } from '@/entities/cart';
-import { getResourcePercent, getProgressColor, getDaysLeft } from '@/entities/installed-equipment';
+import {
+    getResourcePercent,
+    getProgressColor,
+    getDaysLeft,
+    useReplaceComponent,
+} from '@/entities/installed-equipment';
+import { CompactModal } from '@/shared/ui';
 
 type TComponentRowProps = {
     component: TInstalledComponent;
+    realEstateId: number;
 };
 
-export function ComponentRow({ component }: TComponentRowProps) {
+function getTodayString() {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+export function ComponentRow({ component, realEstateId }: TComponentRowProps) {
     const queryClient = useQueryClient();
     const addProduct = useCartStore((s) => s.addProduct);
     const [isAdding, setIsAdding] = useState(false);
     const [isAdded, setIsAdded] = useState(false);
+    const [isReplaceOpen, setIsReplaceOpen] = useState(false);
+    const [replacedAt, setReplacedAt] = useState(getTodayString);
+    const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    const { mutate: replaceComponent, isPending: isReplacing } = useReplaceComponent(realEstateId);
+
+    useEffect(() => {
+        return () => {
+            if (timerRef.current) clearTimeout(timerRef.current);
+        };
+    }, []);
 
     const percent = getResourcePercent(component.installedAt, component.nextReplacementDate);
     const progressColor = getProgressColor(percent);
@@ -52,45 +75,107 @@ export function ComponentRow({ component }: TComponentRowProps) {
             const price = product.salePrices?.[0]?.value ?? 0;
             addProduct(product, 1, price);
             setIsAdded(true);
-            setTimeout(() => setIsAdded(false), 2000);
+            timerRef.current = setTimeout(() => setIsAdded(false), 2000);
+        } catch {
+            // товар не загрузился — кнопка просто вернётся в исходное состояние
         } finally {
             setIsAdding(false);
         }
     };
 
+    const handleReplace = () => {
+        const [y, m, d] = replacedAt.split('-').map(Number);
+        const isoDate = new Date(y, m - 1, d, 12, 0, 0).toISOString();
+        replaceComponent(
+            { componentId: component.id, replacedAt: isoDate },
+            { onSuccess: () => setIsReplaceOpen(false) },
+        );
+    };
+
     return (
-        <div className="flex flex-col gap-1.5 pt-3 border-t border-base-200">
-            <div className="flex items-center justify-between gap-2">
-                <span className="text-sm font-medium line-clamp-2">{component.componentName}</span>
-                <span className={`text-xs shrink-0 ${daysClassName}`}>{daysLabel}</span>
+        <>
+            <div className="flex flex-col gap-1.5 pt-3 border-t border-base-200">
+                <div className="flex items-center justify-between gap-2">
+                    <span className="text-sm font-medium line-clamp-2">
+                        {component.componentName}
+                    </span>
+                    <span className={`text-xs shrink-0 ${daysClassName}`}>{daysLabel}</span>
+                </div>
+
+                <progress
+                    className={`progress ${progressColor} h-1.5 w-full`}
+                    value={percent}
+                    max={100}
+                />
+
+                <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs text-base-content/50">
+                        замена {formatDateRu(component.nextReplacementDate)}
+                    </span>
+                    <div className="flex items-center gap-1.5">
+                        <button
+                            type="button"
+                            onClick={() => setIsReplaceOpen(true)}
+                            className="btn btn-xs btn-outline gap-1"
+                        >
+                            <ArrowPathIcon className="size-3" />
+                            Заменено
+                        </button>
+                        <button
+                            type="button"
+                            onClick={handleAddToCart}
+                            disabled={isAdding || isAdded}
+                            className="btn btn-xs btn-primary gap-1"
+                        >
+                            {isAdding ? (
+                                <span className="loading loading-spinner loading-xs" />
+                            ) : isAdded ? (
+                                <CheckIcon className="size-3" />
+                            ) : (
+                                <ShoppingCartIcon className="size-3" />
+                            )}
+                            {isAdded ? 'Добавлено' : 'В корзину'}
+                        </button>
+                    </div>
+                </div>
             </div>
 
-            <progress
-                className={`progress ${progressColor} h-1.5 w-full`}
-                value={percent}
-                max={100}
-            />
-
-            <div className="flex items-center justify-between">
-                <span className="text-xs text-base-content/50">
-                    замена {formatDateRu(component.nextReplacementDate)}
-                </span>
-                <button
-                    type="button"
-                    onClick={handleAddToCart}
-                    disabled={isAdding || isAdded}
-                    className="btn btn-xs btn-primary gap-1"
-                >
-                    {isAdding ? (
-                        <span className="loading loading-spinner loading-xs" />
-                    ) : isAdded ? (
-                        <CheckIcon className="size-3" />
-                    ) : (
-                        <ShoppingCartIcon className="size-3" />
-                    )}
-                    {isAdded ? 'Добавлено' : 'В корзину'}
-                </button>
-            </div>
-        </div>
+            <CompactModal
+                isOpen={isReplaceOpen}
+                onClose={() => setIsReplaceOpen(false)}
+                title="Дата замены"
+            >
+                <div className="flex flex-col gap-4">
+                    <input
+                        type="date"
+                        className="input input-bordered w-full"
+                        value={replacedAt}
+                        max={getTodayString()}
+                        onChange={(e) => setReplacedAt(e.target.value)}
+                    />
+                    <div className="flex gap-2">
+                        <button
+                            type="button"
+                            className="btn btn-outline flex-1"
+                            onClick={() => setIsReplaceOpen(false)}
+                        >
+                            Отмена
+                        </button>
+                        <button
+                            type="button"
+                            className="btn btn-primary flex-1"
+                            onClick={handleReplace}
+                            disabled={!replacedAt || isReplacing}
+                        >
+                            {isReplacing ? (
+                                <span className="loading loading-spinner loading-xs" />
+                            ) : (
+                                'Ок'
+                            )}
+                        </button>
+                    </div>
+                </div>
+            </CompactModal>
+        </>
     );
 }
