@@ -3,8 +3,7 @@
 import Link from 'next/link';
 
 import type { TCartItem } from '@/entities/cart';
-import { CardImage, Counter } from '@/shared/ui';
-import { CartCardWrapper } from '@/entities/cart';
+import { CardImage, CartCardWrapper, Counter } from '@/shared/ui';
 import { formatPrice } from '@/shared/lib';
 
 type TCartItemProps = {

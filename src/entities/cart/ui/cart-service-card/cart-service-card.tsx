@@ -1,7 +1,8 @@
 'use client';
 
 import type { TCartServiceItem } from '@/entities/cart';
-import { CartCardWrapper, CartServiceItem } from '@/entities/cart';
+import { CartServiceItem } from '@/entities/cart';
+import { CartCardWrapper } from '@/shared/ui';
 import type { TCardBadgeVariant } from '@/shared/ui';
 
 type TCartServiceCardVariant = Exclude<TCardBadgeVariant, 'product'>;

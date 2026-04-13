@@ -1,7 +1,7 @@
 export enum EOrderStatus {
-    NEW = 'new',
+    PENDING = 'pending',
     CONFIRMED = 'confirmed',
     IN_PROGRESS = 'in_progress',
-    DONE = 'done',
+    COMPLETED = 'completed',
     CANCELLED = 'cancelled',
 }

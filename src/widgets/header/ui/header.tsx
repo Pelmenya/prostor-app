@@ -9,33 +9,21 @@ import { useLogout } from '@/features/auth';
 import { flushCartSync } from '@/features/cart';
 import { formatUserInitials } from '@/shared/lib';
 import { BurgerMenu } from './burger-menu';
+import { getBackDestination } from '../lib/get-back-destination';
 
 const NOOP_SUBSCRIBE = () => () => {};
-
-/** Паттерны роутов, которые показывают стрелку назад */
-const BACK_PATTERNS: RegExp[] = [
-    /^\/real-estate\/\d+(\/|$)/,
-    /^\/real-estate\/add$/,
-    /^\/orders\/\d+(\/|$)/,
-    /^\/product\/[^/]+(\/|$)/,
-    /^\/catalog\/[^/]+(\/|$)/,
-    /^\/profile\/.+/,
-    /^\/checkout$/,
-];
-
-function shouldShowBack(pathname: string): boolean {
-    return BACK_PATTERNS.some((pattern) => pattern.test(pathname));
-}
 
 type THeaderProps = {
     back?: boolean;
     backTo?: string;
 };
 
-export function Header({ back: backProp, backTo }: THeaderProps) {
+export function Header({ back: backProp, backTo: backToProp }: THeaderProps) {
     const router = useRouter();
     const pathname = usePathname();
-    const back = backProp ?? shouldShowBack(pathname);
+    const autoBackTo = getBackDestination(pathname);
+    const back = backProp ?? autoBackTo !== null;
+    const backTo = backToProp ?? autoBackTo ?? undefined;
     const { isAuthenticated, user } = useAuth();
     const logout = useLogout();
     const [isMenuOpen, setIsMenuOpen] = useState(false);

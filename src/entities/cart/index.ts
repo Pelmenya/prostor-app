@@ -18,7 +18,6 @@ export { calculateSelectedTotals } from './lib/calculate-selected-totals';
 export type { TSelectedTotals } from './lib/calculate-selected-totals';
 
 export { CartEmpty } from './ui/cart-empty';
-export { CartCardWrapper } from './ui/cart-card-wrapper';
 export { CartItem } from './ui/cart-item';
 export { CartServiceItem } from './ui/cart-service-item';
 export { CartServiceCard } from './ui/cart-service-card';

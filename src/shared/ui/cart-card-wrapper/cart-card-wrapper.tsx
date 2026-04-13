@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
-import { CardBadge } from '@/shared/ui';
-import type { TCardBadgeVariant } from '@/shared/ui';
+import { CardBadge } from '../card-badge';
+import type { TCardBadgeVariant } from '../card-badge';
 
 type TCartCardWrapperProps = {
     variant: TCardBadgeVariant;
@@ -14,7 +14,7 @@ export function CartCardWrapper({ variant, subtitle, children }: TCartCardWrappe
             <CardBadge variant={variant} />
             {subtitle && (
                 <div className="-mx-4 -mt-4 px-4 py-3 bg-base-200 border-b border-base-content/10 rounded-2xl">
-                    <h3 className="text-sm leading-4 line-clamp-3">{subtitle}</h3>
+                    <h3 className="text-xs leading-[110%] line-clamp-3">{subtitle}</h3>
                 </div>
             )}
             {children}

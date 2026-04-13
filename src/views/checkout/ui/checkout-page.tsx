@@ -14,14 +14,14 @@ import {
     PickupStoreSelector,
     OrderScheduleDialog,
     CheckoutTotal,
-    CheckoutProductsList,
-    CheckoutServicesList,
     CheckoutSection,
     VisitPriceBlock,
     ExecutorPreview,
 } from '@/features/checkout';
 import type { TUserWithWorkDays, TDeliveryTab } from '@/features/checkout';
 import type { TWorkDay } from '@/entities/order';
+import { CartReadonlyView } from '@/features/cart';
+import { useProductThumbnails } from '@/entities/product';
 import { PageContainer, PageTitle } from '@/shared/ui';
 import { formatDateRu } from '@/shared/lib';
 
@@ -126,6 +126,9 @@ export function CheckoutPage() {
         resetExecutors();
         loadExecutors(newId);
     };
+
+    const productIds = Object.keys(selectedItems);
+    const { imageUrls, loadingIds } = useProductThumbnails(productIds);
 
     const showMasterTab = hasServices && masterAvailable;
     const tabs: { key: TDeliveryTab; label: string; show: boolean }[] = [
@@ -248,15 +251,13 @@ export function CheckoutPage() {
                                 </CheckoutSection>
                             )}
 
-                            {hasProducts && (
-                                <CheckoutSection title="Товары">
-                                    <CheckoutProductsList items={selectedItems} />
-                                </CheckoutSection>
-                            )}
-
-                            {hasServices && (
-                                <CheckoutSection title="Услуги">
-                                    <CheckoutServicesList items={selectedItems} />
+                            {(hasProducts || hasServices) && (
+                                <CheckoutSection title="Состав заказа">
+                                    <CartReadonlyView
+                                        items={selectedItems}
+                                        imageUrls={imageUrls}
+                                        loadingIds={loadingIds}
+                                    />
                                 </CheckoutSection>
                             )}
 
