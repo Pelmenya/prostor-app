@@ -5,12 +5,19 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { PlusCircleIcon } from '@heroicons/react/24/solid';
 import { useRealEstates, useDeleteRealEstate, RealEstateCard } from '@/entities/real-estate';
+import {
+    useInstalledEquipmentForRealEstates,
+    getCriticalStats,
+} from '@/entities/installed-equipment';
 import { PageContainer, PageTitle, ConfirmDialog } from '@/shared/ui';
 
 export function AddressesPage() {
     const router = useRouter();
     const { data: realEstates, isLoading, isError } = useRealEstates();
     const deleteRealEstate = useDeleteRealEstate();
+    const { equipmentByRealEstate } = useInstalledEquipmentForRealEstates(
+        realEstates?.map((re) => re.id) ?? [],
+    );
     const [deletingId, setDeletingId] = useState<number | null>(null);
     const [deleteError, setDeleteError] = useState<string | null>(null);
 
@@ -61,14 +68,19 @@ export function AddressesPage() {
 
                 {realEstates && realEstates.length > 0 && (
                     <div className="flex flex-col gap-3">
-                        {realEstates.map((re) => (
-                            <RealEstateCard
-                                key={re.id}
-                                realEstate={re}
-                                onClick={(id) => router.push(`/real-estate/${id}`)}
-                                onDelete={setDeletingId}
-                            />
-                        ))}
+                        {realEstates.map((re) => {
+                            const stats = getCriticalStats(equipmentByRealEstate[re.id] ?? []);
+                            return (
+                                <RealEstateCard
+                                    key={re.id}
+                                    realEstate={re}
+                                    onClick={(id) => router.push(`/real-estate/${id}`)}
+                                    onDelete={setDeletingId}
+                                    criticalDaysLeft={stats?.daysLeft}
+                                    criticalPercent={stats?.percent}
+                                />
+                            );
+                        })}
                     </div>
                 )}
             </div>

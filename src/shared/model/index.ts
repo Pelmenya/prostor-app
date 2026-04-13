@@ -3,6 +3,7 @@ export type {
     TPrice,
     TSalePrice,
     TAttribute,
+    TAttributeLinkedValue,
     TService,
     TProductImage,
     TImage,
@@ -18,6 +19,13 @@ export type { TUser } from './t-user';
 export type { TLegalDocument } from './t-legal-document';
 
 export type { TCartItem, TCartServiceItem } from './t-cart-item';
+
+export type {
+    TInstalledComponent,
+    TInstalledEquipment,
+    TCreateInstalledEquipment,
+    TUpdateInstalledEquipment,
+} from './t-installed-equipment';
 
 export { REAL_ESTATE_TYPES, WATER_SOURCES } from './t-real-estate';
 

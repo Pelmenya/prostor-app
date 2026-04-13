@@ -109,6 +109,24 @@ export function useProductImages(productId: string) {
 }
 
 /**
+ * Поиск товаров по строке.
+ * options.hasMaintenance — фильтр на бэке: только товары с компонентами для обслуживания.
+ */
+export function useProductSearch(query: string, options?: { hasMaintenance?: boolean }) {
+    const hasMaintenance = options?.hasMaintenance ?? false;
+    return useQuery({
+        queryKey: ['catalog', 'product-search', query, hasMaintenance] as const,
+        queryFn: () => {
+            const params = new URLSearchParams({ q: query });
+            if (hasMaintenance) params.set('hasMaintenance', 'true');
+            return apiClient<TProduct[]>(`${BASE}/product/search?${params}`);
+        },
+        enabled: query.length >= 2,
+        staleTime: 30 * 1000,
+    });
+}
+
+/**
  * Изображения bundle (для групп каталога)
  */
 export function useBundleImages(bundleId: string | undefined) {

@@ -13,11 +13,17 @@ import { getBackDestination } from '../lib/get-back-destination';
 
 const NOOP_SUBSCRIBE = () => () => {};
 
-export function Header() {
+type THeaderProps = {
+    back?: boolean;
+    backTo?: string;
+};
+
+export function Header({ back: backProp, backTo: backToProp }: THeaderProps) {
     const router = useRouter();
     const pathname = usePathname();
-    const backTo = getBackDestination(pathname);
-    const back = backTo !== null;
+    const autoBackTo = getBackDestination(pathname);
+    const back = backProp ?? autoBackTo !== null;
+    const backTo = backToProp ?? autoBackTo ?? undefined;
     const { isAuthenticated, user } = useAuth();
     const logout = useLogout();
     const [isMenuOpen, setIsMenuOpen] = useState(false);

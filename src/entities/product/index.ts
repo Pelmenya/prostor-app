@@ -12,6 +12,7 @@ export {
     useGroupPath,
     useProductImages,
     useBundleImages,
+    useProductSearch,
     getImageProxyUrl,
 } from './api/product.api';
 

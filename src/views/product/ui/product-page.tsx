@@ -38,9 +38,9 @@ export function ProductPage({ productId }: TProductPageProps) {
     );
 
     // Видимость товара
-    const isVisible = product?.attributes?.find(
-        (attr) => attr.name === 'Видимость для приложения',
-    )?.value;
+    const isVisible = Boolean(
+        product?.attributes?.find((attr) => attr.name === 'Видимость для приложения')?.value,
+    );
 
     // Фильтрация услуг
     const installation =
