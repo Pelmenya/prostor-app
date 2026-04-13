@@ -1,7 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { TProduct, TService } from '@/shared/model';
-import type { TCartItem, TCartServiceItem } from '@/shared/model';
+import type { TProduct, TService, TCartItem, TCartServiceItem } from '@/shared/model';
 
 export type { TCartItem, TCartServiceItem };
 

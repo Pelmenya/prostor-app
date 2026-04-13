@@ -65,7 +65,7 @@ export function OrdersPageContent({
                     <OrderList
                         orders={orders}
                         hasMore={hasMore}
-                        isLoading={isLoadingMore}
+                        isFetchingNextPage={isLoadingMore}
                         onLoadMore={onLoadMore}
                         imageUrls={imageUrls}
                         loadingIds={loadingIds}
@@ -77,4 +77,3 @@ export function OrdersPageContent({
         </PageContainer>
     );
 }
-

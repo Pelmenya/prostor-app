@@ -17,11 +17,7 @@ function CountBadge({ count, isLoading }: { count?: number; isLoading?: boolean 
         return <span className="loading loading-dots loading-xs" />;
     }
     if (count === undefined) return null;
-    return (
-        <span className="badge badge-xs badge-neutral">
-            {count}
-        </span>
-    );
+    return <span className="badge badge-xs badge-neutral">{count}</span>;
 }
 
 export function OrdersTabSwitcher({
@@ -37,6 +33,7 @@ export function OrdersTabSwitcher({
             <button
                 role="tab"
                 type="button"
+                aria-selected={activeTab === 'actual'}
                 className={cn('tab', activeTab === 'actual' && 'tab-active')}
                 onClick={() => onTabChange('actual')}
             >
@@ -48,6 +45,7 @@ export function OrdersTabSwitcher({
             <button
                 role="tab"
                 type="button"
+                aria-selected={activeTab === 'completed'}
                 className={cn('tab', activeTab === 'completed' && 'tab-active')}
                 onClick={() => onTabChange('completed')}
             >

@@ -30,12 +30,12 @@ export function BottomSheetModal({
                 <DialogPanel
                     transition
                     className={cn(
-                        'flex flex-col gap-4 w-full bg-base-100 p-4 rounded-t-2xl transition duration-200 ease-out data-closed:translate-y-full sm:max-w-md sm:rounded-2xl sm:data-closed:translate-y-0 sm:data-closed:scale-95 sm:data-closed:opacity-0',
+                        'flex flex-col w-full max-h-[85vh] bg-base-100 rounded-t-2xl transition duration-200 ease-out data-closed:translate-y-full sm:max-w-md sm:rounded-2xl sm:data-closed:translate-y-0 sm:data-closed:scale-95 sm:data-closed:opacity-0',
                         className,
                     )}
                 >
                     {title !== undefined && (
-                        <div className="flex items-center justify-between">
+                        <header className="shrink-0 flex items-center justify-between p-4 border-b border-base-300">
                             <DialogTitle as="h3" className="font-bold text-lg leading-6">
                                 {title}
                             </DialogTitle>
@@ -47,9 +47,14 @@ export function BottomSheetModal({
                             >
                                 <XMarkIcon className="size-5" />
                             </button>
-                        </div>
+                        </header>
                     )}
-                    {children}
+                    <div
+                        className="overflow-y-auto flex flex-col gap-4 p-4"
+                        style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}
+                    >
+                        {children}
+                    </div>
                 </DialogPanel>
             </div>
         </Dialog>

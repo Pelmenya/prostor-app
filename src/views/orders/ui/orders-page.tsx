@@ -15,21 +15,17 @@ export function OrdersPage() {
     const statusFilter = TAB_STATUS_PRESETS[activeTab];
 
     const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, error, refetch } =
-        useGetOrders({
-            limit: 10,
-            status: [...statusFilter],
-            enabled: isAuthenticated,
-        });
+        useGetOrders({ limit: 10, status: [...statusFilter] }, { enabled: isAuthenticated });
 
-    const { data: actualCountData, isLoading: isActualCountLoading } = useGetOrdersCount({
-        status: [...TAB_STATUS_PRESETS.actual],
-        enabled: isAuthenticated,
-    });
+    const { data: actualCountData, isLoading: isActualCountLoading } = useGetOrdersCount(
+        { status: [...TAB_STATUS_PRESETS.actual] },
+        { enabled: isAuthenticated },
+    );
 
-    const { data: completedCountData, isLoading: isCompletedCountLoading } = useGetOrdersCount({
-        status: [...TAB_STATUS_PRESETS.completed],
-        enabled: isAuthenticated,
-    });
+    const { data: completedCountData, isLoading: isCompletedCountLoading } = useGetOrdersCount(
+        { status: [...TAB_STATUS_PRESETS.completed] },
+        { enabled: isAuthenticated },
+    );
 
     const orders = data?.pages.flatMap((page) => page.items) ?? [];
     const hasOrders = orders.length > 0;

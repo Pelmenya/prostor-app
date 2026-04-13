@@ -12,3 +12,11 @@ export function useOrderThumbnails(orders: TOrder[]) {
     ];
     return useProductThumbnails(productIds);
 }
+
+/**
+ * Хук для загрузки превью товаров одного заказа.
+ */
+export function useSingleOrderThumbnails(order: TOrder | undefined) {
+    const productIds = Object.keys(order?.cartState?.items ?? {});
+    return useProductThumbnails(productIds);
+}

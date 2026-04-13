@@ -1,13 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import {
-    useGetOrderById,
-    useUpdateOrderStatus,
-    EOrderStatus,
-    OrderReadonlyItems,
-} from '@/entities/order';
-import { useProductThumbnails } from '@/entities/product';
+import { useGetOrderById, useUpdateOrderStatus, EOrderStatus } from '@/entities/order';
+import { CartReadonlyView } from '@/features/cart';
+import { useSingleOrderThumbnails } from '@/features/orders';
 import { formatPrice } from '@/shared/lib';
 import { useAuth } from '@/shared/lib/platform';
 import { ConfirmDialog, PageContainer, PageTitle } from '@/shared/ui';
@@ -22,15 +18,19 @@ type TOrderDetailPageProps = {
 
 export function OrderDetailPage({ orderId }: TOrderDetailPageProps) {
     const [isCancelOpen, setIsCancelOpen] = useState(false);
+    const [cancelError, setCancelError] = useState<string | null>(null);
     const { mutate: updateStatus, isPending: isCancelling } = useUpdateOrderStatus();
     const { isAuthenticated } = useAuth();
 
-    const { data: order, isLoading, error } = useGetOrderById(orderId, isAuthenticated);
+    const {
+        data: order,
+        isLoading,
+        error,
+    } = useGetOrderById(orderId, { enabled: isAuthenticated });
 
-    const productIds = Object.keys(order?.cartState?.items ?? {});
-    const { imageUrls, loadingIds } = useProductThumbnails(productIds);
+    const { imageUrls, loadingIds } = useSingleOrderThumbnails(order);
 
-    if (isLoading)
+    if (!isAuthenticated || isLoading)
         return (
             <PageContainer className="flex items-center justify-center">
                 <span className="loading loading-spinner loading-lg text-primary" />
@@ -53,7 +53,7 @@ export function OrderDetailPage({ orderId }: TOrderDetailPageProps) {
             <div className="flex flex-col gap-4 pb-4 max-w-lg mx-auto w-full">
                 {/* Состав заказа — полный вид */}
                 {!isCompact && (
-                    <OrderReadonlyItems
+                    <CartReadonlyView
                         items={order.cartState.items ?? {}}
                         imageUrls={imageUrls}
                         loadingIds={loadingIds}
@@ -67,6 +67,16 @@ export function OrderDetailPage({ orderId }: TOrderDetailPageProps) {
                         imageUrls={imageUrls}
                         loadingIds={loadingIds}
                     />
+                )}
+
+                {/* Итого */}
+                {order.totalAmount != null && (
+                    <div className="relative flex justify-between gap-4 p-4 bg-base-100 border border-base-300 rounded-2xl w-full">
+                        <span className="font-medium text-sm leading-110">Итого</span>
+                        <span className="text-primary font-semibold text-sm leading-110">
+                            {formatPrice(order.totalAmount)}
+                        </span>
+                    </div>
                 )}
 
                 {/* Доставка */}
@@ -151,17 +161,28 @@ export function OrderDetailPage({ orderId }: TOrderDetailPageProps) {
 
             <ConfirmDialog
                 isOpen={isCancelOpen}
-                onClose={() => setIsCancelOpen(false)}
+                onClose={() => {
+                    setIsCancelOpen(false);
+                    setCancelError(null);
+                }}
                 onConfirm={() =>
                     updateStatus(
                         { orderId, status: EOrderStatus.CANCELLED },
-                        { onSuccess: () => setIsCancelOpen(false) },
+                        {
+                            onSuccess: () => {
+                                setIsCancelOpen(false);
+                                setCancelError(null);
+                            },
+                            onError: () =>
+                                setCancelError('Не удалось отменить заказ. Попробуйте ещё раз.'),
+                        },
                     )
                 }
                 title="Отменить заказ?"
-                message={`Заказ №${orderId} будет отменен. Это действие необратимо`}
-                confirmText={isCancelling ? 'Подождите...' : 'Да, отменить'}
+                message={cancelError ?? `Заказ №${orderId} будет отменен. Это действие необратимо`}
+                confirmText="Да, отменить"
                 cancelText="Назад"
+                isBusy={isCancelling}
             />
         </PageContainer>
     );

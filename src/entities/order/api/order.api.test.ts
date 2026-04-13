@@ -33,11 +33,12 @@ function createWrapper() {
 const MOCK_ORDER = {
     id: 1,
     status: EOrderStatus.PENDING,
-    clientId: 100,
-    realEstateId: 10,
-    cartId: 'cart-1',
-    created_at: '2026-01-01T00:00:00Z',
-    updated_at: '2026-01-01T00:00:00Z',
+    cartState: { items: {} },
+    paymentStatus: 'pending',
+    totalAmount: 0,
+    currency: 'RUB',
+    createdAt: '2026-01-01T00:00:00Z',
+    updatedAt: '2026-01-01T00:00:00Z',
 };
 
 const MOCK_PAGINATED_RESPONSE = {
@@ -92,10 +93,7 @@ describe('order API', () => {
             mockApi.mockResolvedValue(MOCK_PAGINATED_RESPONSE);
             const { wrapper } = createWrapper();
 
-            const { result } = renderHook(
-                () => useGetOrders({ limit: 10 }),
-                { wrapper },
-            );
+            const { result } = renderHook(() => useGetOrders({ limit: 10 }), { wrapper });
 
             await waitFor(() => expect(result.current.isSuccess).toBe(true));
             expect(result.current.data?.pages[0]).toEqual(MOCK_PAGINATED_RESPONSE);

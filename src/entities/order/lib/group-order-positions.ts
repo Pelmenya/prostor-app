@@ -3,8 +3,12 @@ import { EServiceCategory as ServiceCategory } from '@/shared/model';
 import type { TOrderCartState } from '../model/types/t-order';
 import { getServiceInfo } from './get-service-info';
 
+const VALID_CATEGORIES = new Set<string>(Object.values(ServiceCategory));
+
 function getServiceCategory(s: TCartServiceItem): EServiceCategory | undefined {
-    return getServiceInfo(s)?.category as EServiceCategory | undefined;
+    const raw = getServiceInfo(s)?.category;
+    if (raw === undefined || !VALID_CATEGORIES.has(raw)) return undefined;
+    return raw as EServiceCategory;
 }
 
 function hasCheckedServicesByCategory(
@@ -30,7 +34,7 @@ type TOrderPositionsGrouped = {
     hasGeneral: boolean;
 };
 
-export function useOrderPositionsGrouped(
+export function groupOrderPositions(
     cartState: TOrderCartState | undefined,
 ): TOrderPositionsGrouped {
     const items: TCartItem[] = Object.values(cartState?.items ?? {});

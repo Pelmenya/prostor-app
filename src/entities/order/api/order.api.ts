@@ -10,25 +10,35 @@ import type { TOrder } from '../model/types/t-order';
 
 export const orderKeys = {
     all: ['orders'] as const,
-    list: (params: TOrdersQueryParams) => ['orders', 'list', params] as const,
-    count: (params: TOrdersCountParams) => ['orders', 'count', params] as const,
+    list: (filters: TOrdersQueryFilters) => ['orders', 'list', filters] as const,
+    count: (filters: TOrdersCountFilters) => ['orders', 'count', filters] as const,
     detail: (orderId: number) => ['orders', 'detail', orderId] as const,
 };
 
 // ---- Типы запросов ----
 
-export type TOrdersQueryParams = {
+/** Фильтры для запросов к /order/all/filters — попадают в query key */
+export type TOrdersQueryFilters = {
     limit?: number;
     cursor?: string;
     sortDir?: 'asc' | 'desc';
     status?: EOrderStatus[];
+};
+
+/** Опции хука — НЕ попадают в query key */
+export type TOrdersQueryOptions = {
     enabled?: boolean;
 };
 
-export type TOrdersCountParams = {
+/** @deprecated Используй TOrdersQueryFilters + TOrdersQueryOptions */
+export type TOrdersQueryParams = TOrdersQueryFilters & TOrdersQueryOptions;
+
+export type TOrdersCountFilters = {
     status?: EOrderStatus[];
-    enabled?: boolean;
 };
+
+/** @deprecated Используй TOrdersCountFilters + TOrdersQueryOptions */
+export type TOrdersCountParams = TOrdersCountFilters & TOrdersQueryOptions;
 
 type TOrdersPaginatedResponse = {
     items: TOrder[];
@@ -59,14 +69,17 @@ type TCreateOrderBody = {
 /**
  * Бесконечный список заказов с cursor-пагинацией
  */
-export function useGetOrders({ enabled = true, ...params }: TOrdersQueryParams) {
+export function useGetOrders(
+    filters: TOrdersQueryFilters,
+    { enabled = true }: TOrdersQueryOptions = {},
+) {
     const api = useApi();
 
     return useInfiniteQuery({
-        queryKey: orderKeys.list(params),
+        queryKey: orderKeys.list(filters),
         queryFn: ({ pageParam }) => {
             const queryString = buildSearchParams({
-                ...params,
+                ...filters,
                 cursor: pageParam,
             });
             return api<TOrdersPaginatedResponse>(`/order/all/filters?${queryString}`);
@@ -82,13 +95,16 @@ export function useGetOrders({ enabled = true, ...params }: TOrdersQueryParams) 
 /**
  * Счётчик заказов по фильтрам (для бейджей на табах)
  */
-export function useGetOrdersCount({ enabled = true, ...params }: TOrdersCountParams) {
+export function useGetOrdersCount(
+    filters: TOrdersCountFilters,
+    { enabled = true }: TOrdersQueryOptions = {},
+) {
     const api = useApi();
 
     return useQuery({
-        queryKey: orderKeys.count(params),
+        queryKey: orderKeys.count(filters),
         queryFn: () => {
-            const queryString = buildSearchParams({ ...params });
+            const queryString = buildSearchParams({ ...filters });
             return api<TOrdersCountResponse>(`/order/count?${queryString}`);
         },
         staleTime: 30_000,
@@ -99,7 +115,7 @@ export function useGetOrdersCount({ enabled = true, ...params }: TOrdersCountPar
 /**
  * Один заказ по ID
  */
-export function useGetOrderById(orderId: number, enabled = true) {
+export function useGetOrderById(orderId: number, { enabled = true }: TOrdersQueryOptions = {}) {
     const api = useApi();
 
     return useQuery({

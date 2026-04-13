@@ -20,7 +20,7 @@ import {
 } from '@/features/checkout';
 import type { TUserWithWorkDays, TDeliveryTab } from '@/features/checkout';
 import type { TWorkDay } from '@/entities/order';
-import { OrderReadonlyItems } from '@/entities/order';
+import { CartReadonlyView } from '@/features/cart';
 import { useProductThumbnails } from '@/entities/product';
 import { PageContainer, PageTitle } from '@/shared/ui';
 import { formatDateRu } from '@/shared/lib';
@@ -253,7 +253,7 @@ export function CheckoutPage() {
 
                             {(hasProducts || hasServices) && (
                                 <CheckoutSection title="Состав заказа">
-                                    <OrderReadonlyItems
+                                    <CartReadonlyView
                                         items={selectedItems}
                                         imageUrls={imageUrls}
                                         loadingIds={loadingIds}

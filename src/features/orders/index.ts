@@ -1,5 +1,5 @@
 // API
-export { useOrderThumbnails } from './api/use-order-thumbnails';
+export { useOrderThumbnails, useSingleOrderThumbnails } from './api/use-order-thumbnails';
 
 // UI
 export { OrderList } from './ui/order-list';

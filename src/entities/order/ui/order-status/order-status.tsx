@@ -1,6 +1,6 @@
 import { cn } from '@/shared/lib';
 import { EOrderStatus } from '../../model/types/e-order-status';
-import { STATUS_TEXT } from '../../lib/status-text';
+import { STATUS_LABEL } from '../../lib/status-config';
 
 const STATUS_BADGE: Record<EOrderStatus, string> = {
     [EOrderStatus.PENDING]: 'badge-primary',
@@ -18,7 +18,7 @@ type TOrderStatusProps = {
 export function OrderStatus({ status, isBase = false }: TOrderStatusProps) {
     return (
         <span className={cn('badge badge-xs', isBase ? 'opacity-30' : STATUS_BADGE[status])}>
-            {STATUS_TEXT[status]}
+            {STATUS_LABEL[status].text}
         </span>
     );
 }

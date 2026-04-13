@@ -1,3 +1,14 @@
+/**
+ * Сериализует объект параметров в строку запроса.
+ *
+ * Поведение по значению:
+ * - `undefined` / `''` — пропускается (параметр не добавляется)
+ * - `null` — кодируется как строка `"null"`. Намеренно: NestJS ValidationPipe
+ *   принимает `"null"` как сигнал явного сброса параметра. Убедитесь, что бэкенд
+ *   ожидает именно строку, а не отсутствие ключа.
+ * - `Array` — каждый элемент добавляется отдельной парой: `status=pending&status=confirmed`
+ * - Остальное — `String(value)`
+ */
 export function buildSearchParams(params: Record<string, unknown>): string {
     const urlParams = new URLSearchParams();
 

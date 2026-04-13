@@ -54,8 +54,8 @@ export type TScheduledDate = {
 /** Полный тип заказа, получаемый с бэкенда */
 export type TOrder = {
     id: number;
-    client: TUser;
-    realEstate: TOrderRealEstate;
+    client?: TUser;
+    realEstate?: TOrderRealEstate;
     executor?: TUser;
     cartState: TOrderCartState;
     scheduledDate?: TScheduledDate;
