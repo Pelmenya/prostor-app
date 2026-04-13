@@ -31,6 +31,7 @@ export function ComponentRow({ component, realEstateId }: TComponentRowProps) {
     const addProduct = useCartStore((s) => s.addProduct);
     const [isAdding, setIsAdding] = useState(false);
     const [isAdded, setIsAdded] = useState(false);
+    const [addError, setAddError] = useState(false);
     const [isReplaceOpen, setIsReplaceOpen] = useState(false);
     const [replacedAt, setReplacedAt] = useState(getTodayString);
     const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -66,6 +67,7 @@ export function ComponentRow({ component, realEstateId }: TComponentRowProps) {
     const handleAddToCart = async () => {
         if (isAdding || isAdded) return;
         setIsAdding(true);
+        setAddError(false);
         try {
             const product = await queryClient.fetchQuery({
                 queryKey: productKeys.product(component.msProductId),
@@ -77,7 +79,8 @@ export function ComponentRow({ component, realEstateId }: TComponentRowProps) {
             setIsAdded(true);
             timerRef.current = setTimeout(() => setIsAdded(false), 2000);
         } catch {
-            // товар не загрузился — кнопка просто вернётся в исходное состояние
+            setAddError(true);
+            timerRef.current = setTimeout(() => setAddError(false), 3000);
         } finally {
             setIsAdding(false);
         }
@@ -125,7 +128,7 @@ export function ComponentRow({ component, realEstateId }: TComponentRowProps) {
                             type="button"
                             onClick={handleAddToCart}
                             disabled={isAdding || isAdded}
-                            className="btn btn-xs btn-primary gap-1"
+                            className={`btn btn-xs gap-1 ${addError ? 'btn-error' : 'btn-primary'}`}
                         >
                             {isAdding ? (
                                 <span className="loading loading-spinner loading-xs" />
@@ -134,7 +137,13 @@ export function ComponentRow({ component, realEstateId }: TComponentRowProps) {
                             ) : (
                                 <ShoppingCartIcon className="size-3" />
                             )}
-                            {isAdded ? 'Добавлено' : 'В корзину'}
+                            {isAdding
+                                ? 'В корзину'
+                                : isAdded
+                                  ? 'Добавлено'
+                                  : addError
+                                    ? 'Ошибка'
+                                    : 'В корзину'}
                         </button>
                     </div>
                 </div>

@@ -1,15 +1,12 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { MagnifyingGlassIcon, XMarkIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { CompactModal, CardImage } from '@/shared/ui';
 import { ApiError } from '@/shared/api';
 import { extractErrorMessage } from '@/shared/lib';
 import { useProductSearch, useProductThumbnails } from '@/entities/product';
-import {
-    useCreateInstalledEquipment,
-    hasMaintenanceComponents,
-} from '@/entities/installed-equipment';
+import { useCreateInstalledEquipment } from '@/entities/installed-equipment';
 import type { TProduct } from '@/shared/model';
 import { SearchProductItem } from './search-product-item';
 
@@ -69,8 +66,9 @@ export function AddEquipmentModal({ isOpen, onClose, realEstateId }: TAddEquipme
     const inputRef = useRef<HTMLInputElement>(null);
 
     const { mutateAsync: createEquipment, isPending } = useCreateInstalledEquipment();
-    const { data: rawResults, isLoading: isSearching } = useProductSearch(debouncedQuery);
-    const searchResults = rawResults?.filter(hasMaintenanceComponents);
+    const { data: searchResults, isLoading: isSearching } = useProductSearch(debouncedQuery, {
+        hasMaintenance: true,
+    });
 
     const searchIds = searchResults?.map((p) => p.id) ?? [];
     const selectedIds = selectedProduct ? [selectedProduct.id] : [];
@@ -82,13 +80,13 @@ export function AddEquipmentModal({ isOpen, onClose, realEstateId }: TAddEquipme
         return () => clearTimeout(timer);
     }, [innerQuery]);
 
-    const reset = useCallback(() => {
+    const reset = () => {
         setInnerQuery('');
         setDebouncedQuery('');
         setSelectedProduct(null);
         setInstalledAt(getLocalDateString());
         setError(null);
-    }, []);
+    };
 
     const handleClose = () => {
         onClose();

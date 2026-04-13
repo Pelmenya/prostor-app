@@ -109,13 +109,18 @@ export function useProductImages(productId: string) {
 }
 
 /**
- * Поиск товаров по строке (для добавления оборудования и т.п.)
+ * Поиск товаров по строке.
+ * options.hasMaintenance — фильтр на бэке: только товары с компонентами для обслуживания.
  */
-export function useProductSearch(query: string) {
+export function useProductSearch(query: string, options?: { hasMaintenance?: boolean }) {
+    const hasMaintenance = options?.hasMaintenance ?? false;
     return useQuery({
-        queryKey: ['catalog', 'product-search', query] as const,
-        queryFn: () =>
-            apiClient<TProduct[]>(`${BASE}/product/search?q=${encodeURIComponent(query)}`),
+        queryKey: ['catalog', 'product-search', query, hasMaintenance] as const,
+        queryFn: () => {
+            const params = new URLSearchParams({ q: query });
+            if (hasMaintenance) params.set('hasMaintenance', 'true');
+            return apiClient<TProduct[]>(`${BASE}/product/search?${params}`);
+        },
         enabled: query.length >= 2,
         staleTime: 30 * 1000,
     });

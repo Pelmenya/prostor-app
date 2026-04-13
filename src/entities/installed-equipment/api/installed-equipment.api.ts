@@ -15,7 +15,11 @@ export const installedEquipmentKeys = {
         ['installed-equipment', 'reminders', daysAhead ?? null] as const,
 };
 
-/** Оборудование для нескольких адресов — батч через useQueries */
+/**
+ * Оборудование для нескольких адресов — N параллельных запросов через useQueries.
+ * TODO: перейти на один запрос GET /installed-equipment/by-real-estates?ids=1,2,3
+ * когда бэкенд добавит батч-эндпоинт (или GET /installed-equipment/mine).
+ */
 export function useInstalledEquipmentForRealEstates(realEstateIds: number[]) {
     const api = useApi();
 
@@ -56,12 +60,10 @@ export function useCreateInstalledEquipment() {
     return useMutation({
         mutationFn: (data: TCreateInstalledEquipment) =>
             api<TInstalledEquipment>('/installed-equipment', { method: 'POST', body: data }),
-        onSuccess: (result) => {
-            if (result.realEstate?.id) {
-                queryClient.invalidateQueries({
-                    queryKey: installedEquipmentKeys.byRealEstate(result.realEstate.id),
-                });
-            }
+        onSuccess: (_, variables) => {
+            queryClient.invalidateQueries({
+                queryKey: installedEquipmentKeys.byRealEstate(variables.realEstateId),
+            });
         },
     });
 }
