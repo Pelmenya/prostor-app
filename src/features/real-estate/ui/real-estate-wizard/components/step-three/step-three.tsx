@@ -1,10 +1,11 @@
 'use client';
 
-import { FC, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCreateRealEstate, useUpdateRealEstate } from '@/entities/real-estate';
+import { Counter } from '@/shared/ui';
 import { useRealEstateWizardStore } from '../../../../model/real-estate-wizard.store';
-import { WaterIntakePoint } from './components/water-intake-point/water-intake-point';
+import { WizardStepLayout } from '../wizard-step-layout/wizard-step-layout';
 import { Toilet } from './components/toilet';
 import { Sink } from './components/sink';
 import { Bath } from './components/bath';
@@ -14,7 +15,18 @@ import { ShowerCabin } from './components/shower-cabin';
 import type { TWizardStepProps } from '../../types/t-wizard-step-props';
 import type { TCreateRealEstate } from '@/shared/model';
 
-export const StepThree: FC<TWizardStepProps> = ({ onPrev, editMode, id, onCancel, onSuccess }) => {
+const INTAKE_POINTS = [
+    { key: 'toilet', label: 'Унитаз', Icon: Toilet },
+    { key: 'sink', label: 'Раковина', Icon: Sink },
+    { key: 'bath', label: 'Ванная', Icon: Bath },
+    { key: 'washingMachine', label: 'Стиралка', Icon: WashingMachine },
+    { key: 'dishWasher', label: 'Посудомойка', Icon: DishWasher },
+    { key: 'showerCabin', label: 'Душ', Icon: ShowerCabin },
+] as const;
+
+type TIntakeKey = (typeof INTAKE_POINTS)[number]['key'];
+
+export function StepThree({ onPrev, editMode, id, onSuccess }: TWizardStepProps) {
     const router = useRouter();
 
     const address = useRealEstateWizardStore((s) => s.address);
@@ -28,16 +40,16 @@ export const StepThree: FC<TWizardStepProps> = ({ onPrev, editMode, id, onCancel
     const waterIntakePoints = useRealEstateWizardStore((s) => s.waterIntakePoints);
     const setProgress = useRealEstateWizardStore((s) => s.setProgress);
     const reset = useRealEstateWizardStore((s) => s.reset);
-
     const increment = useRealEstateWizardStore((s) => s.incrementWaterIntakePoint);
     const decrement = useRealEstateWizardStore((s) => s.decrementWaterIntakePoint);
 
     const { toilet, sink, bath, washingMachine, dishWasher, showerCabin } = waterIntakePoints;
+    const total = toilet + sink + bath + washingMachine + dishWasher + showerCabin;
+    const hasAnyIntake = total > 0;
 
     const createRealEstate = useCreateRealEstate();
     const updateRealEstate = useUpdateRealEstate();
-
-    const hasAnyIntake = toilet + sink + bath + washingMachine + dishWasher + showerCabin > 0;
+    const isSaving = createRealEstate.isPending || updateRealEstate.isPending;
 
     useEffect(() => {
         setProgress(hasAnyIntake ? 100 : 80);
@@ -49,10 +61,7 @@ export const StepThree: FC<TWizardStepProps> = ({ onPrev, editMode, id, onCancel
             geoData: geoData ?? undefined,
             suggestion: suggestion ?? undefined,
             coordinates: coordinates
-                ? {
-                      type: 'Point',
-                      coordinates: [coordinates.longitude, coordinates.latitude],
-                  }
+                ? { type: 'Point', coordinates: [coordinates.longitude, coordinates.latitude] }
                 : null,
             activeType,
             residents,
@@ -76,91 +85,57 @@ export const StepThree: FC<TWizardStepProps> = ({ onPrev, editMode, id, onCancel
                 }
             }
         } catch {
-            // TODO: уведомление об ошибке (когда определимся с решением)
+            // TODO: уведомление об ошибке
         }
     };
 
-    const isSaving = createRealEstate.isPending || updateRealEstate.isPending;
+    const forwardLabel = isSaving ? (
+        <span className="loading loading-spinner loading-xs" />
+    ) : editMode ? (
+        'Изменить'
+    ) : (
+        'Сохранить'
+    );
 
     return (
-        <div className="size-full flex flex-col justify-between gap-4 lg:gap-6">
-            <h2 className="text-lg font-bold">
-                {editMode ? 'Редактирование объекта' : 'Добавление объекта'} — Шаг 3
-            </h2>
-            <div className="flex flex-col gap-2">
-                <h3 className="text-sm font-semibold">Точки водоразбора</h3>
-                <WaterIntakePoint
-                    name="Унитаз или биде"
-                    count={toilet}
-                    onIncrement={() => increment('toilet')}
-                    onDecrement={() => decrement('toilet')}
-                >
-                    <Toilet />
-                </WaterIntakePoint>
-                <WaterIntakePoint
-                    name="Раковина"
-                    count={sink}
-                    onIncrement={() => increment('sink')}
-                    onDecrement={() => decrement('sink')}
-                >
-                    <Sink />
-                </WaterIntakePoint>
-                <WaterIntakePoint
-                    name="Ванная"
-                    count={bath}
-                    onIncrement={() => increment('bath')}
-                    onDecrement={() => decrement('bath')}
-                >
-                    <Bath />
-                </WaterIntakePoint>
-                <WaterIntakePoint
-                    name="Стиральная машина"
-                    count={washingMachine}
-                    onIncrement={() => increment('washingMachine')}
-                    onDecrement={() => decrement('washingMachine')}
-                >
-                    <WashingMachine />
-                </WaterIntakePoint>
-                <WaterIntakePoint
-                    name="Посудомоечная машина"
-                    count={dishWasher}
-                    onIncrement={() => increment('dishWasher')}
-                    onDecrement={() => decrement('dishWasher')}
-                >
-                    <DishWasher />
-                </WaterIntakePoint>
-                <WaterIntakePoint
-                    name="Душевая кабина"
-                    count={showerCabin}
-                    onIncrement={() => increment('showerCabin')}
-                    onDecrement={() => decrement('showerCabin')}
-                >
-                    <ShowerCabin />
-                </WaterIntakePoint>
-            </div>
-            <div className="w-full flex items-center justify-center">
-                <div className="join">
-                    <button className="join-item btn btn-primary min-w-[30vw]" onClick={onPrev}>
-                        Назад
-                    </button>
-                    <button className="join-item btn btn-secondary min-w-[30vw]" onClick={onCancel}>
-                        Отмена
-                    </button>
-                    <button
-                        className="join-item btn btn-primary min-w-[30vw]"
-                        onClick={handleSave}
-                        disabled={!hasAnyIntake || isSaving}
-                    >
-                        {isSaving ? (
-                            <span className="loading loading-spinner loading-xs" />
-                        ) : editMode ? (
-                            'Изменить'
-                        ) : (
-                            'Сохранить'
-                        )}
-                    </button>
+        <WizardStepLayout
+            onBack={onPrev!}
+            onForward={handleSave}
+            forwardLabel={forwardLabel}
+            forwardDisabled={!hasAnyIntake || isSaving}
+        >
+            <div className="flex flex-col gap-3 p-4 bg-base-100 border border-base-300 rounded-2xl">
+                <span className="text-sm font-semibold">Точки водоразбора</span>
+
+                <div className="grid grid-cols-3 gap-2">
+                    {INTAKE_POINTS.map(({ key, label, Icon }) => {
+                        const count = waterIntakePoints[key as TIntakeKey];
+                        const isActive = count > 0;
+                        return (
+                            <div
+                                key={key}
+                                className={`flex flex-col items-center gap-2 p-3 rounded-xl border transition-colors ${
+                                    isActive
+                                        ? 'border-primary bg-primary/5'
+                                        : 'border-base-300 opacity-60'
+                                }`}
+                            >
+                                <div className="size-6 flex items-center justify-center">
+                                    <Icon />
+                                </div>
+                                <span className="text-xs text-center leading-tight">{label}</span>
+                                <Counter
+                                    count={count}
+                                    onIncrement={() => increment(key as TIntakeKey)}
+                                    onDecrement={() => decrement(key as TIntakeKey)}
+                                    minCount={0}
+                                    size="small"
+                                />
+                            </div>
+                        );
+                    })}
                 </div>
             </div>
-        </div>
+        </WizardStepLayout>
     );
-};
+}

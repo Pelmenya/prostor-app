@@ -13,7 +13,7 @@ type TProductTabContentProps = {
     activeTab: TProductTabType;
     product: TProduct;
     cartItem: TCartItem | undefined;
-    isVisible: boolean | string | number | undefined;
+    isVisible: boolean;
     filteredServices: {
         installation: TService[];
         service: TService[];
