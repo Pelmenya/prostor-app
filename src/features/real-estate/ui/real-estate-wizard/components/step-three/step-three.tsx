@@ -2,7 +2,9 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 import { useCreateRealEstate, useUpdateRealEstate } from '@/entities/real-estate';
+import { installedEquipmentKeys } from '@/entities/installed-equipment';
 import { Counter } from '@/shared/ui';
 import { useRealEstateWizardStore } from '../../../../model/real-estate-wizard.store';
 import { WizardStepLayout } from '../wizard-step-layout/wizard-step-layout';
@@ -47,6 +49,7 @@ export function StepThree({ onPrev, editMode, id, onSuccess }: TWizardStepProps)
     const total = toilet + sink + bath + washingMachine + dishWasher + showerCabin;
     const hasAnyIntake = total > 0;
 
+    const queryClient = useQueryClient();
     const createRealEstate = useCreateRealEstate();
     const updateRealEstate = useUpdateRealEstate();
     const isSaving = createRealEstate.isPending || updateRealEstate.isPending;
@@ -73,6 +76,9 @@ export function StepThree({ onPrev, editMode, id, onSuccess }: TWizardStepProps)
         try {
             if (editMode && id) {
                 await updateRealEstate.mutateAsync({ id: Number(id), data });
+                queryClient.invalidateQueries({
+                    queryKey: installedEquipmentKeys.byRealEstate(Number(id)),
+                });
                 reset();
                 router.back();
             } else {
