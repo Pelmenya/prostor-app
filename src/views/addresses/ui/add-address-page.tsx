@@ -10,7 +10,8 @@ import { AddressSearchSlot } from './address-search-slot';
 export function AddAddressPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const returnTo = getSafeRedirect(searchParams.get('returnTo'));
+    const rawReturnTo = searchParams.get('returnTo');
+    const returnTo = rawReturnTo ? getSafeRedirect(rawReturnTo) : '/real-estate';
 
     const handleSuccess = (newId: number) => {
         if (returnTo === '/checkout') {

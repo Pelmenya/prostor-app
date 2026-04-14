@@ -1,37 +1,21 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { PlusCircleIcon } from '@heroicons/react/24/solid';
-import { useRealEstates, useDeleteRealEstate, RealEstateCard } from '@/entities/real-estate';
+import { useRealEstates, RealEstateCard } from '@/entities/real-estate';
 import {
     useInstalledEquipmentForRealEstates,
     getCriticalStats,
 } from '@/entities/installed-equipment';
-import { PageContainer, PageTitle, ConfirmDialog } from '@/shared/ui';
+import { PageContainer, PageTitle } from '@/shared/ui';
 
 export function AddressesPage() {
     const router = useRouter();
     const { data: realEstates, isLoading, isError } = useRealEstates();
-    const deleteRealEstate = useDeleteRealEstate();
     const { equipmentByRealEstate } = useInstalledEquipmentForRealEstates(
         realEstates?.map((re) => re.id) ?? [],
     );
-    const [deletingId, setDeletingId] = useState<number | null>(null);
-    const [deleteError, setDeleteError] = useState<string | null>(null);
-
-    const handleConfirmDelete = async () => {
-        if (deletingId === null) return;
-        setDeleteError(null);
-        try {
-            await deleteRealEstate.mutateAsync(deletingId);
-            setDeletingId(null);
-        } catch {
-            setDeletingId(null);
-            setDeleteError('Невозможно удалить адрес — по нему есть заказы');
-        }
-    };
 
     return (
         <PageContainer>
@@ -55,8 +39,6 @@ export function AddressesPage() {
                     <div className="alert alert-error text-sm">Не удалось загрузить адреса</div>
                 )}
 
-                {deleteError && <div className="alert alert-error text-sm">{deleteError}</div>}
-
                 {!isLoading && !isError && (!realEstates || realEstates.length === 0) && (
                     <div className="card bg-base-100 border border-base-300 p-8 text-center">
                         <p className="text-base-content/60 mb-4">У вас пока нет адресов</p>
@@ -69,13 +51,13 @@ export function AddressesPage() {
                 {realEstates && realEstates.length > 0 && (
                     <div className="flex flex-col gap-3">
                         {realEstates.map((re) => {
-                            const stats = getCriticalStats(equipmentByRealEstate[re.id] ?? []);
+                            const equipment = equipmentByRealEstate[re.id] ?? [];
+                            const stats = getCriticalStats(equipment);
                             return (
                                 <RealEstateCard
                                     key={re.id}
                                     realEstate={re}
                                     onClick={(id) => router.push(`/real-estate/${id}`)}
-                                    onDelete={setDeletingId}
                                     criticalDaysLeft={stats?.daysLeft}
                                     criticalPercent={stats?.percent}
                                 />
@@ -84,14 +66,6 @@ export function AddressesPage() {
                     </div>
                 )}
             </div>
-
-            <ConfirmDialog
-                isOpen={deletingId !== null}
-                onClose={() => setDeletingId(null)}
-                onConfirm={handleConfirmDelete}
-                title="Удалить адрес?"
-                message="Объект будет удалён. Это действие нельзя отменить."
-            />
         </PageContainer>
     );
 }
