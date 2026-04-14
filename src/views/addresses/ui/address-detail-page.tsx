@@ -2,14 +2,17 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
     HomeModernIcon,
     PencilSquareIcon,
     PlusCircleIcon,
     ChevronDownIcon,
+    TrashIcon,
 } from '@heroicons/react/24/outline';
 import {
     useRealEstate,
+    useDeleteRealEstate,
     getRealEstateTypeName,
     getWaterSourceName,
     TYPE_ICONS,
@@ -31,20 +34,30 @@ type TAddressDetailPageProps = {
 };
 
 export function AddressDetailPage({ id }: TAddressDetailPageProps) {
+    const router = useRouter();
     const [isAddOpen, setIsAddOpen] = useState(false);
     const [isArchiveOpen, setIsArchiveOpen] = useState(false);
     const [demountingId, setDemountingId] = useState<string | null>(null);
+    const [isDeletingAddress, setIsDeletingAddress] = useState(false);
     const { data: realEstate, isLoading, error } = useRealEstate(id);
-    const { data: equipment = [] } = useInstalledEquipmentByRealEstate(id);
+    const { data: equipment = [], isLoading: isEquipmentLoading } =
+        useInstalledEquipmentByRealEstate(id);
     const { mutate: updateEquipment } = useUpdateInstalledEquipment(id);
+    const deleteRealEstate = useDeleteRealEstate();
 
     const activeEquipment = equipment.filter((e) => e.isActive);
     const archivedEquipment = equipment.filter((e) => !e.isActive);
+    const canDelete = !isEquipmentLoading && equipment.length === 0;
     const { imageUrls, loadingIds } = useProductThumbnails(
         activeEquipment.map((e) => e.msProductId),
     );
 
-    if (isLoading)
+    const handleConfirmDeleteAddress = async () => {
+        await deleteRealEstate.mutateAsync(id);
+        router.push('/real-estate');
+    };
+
+    if (isLoading || isEquipmentLoading)
         return (
             <PageContainer className="flex items-center justify-center">
                 <span className="loading loading-spinner loading-lg text-primary" />
@@ -81,13 +94,25 @@ export function AddressDetailPage({ id }: TAddressDetailPageProps) {
                             <p className="text-sm font-semibold leading-110">
                                 {realEstate.address || 'Адрес не указан'}
                             </p>
-                            <Link
-                                href={`/real-estate/${id}/edit`}
-                                className="btn btn-ghost btn-sm btn-square"
-                                aria-label="Редактировать адрес"
-                            >
-                                <PencilSquareIcon className="size-5" />
-                            </Link>
+                            <div className="flex items-center gap-1">
+                                <Link
+                                    href={`/real-estate/${id}/edit`}
+                                    className="btn btn-ghost btn-sm btn-square"
+                                    aria-label="Редактировать адрес"
+                                >
+                                    <PencilSquareIcon className="size-5" />
+                                </Link>
+                                {canDelete && (
+                                    <button
+                                        type="button"
+                                        className="btn btn-ghost btn-sm btn-square"
+                                        aria-label="Удалить адрес"
+                                        onClick={() => setIsDeletingAddress(true)}
+                                    >
+                                        <TrashIcon className="size-5 text-error" />
+                                    </button>
+                                )}
+                            </div>
                         </div>
 
                         <div className="flex gap-2 text-xs text-base-content/50">
@@ -204,6 +229,15 @@ export function AddressDetailPage({ id }: TAddressDetailPageProps) {
                 title="Демонтировать оборудование?"
                 message="Оборудование будет перемещено в архив."
                 confirmText="Демонтировать"
+            />
+
+            <ConfirmDialog
+                isOpen={isDeletingAddress}
+                onClose={() => setIsDeletingAddress(false)}
+                onConfirm={handleConfirmDeleteAddress}
+                title="Удалить адрес?"
+                message="Объект будет удалён. Это действие нельзя отменить."
+                confirmText="Удалить"
             />
         </PageContainer>
     );
