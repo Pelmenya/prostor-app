@@ -15,6 +15,8 @@ import {
     formatRuPhoneForView,
     denormalizeViewToE164,
     getSafeRedirect,
+    useFormDraft,
+    getFormDraft,
 } from '@/shared/lib';
 import { useCurrentPolicy } from '@/entities/privacy-policy';
 import { useCurrentAgreement } from '@/entities/personal-data-agreement';
@@ -114,25 +116,29 @@ function RegisterForm() {
 
     const [serverError, setServerError] = useState<string | null>(null);
 
+    const registerDraft = getFormDraft<TRegisterForm>('register-form-draft');
     const methods = useForm<TRegisterForm>({
         resolver: zodResolver(registerSchema),
         defaultValues: {
-            first_name: '',
-            last_name: '',
-            email: '',
-            phone: '',
+            first_name: registerDraft?.first_name ?? '',
+            last_name: registerDraft?.last_name ?? '',
+            email: registerDraft?.email ?? '',
+            phone: registerDraft?.phone ?? '',
             password: '',
-            agreePolicy: false,
-            agreePd: false,
+            agreePolicy: registerDraft?.agreePolicy ?? false,
+            agreePd: registerDraft?.agreePd ?? false,
         },
     });
 
     const {
         register,
         handleSubmit,
+        watch,
         control,
         formState: { errors, isSubmitting },
     } = methods;
+
+    const { clearDraft } = useFormDraft('register-form-draft', watch, { exclude: ['password'] });
 
     const onSubmit = async (form: TRegisterForm) => {
         setServerError(null);
@@ -152,6 +158,7 @@ function RegisterForm() {
                 policyVersion: currentPolicy.version,
                 pdAgreementVersion: currentAgreement.version,
             });
+            clearDraft();
             setTokens(data.accessToken, data.refreshToken);
             setUser(data.user);
             router.push(getSafeRedirect(searchParams.get('from')));

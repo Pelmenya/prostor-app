@@ -7,7 +7,13 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { webLogin, loginSchema, type TLoginForm } from '@/features/auth';
 import { ApiError } from '@/shared/api';
-import { useAuthStore, extractErrorMessage, getSafeRedirect } from '@/shared/lib';
+import {
+    useAuthStore,
+    extractErrorMessage,
+    getSafeRedirect,
+    useFormDraft,
+    getFormDraft,
+} from '@/shared/lib';
 import { PageContainer, FormField } from '@/shared/ui';
 
 function LoginForm() {
@@ -16,19 +22,24 @@ function LoginForm() {
     const { setTokens, setUser } = useAuthStore();
     const [serverError, setServerError] = useState<string | null>(null);
 
+    const loginDraft = getFormDraft<TLoginForm>('login-form-draft');
     const {
         register,
         handleSubmit,
+        watch,
         formState: { errors, isSubmitting },
     } = useForm<TLoginForm>({
         resolver: zodResolver(loginSchema),
-        defaultValues: { email: '', password: '' },
+        defaultValues: { email: loginDraft?.email ?? '', password: '' },
     });
+
+    const { clearDraft } = useFormDraft('login-form-draft', watch, { exclude: ['password'] });
 
     const onSubmit = async (form: TLoginForm) => {
         setServerError(null);
         try {
             const data = await webLogin(form);
+            clearDraft();
             setTokens(data.accessToken, data.refreshToken);
             setUser(data.user);
             router.push(getSafeRedirect(searchParams.get('from')));
