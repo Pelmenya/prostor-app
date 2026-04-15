@@ -92,6 +92,21 @@ describe('useFormDraft', () => {
         expect(unsubscribe).toHaveBeenCalledOnce();
     });
 
+    it('при смене key старая подписка отписывается до создания новой', () => {
+        const { watch, unsubscribe } = createWatchMock();
+
+        let currentKey = 'key-1';
+        const { rerender } = renderHook(() => useFormDraft<TTestForm>(currentKey, watch));
+
+        expect(unsubscribe).not.toHaveBeenCalled();
+
+        currentKey = 'key-2';
+        rerender();
+
+        // React прогнал cleanup старого эффекта — подписка отписана
+        expect(unsubscribe).toHaveBeenCalledOnce();
+    });
+
     it('тихо игнорирует QuotaExceededError при записи в sessionStorage', () => {
         const { watch, trigger } = createWatchMock();
         vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
@@ -101,6 +116,8 @@ describe('useFormDraft', () => {
         renderHook(() => useFormDraft<TTestForm>('draft-key', watch));
 
         expect(() => trigger({ email: 'a@b.com' })).not.toThrow();
+        // Подписка продолжает работать после ошибки
+        expect(() => trigger({ email: 'b@b.com' })).not.toThrow();
 
         vi.restoreAllMocks();
     });
