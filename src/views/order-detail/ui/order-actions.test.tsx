@@ -11,6 +11,7 @@ describe('OrderActions', () => {
         it('показывает "Оценить мастера" когда есть исполнитель', () => {
             render(
                 <OrderActions
+                    orderId={1}
                     status={EOrderStatus.COMPLETED}
                     executor={EXECUTOR}
                     isCancelled={false}
@@ -24,6 +25,7 @@ describe('OrderActions', () => {
         it('возвращает null когда нет исполнителя', () => {
             const { container } = render(
                 <OrderActions
+                    orderId={1}
                     status={EOrderStatus.COMPLETED}
                     executor={null}
                     isCancelled={false}
@@ -34,9 +36,10 @@ describe('OrderActions', () => {
             expect(container.firstChild).toBeNull();
         });
 
-        it('кнопка "Оценить мастера" задизейблена (не реализована)', () => {
+        it('"Оценить мастера" — ссылка на страницу отзыва', () => {
             render(
                 <OrderActions
+                    orderId={42}
                     status={EOrderStatus.COMPLETED}
                     executor={EXECUTOR}
                     isCancelled={false}
@@ -44,7 +47,8 @@ describe('OrderActions', () => {
                     onCancelClick={vi.fn()}
                 />,
             );
-            expect(screen.getByText('Оценить мастера')).toBeDisabled();
+            const link = screen.getByRole('link', { name: 'Оценить мастера' });
+            expect(link).toHaveAttribute('href', '/orders/42/feedback');
         });
     });
 
@@ -52,6 +56,7 @@ describe('OrderActions', () => {
         it('показывает "Задать вопрос" и "Отменить"', () => {
             render(
                 <OrderActions
+                    orderId={1}
                     status={EOrderStatus.PENDING}
                     executor={null}
                     isCancelled={false}
@@ -66,6 +71,7 @@ describe('OrderActions', () => {
         it('"Задать вопрос" задизейблена (не реализована)', () => {
             render(
                 <OrderActions
+                    orderId={1}
                     status={EOrderStatus.PENDING}
                     executor={null}
                     isCancelled={false}
@@ -79,6 +85,7 @@ describe('OrderActions', () => {
         it('"Отменить" дизейблена когда isCancelled=true', () => {
             render(
                 <OrderActions
+                    orderId={1}
                     status={EOrderStatus.PENDING}
                     executor={null}
                     isCancelled
@@ -92,6 +99,7 @@ describe('OrderActions', () => {
         it('"Отменить" дизейблена когда isCancelling=true', () => {
             render(
                 <OrderActions
+                    orderId={1}
                     status={EOrderStatus.PENDING}
                     executor={null}
                     isCancelled={false}
@@ -106,6 +114,7 @@ describe('OrderActions', () => {
             const onCancelClick = vi.fn();
             render(
                 <OrderActions
+                    orderId={1}
                     status={EOrderStatus.PENDING}
                     executor={null}
                     isCancelled={false}
