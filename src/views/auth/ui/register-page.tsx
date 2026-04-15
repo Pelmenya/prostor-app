@@ -149,7 +149,6 @@ function RegisterForm() {
         }
 
         try {
-            clearDraft();
             const data = await webRegister({
                 first_name: form.first_name,
                 last_name: form.last_name,
@@ -159,6 +158,7 @@ function RegisterForm() {
                 policyVersion: currentPolicy.version,
                 pdAgreementVersion: currentAgreement.version,
             });
+            clearDraft();
             setTokens(data.accessToken, data.refreshToken);
             setUser(data.user);
             router.push(getSafeRedirect(searchParams.get('from')));

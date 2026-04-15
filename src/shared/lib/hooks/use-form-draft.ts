@@ -36,18 +36,27 @@ export function useFormDraft<T extends FieldValues>(
     watch: UseFormWatch<T>,
     options?: TUseFormDraftOptions<T>,
 ): { clearDraft: () => void } {
+    // Сериализуем exclude в строку — примитив стабилен в deps без useMemo
+    const excludeJson = options?.exclude ? JSON.stringify(options.exclude) : undefined;
+
     useEffect(() => {
+        const exclude: (keyof T)[] | undefined = excludeJson
+            ? (JSON.parse(excludeJson) as (keyof T)[])
+            : undefined;
+
         const subscription = watch((values) => {
-            const toSave = { ...values };
-            options?.exclude?.forEach((field) => {
-                delete toSave[field as string];
+            const toSave: Partial<T> = { ...values };
+            exclude?.forEach((field) => {
+                delete toSave[field];
             });
-            sessionStorage.setItem(key, JSON.stringify(toSave));
+            try {
+                sessionStorage.setItem(key, JSON.stringify(toSave));
+            } catch {
+                // тихо игнорируем — QuotaExceededError в приватном режиме Safari
+            }
         });
         return () => subscription.unsubscribe();
-    }, [key, watch, options]);
+    }, [key, watch, excludeJson]);
 
-    return {
-        clearDraft: () => sessionStorage.removeItem(key),
-    };
+    return { clearDraft: () => sessionStorage.removeItem(key) };
 }
