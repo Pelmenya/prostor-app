@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
 import { apiClient } from '@/shared/api';
 import { API_URL } from '@/shared/config';
 import type { TGroup, TGroupPath, TProduct, TImage } from '@/shared/model';
@@ -15,6 +15,8 @@ export const productKeys = {
     topLevelGroups: () => ['catalog', 'top-level-groups'] as const,
     productImages: (productId: string) => ['catalog', 'product-images', productId] as const,
     bundleImages: (bundleId: string) => ['catalog', 'bundle-images', bundleId] as const,
+    productSearchPaginated: (q: string) => ['catalog', 'product-search-paginated', q] as const,
+    productSearchCount: (q: string) => ['catalog', 'product-search-count', q] as const,
 };
 
 // Серверные fetch-функции (plain async, без хуков) — для prefetchQuery в RSC.
@@ -147,4 +149,41 @@ export function useBundleImages(bundleId: string | undefined) {
  */
 export function getImageProxyUrl(downloadHref: string): string {
     return `${API_URL}${BASE}/image?href=${encodeURIComponent(downloadHref)}`;
+}
+
+export type TPaginatedProducts = {
+    items: TProduct[];
+    nextCursor: string | undefined;
+    hasMore: boolean;
+};
+
+/**
+ * Поиск товаров с cursor-based пагинацией (для модального окна поиска)
+ */
+export function useProductSearchPaginated(q: string, limit = 20) {
+    return useInfiniteQuery({
+        queryKey: productKeys.productSearchPaginated(q),
+        queryFn: ({ pageParam }: { pageParam: string | undefined }) => {
+            const params = new URLSearchParams({ q, limit: String(limit) });
+            if (pageParam) params.set('cursor', pageParam);
+            return apiClient<TPaginatedProducts>(`${BASE}/product/search/paginated?${params}`);
+        },
+        initialPageParam: undefined as string | undefined,
+        getNextPageParam: (lastPage) => (lastPage.hasMore ? lastPage.nextCursor : undefined),
+        enabled: q.length >= 2,
+        staleTime: 30 * 1000,
+    });
+}
+
+/**
+ * Количество товаров по поисковому запросу
+ */
+export function useProductSearchCount(q: string) {
+    return useQuery({
+        queryKey: productKeys.productSearchCount(q),
+        queryFn: () =>
+            apiClient<{ count: number }>(`${BASE}/product/search/count?q=${encodeURIComponent(q)}`),
+        enabled: q.length >= 2,
+        staleTime: 30 * 1000,
+    });
 }

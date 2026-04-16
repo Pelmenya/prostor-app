@@ -13,8 +13,11 @@ export {
     useProductImages,
     useBundleImages,
     useProductSearch,
+    useProductSearchPaginated,
+    useProductSearchCount,
     getImageProxyUrl,
 } from './api/product.api';
+export type { TPaginatedProducts } from './api/product.api';
 
 export { useProductThumbnails } from './api/use-product-thumbnails';
 

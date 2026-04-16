@@ -8,6 +8,7 @@ import { useAuth } from '@/shared/lib/platform';
 import { useLogout } from '@/features/auth';
 import { flushCartSync } from '@/features/cart';
 import { formatUserInitials } from '@/shared/lib';
+import { SearchButton } from '@/features/product-search';
 import { BurgerMenu } from './burger-menu';
 import { getBackDestination } from '../lib/get-back-destination';
 
@@ -60,7 +61,8 @@ export function Header({ back: backProp, backTo: backToProp }: THeaderProps) {
                     </Link>
                 </div>
 
-                <div className="navbar-end w-auto">
+                <div className="navbar-end w-auto flex items-center">
+                    <SearchButton />
                     <button
                         ref={burgerRef}
                         aria-label="Меню"
