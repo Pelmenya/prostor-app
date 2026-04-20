@@ -1,6 +1,5 @@
 'use client';
 
-import { useCallback } from 'react';
 import { InfiniteList } from '@/shared/ui';
 import type { TProduct } from '@/entities/product';
 import { SearchProductItem } from '../search-product-item/search-product-item';
@@ -10,6 +9,8 @@ type TSearchListProps = {
     hasMore: boolean;
     isLoading: boolean;
     isFetching: boolean;
+    imageUrls: Record<string, string | undefined>;
+    loadingIds: Set<string>;
     onLoadMore: () => void;
     onClose: () => void;
 };
@@ -19,12 +20,18 @@ export function SearchList({
     hasMore,
     isLoading,
     isFetching,
+    imageUrls,
+    loadingIds,
     onLoadMore,
     onClose,
 }: TSearchListProps) {
-    const renderItem = useCallback(
-        (product: TProduct) => <SearchProductItem product={product} onClose={onClose} />,
-        [onClose],
+    const renderItem = (product: TProduct) => (
+        <SearchProductItem
+            product={product}
+            imageUrl={imageUrls[product.id] ?? null}
+            isImageLoading={loadingIds.has(product.id)}
+            onClose={onClose}
+        />
     );
 
     return (

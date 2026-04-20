@@ -1,11 +1,15 @@
 'use client';
 
-import { type FC, useEffect, useRef, useState, useCallback, useMemo } from 'react';
+import { type FC, useEffect, useRef, useState } from 'react';
 import { Dialog, DialogBackdrop, DialogPanel } from '@headlessui/react';
 import { ArrowLeftIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { XMarkIcon } from '@heroicons/react/16/solid';
-import { useProductSearchPaginated, useProductSearchCount } from '@/entities/product';
-import type { TProduct } from '@/entities/product';
+import { useDebouncedValue } from '@/shared/lib';
+import {
+    useProductSearchPaginated,
+    useProductSearchCount,
+    useProductThumbnails,
+} from '@/entities/product';
 import { SearchList } from '../search-list/search-list';
 
 type TSearchModalProps = {
@@ -15,21 +19,13 @@ type TSearchModalProps = {
 
 export const SearchModal: FC<TSearchModalProps> = ({ isOpen, onClose }) => {
     const [innerQuery, setInnerQuery] = useState('');
-    const [query, setQuery] = useState('');
+    const query = useDebouncedValue(innerQuery);
     const inputRef = useRef<HTMLInputElement>(null);
 
-    // Сброс состояния при закрытии — делаем через обёртку, не useEffect
-    const handleClose = useCallback(() => {
+    const handleClose = () => {
         setInnerQuery('');
-        setQuery('');
         onClose();
-    }, [onClose]);
-
-    // Debounce через useEffect без lodash
-    useEffect(() => {
-        const timer = setTimeout(() => setQuery(innerQuery.trim()), 300);
-        return () => clearTimeout(timer);
-    }, [innerQuery]);
+    };
 
     // Автофокус при открытии (только DOM-взаимодействие)
     useEffect(() => {
@@ -41,29 +37,32 @@ export const SearchModal: FC<TSearchModalProps> = ({ isOpen, onClose }) => {
     const { data, isLoading, isFetching, fetchNextPage, hasNextPage } =
         useProductSearchPaginated(query);
 
-    const { data: countData } = useProductSearchCount(query);
+    const { data: countData, isLoading: isLoadingCount } = useProductSearchCount(query);
 
-    const items = useMemo<TProduct[]>(
-        () => data?.pages.flatMap((page) => page.items) ?? [],
-        [data],
-    );
+    const items = data?.pages.flatMap((page) => page.items) ?? [];
+    const productIds = items.map((p) => p.id);
+    const { imageUrls, loadingIds } = useProductThumbnails(productIds);
 
-    const handleLoadMore = useCallback(() => {
+    const handleLoadMore = () => {
         if (hasNextPage && !isFetching) {
             void fetchNextPage();
         }
-    }, [hasNextPage, isFetching, fetchNextPage]);
+    };
 
     const handleClear = () => {
         setInnerQuery('');
-        setQuery('');
         inputRef.current?.focus();
     };
 
-    const showCount = query.length >= 2 && !isLoading && !isFetching;
+    const showCount =
+        query.length >= 2 &&
+        !isLoading &&
+        !isFetching &&
+        !isLoadingCount &&
+        countData !== undefined;
 
     return (
-        <Dialog open={isOpen} onClose={handleClose} className="relative z-10000">
+        <Dialog open={isOpen} onClose={handleClose} className="relative z-50">
             <DialogBackdrop
                 transition
                 className="fixed inset-0 bg-black/40 hidden lg:block transition-opacity duration-300 ease-out data-closed:opacity-0"
@@ -79,6 +78,7 @@ export const SearchModal: FC<TSearchModalProps> = ({ isOpen, onClose }) => {
                             <div className="navbar px-2 py-3 border-b border-base-content/10">
                                 <div className="navbar-start">
                                     <button
+                                        type="button"
                                         onClick={handleClose}
                                         className="size-10 flex items-center justify-center cursor-pointer hover:opacity-80"
                                         aria-label="Назад"
@@ -93,37 +93,26 @@ export const SearchModal: FC<TSearchModalProps> = ({ isOpen, onClose }) => {
                             </div>
 
                             <div className="flex justify-center p-4">
-                                <div className="join w-full lg:max-w-150">
-                                    <div className="grow">
-                                        <label className="input join-item w-full">
-                                            <MagnifyingGlassIcon className="size-3.5 shrink-0 text-base-content/50" />
-                                            <input
-                                                ref={inputRef}
-                                                type="text"
-                                                value={innerQuery}
-                                                onChange={(e) => setInnerQuery(e.target.value)}
-                                                placeholder="Введите название товара"
-                                                autoComplete="off"
-                                            />
-                                            {innerQuery && (
-                                                <button
-                                                    type="button"
-                                                    onClick={handleClear}
-                                                    aria-label="Очистить"
-                                                >
-                                                    <XMarkIcon className="size-3.5" />
-                                                </button>
-                                            )}
-                                        </label>
-                                    </div>
-                                    <button
-                                        type="button"
-                                        className="btn btn-primary join-item z-1"
-                                        onClick={() => setQuery(innerQuery.trim())}
-                                    >
-                                        Поиск
-                                    </button>
-                                </div>
+                                <label className="input w-full lg:max-w-150">
+                                    <MagnifyingGlassIcon className="size-3.5 shrink-0 text-base-content/50" />
+                                    <input
+                                        ref={inputRef}
+                                        type="text"
+                                        value={innerQuery}
+                                        onChange={(e) => setInnerQuery(e.target.value)}
+                                        placeholder="Введите название товара"
+                                        autoComplete="off"
+                                    />
+                                    {innerQuery && (
+                                        <button
+                                            type="button"
+                                            onClick={handleClear}
+                                            aria-label="Очистить"
+                                        >
+                                            <XMarkIcon className="size-3.5" />
+                                        </button>
+                                    )}
+                                </label>
                             </div>
 
                             {showCount && (
@@ -148,6 +137,8 @@ export const SearchModal: FC<TSearchModalProps> = ({ isOpen, onClose }) => {
                                     hasMore={!!hasNextPage}
                                     isLoading={isLoading}
                                     isFetching={isFetching}
+                                    imageUrls={imageUrls}
+                                    loadingIds={loadingIds}
                                     onLoadMore={handleLoadMore}
                                     onClose={handleClose}
                                 />

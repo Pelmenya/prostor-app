@@ -2,10 +2,9 @@
 
 import { useRouter } from 'next/navigation';
 import { CardWrapper, CardImage } from '@/shared/ui';
-import { formatPrice } from '@/shared/lib';
+import { formatPrice, getSalePrices } from '@/shared/lib';
 import type { TProduct } from '@/entities/product';
 import { useProductImages, getImageProxyUrl } from '@/entities/product';
-import { getSalePrices } from '../../lib/get-sale-prices';
 
 type TProductCardProps = {
     product: TProduct;

@@ -20,6 +20,7 @@ export function SearchButton() {
     return (
         <>
             <button
+                type="button"
                 className="size-10 flex items-center justify-center cursor-pointer hover:opacity-80"
                 onClick={() => setIsOpen(true)}
                 aria-label="Поиск товаров"
@@ -27,7 +28,7 @@ export function SearchButton() {
                 <MagnifyingGlassIcon className="size-5" />
             </button>
 
-            <SearchModal isOpen={isOpen} onClose={() => setIsOpen(false)} />
+            {isOpen && <SearchModal isOpen onClose={() => setIsOpen(false)} />}
         </>
     );
 }

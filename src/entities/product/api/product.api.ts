@@ -15,8 +15,10 @@ export const productKeys = {
     topLevelGroups: () => ['catalog', 'top-level-groups'] as const,
     productImages: (productId: string) => ['catalog', 'product-images', productId] as const,
     bundleImages: (bundleId: string) => ['catalog', 'bundle-images', bundleId] as const,
-    productSearchPaginated: (q: string) => ['catalog', 'product-search-paginated', q] as const,
-    productSearchCount: (q: string) => ['catalog', 'product-search-count', q] as const,
+    productSearchPaginated: (q: string, hasMaintenance: boolean) =>
+        ['catalog', 'product-search-paginated', q, hasMaintenance] as const,
+    productSearchCount: (q: string, hasMaintenance: boolean) =>
+        ['catalog', 'product-search-count', q, hasMaintenance] as const,
 };
 
 // Серверные fetch-функции (plain async, без хуков) — для prefetchQuery в RSC.
@@ -160,12 +162,18 @@ export type TPaginatedProducts = {
 /**
  * Поиск товаров с cursor-based пагинацией (для модального окна поиска)
  */
-export function useProductSearchPaginated(q: string, limit = 20) {
+export function useProductSearchPaginated(
+    q: string,
+    options?: { hasMaintenance?: boolean; limit?: number },
+) {
+    const hasMaintenance = options?.hasMaintenance ?? false;
+    const limit = options?.limit ?? 20;
     return useInfiniteQuery({
-        queryKey: productKeys.productSearchPaginated(q),
+        queryKey: productKeys.productSearchPaginated(q, hasMaintenance),
         queryFn: ({ pageParam }: { pageParam: string | undefined }) => {
             const params = new URLSearchParams({ q, limit: String(limit) });
             if (pageParam) params.set('cursor', pageParam);
+            if (hasMaintenance) params.set('hasMaintenance', 'true');
             return apiClient<TPaginatedProducts>(`${BASE}/product/search/paginated?${params}`);
         },
         initialPageParam: undefined as string | undefined,
@@ -178,11 +186,15 @@ export function useProductSearchPaginated(q: string, limit = 20) {
 /**
  * Количество товаров по поисковому запросу
  */
-export function useProductSearchCount(q: string) {
+export function useProductSearchCount(q: string, options?: { hasMaintenance?: boolean }) {
+    const hasMaintenance = options?.hasMaintenance ?? false;
     return useQuery({
-        queryKey: productKeys.productSearchCount(q),
-        queryFn: () =>
-            apiClient<{ count: number }>(`${BASE}/product/search/count?q=${encodeURIComponent(q)}`),
+        queryKey: productKeys.productSearchCount(q, hasMaintenance),
+        queryFn: () => {
+            const params = new URLSearchParams({ q: encodeURIComponent(q) });
+            if (hasMaintenance) params.set('hasMaintenance', 'true');
+            return apiClient<{ count: number }>(`${BASE}/product/search/count?${params}`);
+        },
         enabled: q.length >= 2,
         staleTime: 30 * 1000,
     });

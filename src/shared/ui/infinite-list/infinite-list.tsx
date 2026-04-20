@@ -14,6 +14,8 @@ type TInfiniteListProps<T> = {
     itemClassName?: string;
     loadingComponent?: ReactNode;
     emptyComponent?: ReactNode;
+    isError?: boolean;
+    errorComponent?: ReactNode;
 };
 
 export function InfiniteList<T>({
@@ -27,6 +29,8 @@ export function InfiniteList<T>({
     itemClassName = '',
     loadingComponent,
     emptyComponent,
+    isError,
+    errorComponent,
 }: TInfiniteListProps<T>) {
     const { ref, inView } = useInView({ threshold: 0, rootMargin: '100px' });
 
@@ -36,7 +40,13 @@ export function InfiniteList<T>({
         }
     }, [inView, hasMore, isLoading, onLoadMore]);
 
-    if (!items?.length && isLoading) {
+    if (isError) {
+        return (
+            <>{errorComponent ?? <p className="text-center text-error py-8">Ошибка загрузки</p>}</>
+        );
+    }
+
+    if (!items.length && isLoading) {
         return (
             <>
                 {loadingComponent ?? (
@@ -49,7 +59,7 @@ export function InfiniteList<T>({
         );
     }
 
-    if (!items?.length) {
+    if (!items.length) {
         return <>{emptyComponent}</>;
     }
 

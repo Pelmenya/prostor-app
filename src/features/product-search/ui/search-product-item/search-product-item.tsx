@@ -1,33 +1,30 @@
 'use client';
 
-import { memo } from 'react';
 import { CardImage } from '@/shared/ui';
-import { formatPrice } from '@/shared/lib';
-import { useProductImages, getImageProxyUrl } from '@/entities/product';
+import { formatPrice, getSalePrices } from '@/shared/lib';
 import type { TProduct } from '@/entities/product';
 import { SearchItem } from '../search-item/search-item';
 
-const SALE_PRICE_TYPES = (process.env.NEXT_PUBLIC_SALE_PRICES ?? 'Приложение').split('__');
-
 type TSearchProductItemProps = {
     product: TProduct;
+    imageUrl: string | null;
+    isImageLoading: boolean;
     onClose: () => void;
 };
 
-function SearchProductItemComponent({ product, onClose }: TSearchProductItemProps) {
-    const { data: images, isLoading: isImagesLoading } = useProductImages(product.id);
-    const mainImage = images?.[0];
-    const imageUrl = mainImage ? getImageProxyUrl(mainImage.meta.downloadHref) : null;
-
-    const price = product.salePrices?.find(
-        (p) => p.priceType.name && SALE_PRICE_TYPES.includes(p.priceType.name),
-    )?.value;
+export function SearchProductItem({
+    product,
+    imageUrl,
+    isImageLoading,
+    onClose,
+}: TSearchProductItemProps) {
+    const price = getSalePrices(product.salePrices)[0]?.value;
 
     return (
         <SearchItem href={`/product/${product.id}`} onClose={onClose}>
             <CardImage
                 src={imageUrl}
-                isLoading={isImagesLoading}
+                isLoading={isImageLoading}
                 alt={product.name}
                 className="w-12 h-16 shrink-0"
                 imgClassName="size-full object-contain"
@@ -41,5 +38,3 @@ function SearchProductItemComponent({ product, onClose }: TSearchProductItemProp
         </SearchItem>
     );
 }
-
-export const SearchProductItem = memo(SearchProductItemComponent);

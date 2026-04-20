@@ -1,9 +1,8 @@
 'use client';
 
 import { Counter } from '@/shared/ui/counter';
-import { formatPrice } from '@/shared/lib';
+import { formatPrice, getSalePrices } from '@/shared/lib';
 import type { TService } from '@/entities/product';
-import { getSalePrices } from '../../lib/get-sale-prices';
 
 type TServiceCardProps = {
     service: TService;

@@ -1,6 +1,6 @@
 import { useCartStore, type TCartItem } from '@/entities/cart';
 import type { TProduct, TService } from '@/shared/model';
-import { getSalePrices } from '../get-sale-prices';
+import { getSalePrices } from '@/shared/lib';
 
 export function useCartActions(product: TProduct | undefined, productId: string) {
     const cartItem = useCartStore((s) => (productId ? s.items[productId] : undefined)) as
