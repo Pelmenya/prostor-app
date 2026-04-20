@@ -3,6 +3,7 @@ import { Header } from '@/widgets/header';
 import { Footer } from '@/widgets/footer';
 import { RegisterSW } from '@/features/push-notifications';
 import { CartSyncProvider } from '@/features/cart';
+import { SearchModal } from '@/features/product-search';
 
 export default function WebLayout({ children }: { children: React.ReactNode }) {
     return (
@@ -14,6 +15,7 @@ export default function WebLayout({ children }: { children: React.ReactNode }) {
                 <main className="flex-1 overflow-y-auto">{children}</main>
                 <Footer />
             </div>
+            <SearchModal />
         </QueryProvider>
     );
 }

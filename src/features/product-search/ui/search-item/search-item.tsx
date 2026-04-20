@@ -6,23 +6,21 @@ type TSearchItemProps = {
     onClose: () => void;
     children: ReactNode;
     className?: string;
-    contentClassName?: string;
 };
 
-export function SearchItem({
-    href,
-    onClose,
-    children,
-    className = '',
-    contentClassName = 'flex items-center gap-3 flex-1',
-}: TSearchItemProps) {
+export function SearchItem({ href, onClose, children, className = '' }: TSearchItemProps) {
+    const handleClick = () => {
+        // microtask чтобы Link успел начать навигацию до закрытия модалки
+        void Promise.resolve().then(onClose);
+    };
+
     return (
         <Link
             href={href}
-            className={`flex items-center bg-base-100 hover:bg-base-200 transition-colors p-4 border-b border-base-300 ${className}`}
-            onClick={onClose}
+            className={`flex items-center gap-3 bg-base-100 hover:bg-base-200 transition-colors p-4 border-b border-base-300 ${className}`}
+            onClick={handleClick}
         >
-            <div className={contentClassName}>{children}</div>
+            {children}
         </Link>
     );
 }

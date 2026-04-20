@@ -3,7 +3,7 @@
 import { type ReactNode, useEffect } from 'react';
 import { useInView } from 'react-intersection-observer';
 
-type TInfiniteListProps<T> = {
+export type TInfiniteListProps<T> = {
     items: T[];
     hasMore: boolean;
     isLoading: boolean;
@@ -94,5 +94,3 @@ export function InfiniteList<T>({
         </div>
     );
 }
-
-export type { TInfiniteListProps };

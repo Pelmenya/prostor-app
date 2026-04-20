@@ -8,6 +8,7 @@ import { useAuth } from '@/shared/lib/platform';
 import { useLogout } from '@/features/auth';
 import { flushCartSync } from '@/features/cart';
 import { formatUserInitials } from '@/shared/lib';
+import { IconButton } from '@/shared/ui';
 import { SearchButton } from '@/features/product-search';
 import { BurgerMenu } from './burger-menu';
 import { getBackDestination } from '../lib/get-back-destination';
@@ -45,13 +46,12 @@ export function Header({ back: backProp, backTo: backToProp }: THeaderProps) {
             <div className="navbar px-4 py-2">
                 <div className="navbar-start gap-2 w-auto flex-1 min-w-0">
                     {back && (
-                        <button
+                        <IconButton
                             aria-label="Назад"
                             onClick={() => (backTo ? router.push(backTo) : router.back())}
-                            className="size-10 flex items-center justify-center cursor-pointer hover:opacity-80"
                         >
                             <ArrowLeftIcon className="size-5" />
-                        </button>
+                        </IconButton>
                     )}
                     <Link
                         href="/catalog"
@@ -61,15 +61,16 @@ export function Header({ back: backProp, backTo: backToProp }: THeaderProps) {
                     </Link>
                 </div>
 
-                <div className="navbar-end w-auto flex items-center">
-                    <SearchButton />
-                    <button
+                <div className="navbar-end">
+                    {(pathname.startsWith('/catalog') ||
+                        pathname.startsWith('/product') ||
+                        pathname === '/') && <SearchButton />}
+                    <IconButton
                         ref={burgerRef}
                         aria-label="Меню"
                         aria-expanded={isMenuOpen}
                         aria-haspopup="true"
                         onClick={() => setIsMenuOpen((prev) => !prev)}
-                        className="size-10 flex items-center justify-center cursor-pointer hover:opacity-80"
                     >
                         {!mounted ? (
                             <div className="skeleton size-8 rounded-full" />
@@ -84,7 +85,7 @@ export function Header({ back: backProp, backTo: backToProp }: THeaderProps) {
                         ) : (
                             <Bars3Icon className="size-6" />
                         )}
-                    </button>
+                    </IconButton>
                 </div>
             </div>
 

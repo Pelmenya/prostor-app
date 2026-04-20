@@ -191,7 +191,7 @@ export function useProductSearchCount(q: string, options?: { hasMaintenance?: bo
     return useQuery({
         queryKey: productKeys.productSearchCount(q, hasMaintenance),
         queryFn: () => {
-            const params = new URLSearchParams({ q: encodeURIComponent(q) });
+            const params = new URLSearchParams({ q });
             if (hasMaintenance) params.set('hasMaintenance', 'true');
             return apiClient<{ count: number }>(`${BASE}/product/search/count?${params}`);
         },
