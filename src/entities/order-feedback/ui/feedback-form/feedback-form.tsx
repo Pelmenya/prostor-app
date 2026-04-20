@@ -35,8 +35,9 @@ export function FeedbackForm({
             const copy = { ...prev };
             let obj: TParameters = copy;
             for (let i = 0; i < path.length - 1; i++) {
-                obj[path[i]] = { ...(obj[path[i]] as TParameters) };
-                obj = obj[path[i]] as TParameters;
+                const nested = { ...(obj[path[i]] as Record<string, number>) };
+                obj[path[i]] = nested;
+                obj = nested as TParameters;
             }
             obj[path[path.length - 1]] = value;
             return copy;
@@ -53,9 +54,6 @@ export function FeedbackForm({
         <div>
             <div className="bg-base-100 shadow mb-4">
                 <div className="flex flex-col gap-2 p-4">
-                    <h2 className="card-title text-lg mb-2">
-                        {initialParameters ? 'Редактировать отзыв' : 'Оцените исполнителя'}
-                    </h2>
                     <FeedbackStarsBlock parameters={parameters} onChange={handleStarsChange} />
                     <CommentField value={comment} onChange={setComment} disabled={isSubmitting} />
                     {wasTried && notAllStars && (
@@ -66,6 +64,7 @@ export function FeedbackForm({
                     <div className="flex gap-2 mt-4">
                         {onCancel && (
                             <button
+                                type="button"
                                 className="btn btn-ghost flex-1"
                                 onClick={onCancel}
                                 disabled={isSubmitting}
@@ -74,6 +73,7 @@ export function FeedbackForm({
                             </button>
                         )}
                         <button
+                            type="button"
                             className={`btn btn-primary ${onCancel ? 'flex-1' : 'btn-block'}`}
                             disabled={isSubmitting}
                             onClick={handleSubmit}

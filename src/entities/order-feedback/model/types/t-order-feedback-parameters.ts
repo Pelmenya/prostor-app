@@ -1,3 +1,1 @@
-export type TParameters = Record<string, object | number>;
-
-export type TOrderFeedbackParameters = TParameters;
+export type { TFeedbackRating, TParameters, TOrderFeedbackParameters } from '@/shared/model';

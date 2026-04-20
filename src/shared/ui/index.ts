@@ -31,3 +31,4 @@ export { CartCardWrapper } from './cart-card-wrapper';
 export { InfiniteList } from './infinite-list';
 export type { TInfiniteListProps } from './infinite-list';
 export { IconButton } from './icon-button';
+export { StarRating } from './star-rating/star-rating';

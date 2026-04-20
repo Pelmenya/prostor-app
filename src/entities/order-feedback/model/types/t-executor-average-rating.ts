@@ -1,3 +1,1 @@
-export type TExecutorAverageRating = {
-    average: number;
-};
+export type { TExecutorAverageRating } from '@/shared/model';

@@ -1,3 +1,6 @@
+'use client';
+
+import { useId } from 'react';
 import { FEEDBACK_STRUCTURE, type TFeedbackStructure } from '../../lib/feedback-structure';
 import type { TParameters } from '../../model/types/t-order-feedback-parameters';
 
@@ -16,6 +19,8 @@ export function FeedbackStarsBlock({
     readonly = false,
     path = [],
 }: TFeedbackStarsBlockProps) {
+    const uid = useId();
+
     const getNumberSafe = (obj: TParameters, keys: string[]): number | null => {
         let val: unknown = obj;
         for (const key of keys) {
@@ -31,11 +36,13 @@ export function FeedbackStarsBlock({
                 <input
                     key={idx}
                     type="radio"
-                    name={fullPath.join('.')}
+                    name={`${uid}.${fullPath.join('.')}`}
                     className="mask mask-star-2 bg-yellow-400"
                     checked={value === idx + 1}
+                    readOnly={readonly}
                     disabled={readonly}
-                    onChange={readonly || !onChange ? undefined : () => onChange(fullPath, idx + 1)}
+                    onChange={readonly || !onChange ? () => {} : () => onChange(fullPath, idx + 1)}
+                    aria-label={`${idx + 1} из 5`}
                 />
             ))}
         </div>
@@ -47,8 +54,8 @@ export function FeedbackStarsBlock({
                 const fullPath = [...path, item.key];
                 if (item.children) {
                     return (
-                        <div key={item.key} className="bg-base-200 p-4 mb-2 rounded-xl shadow">
-                            <div className="font-semibold mb-1">{item.label}</div>
+                        <fieldset key={item.key} className="bg-base-200 p-4 mb-2 rounded-xl shadow">
+                            <legend className="font-semibold mb-1">{item.label}</legend>
                             <div className="flex flex-col gap-1">
                                 {item.children.map((child) => {
                                     const childPath = [...fullPath, child.key];
@@ -67,7 +74,7 @@ export function FeedbackStarsBlock({
                                     );
                                 })}
                             </div>
-                        </div>
+                        </fieldset>
                     );
                 }
                 const value = getNumberSafe(parameters, fullPath) ?? 0;

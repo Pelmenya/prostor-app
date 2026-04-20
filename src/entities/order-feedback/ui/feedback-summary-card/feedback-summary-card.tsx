@@ -15,7 +15,11 @@ export function FeedbackSummaryCard({ parameters, comment, onEdit }: TFeedbackSu
                 <div className="flex items-center justify-between mb-2">
                     <div className="font-semibold text-lg">Отзыв</div>
                     {onEdit && (
-                        <button className="btn btn-ghost btn-sm gap-1" onClick={onEdit}>
+                        <button
+                            type="button"
+                            className="btn btn-ghost btn-sm gap-1"
+                            onClick={onEdit}
+                        >
                             <PencilIcon className="size-4" />
                             Редактировать
                         </button>

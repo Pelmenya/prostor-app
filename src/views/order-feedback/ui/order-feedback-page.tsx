@@ -9,8 +9,9 @@ import {
     FeedbackForm,
     FeedbackSummaryCard,
 } from '@/entities/order-feedback';
-import { useGetOrderById } from '@/entities/order';
-import { ConfirmDialog, PageContainer, PageTitle } from '@/shared/ui';
+import { useGetOrderById, EOrderStatus } from '@/entities/order';
+import { useAuth } from '@/shared/lib/platform';
+import { PageContainer, PageTitle } from '@/shared/ui';
 import type { TParameters } from '@/entities/order-feedback';
 
 type TOrderFeedbackPageProps = {
@@ -19,18 +20,46 @@ type TOrderFeedbackPageProps = {
 
 export function OrderFeedbackPage({ orderId }: TOrderFeedbackPageProps) {
     const router = useRouter();
+    const { isAuthenticated } = useAuth();
     const [isEditing, setIsEditing] = useState(false);
     const [confirmOpen, setConfirmOpen] = useState(false);
+    const [submitError, setSubmitError] = useState<string | null>(null);
 
-    const { data: order, isLoading: isOrderLoading } = useGetOrderById(orderId);
-    const { data: myFeedback, isLoading: isFeedbackLoading } = useGetMyOrderFeedback(orderId);
+    const { data: order, isLoading: isOrderLoading } = useGetOrderById(orderId, {
+        enabled: isAuthenticated,
+    });
+    const { data: myFeedback, isLoading: isFeedbackLoading } = useGetMyOrderFeedback(orderId, {
+        enabled: isAuthenticated,
+    });
     const { mutate: createFeedback, isPending: isCreating } = useCreateOrderFeedback();
     const { mutate: updateFeedback, isPending: isUpdating } = useUpdateOrderFeedback();
 
-    if (isOrderLoading || isFeedbackLoading) {
+    if (!isAuthenticated || isOrderLoading || isFeedbackLoading) {
         return (
             <PageContainer className="flex items-center justify-center">
                 <span className="loading loading-spinner loading-lg text-primary" />
+            </PageContainer>
+        );
+    }
+
+    const canLeaveFeedback = order?.status === EOrderStatus.COMPLETED && Boolean(order?.executor);
+
+    if (order && !canLeaveFeedback) {
+        return (
+            <PageContainer>
+                <PageTitle className="mb-4">Отзыв о мастере</PageTitle>
+                <div className="max-w-lg mx-auto w-full">
+                    <div className="alert alert-info">
+                        Отзыв доступен только для выполненных заказов с назначенным мастером.
+                    </div>
+                    <button
+                        type="button"
+                        className="btn btn-ghost mt-4"
+                        onClick={() => router.push(`/orders/${orderId}`)}
+                    >
+                        К заказу
+                    </button>
+                </div>
             </PageContainer>
         );
     }
@@ -43,9 +72,13 @@ export function OrderFeedbackPage({ orderId }: TOrderFeedbackPageProps) {
         comment: string;
     }) => {
         if (!order?.executor) return;
+        setSubmitError(null);
         createFeedback(
             { orderId, executorId: order.executor.id, clientParameters: parameters, comment },
-            { onSuccess: () => setConfirmOpen(true) },
+            {
+                onSuccess: () => setConfirmOpen(true),
+                onError: () => setSubmitError('Не удалось отправить отзыв. Попробуйте ещё раз.'),
+            },
         );
     };
 
@@ -56,11 +89,27 @@ export function OrderFeedbackPage({ orderId }: TOrderFeedbackPageProps) {
         parameters: TParameters;
         comment: string;
     }) => {
-        if (!myFeedback) return;
+        if (!myFeedback || !order?.executor) return;
+        setSubmitError(null);
         updateFeedback(
-            { feedbackId: myFeedback.id, orderId, clientParameters: parameters, comment },
-            { onSuccess: () => setIsEditing(false) },
+            {
+                feedbackId: myFeedback.id,
+                orderId,
+                executorId: order.executor.id,
+                clientParameters: parameters,
+                comment,
+            },
+            {
+                onSuccess: () => setIsEditing(false),
+                onError: () =>
+                    setSubmitError('Не удалось сохранить изменения. Попробуйте ещё раз.'),
+            },
         );
+    };
+
+    const handleConfirmClose = () => {
+        setConfirmOpen(false);
+        router.push(`/orders/${orderId}`);
     };
 
     if (myFeedback && !isEditing) {
@@ -83,6 +132,7 @@ export function OrderFeedbackPage({ orderId }: TOrderFeedbackPageProps) {
             <PageContainer>
                 <PageTitle className="mb-4">Редактировать отзыв</PageTitle>
                 <div className="max-w-lg mx-auto w-full">
+                    {submitError && <div className="alert alert-error mb-4">{submitError}</div>}
                     <FeedbackForm
                         isSubmitting={isUpdating}
                         onSubmit={handleUpdate}
@@ -100,22 +150,27 @@ export function OrderFeedbackPage({ orderId }: TOrderFeedbackPageProps) {
         <PageContainer>
             <PageTitle className="mb-4">Оцените мастера</PageTitle>
             <div className="max-w-lg mx-auto w-full">
+                {submitError && <div className="alert alert-error mb-4">{submitError}</div>}
                 <FeedbackForm isSubmitting={isCreating} onSubmit={handleCreate} />
             </div>
-            <ConfirmDialog
-                isOpen={confirmOpen}
-                onClose={() => {
-                    setConfirmOpen(false);
-                    router.push(`/orders/${orderId}`);
-                }}
-                onConfirm={() => {
-                    setConfirmOpen(false);
-                    router.push(`/orders/${orderId}`);
-                }}
-                title="Спасибо за отзыв!"
-                message="Ваш отзыв успешно отправлен."
-                confirmText="Закрыть"
-            />
+
+            {confirmOpen && (
+                <div className="modal modal-open">
+                    <div className="modal-box">
+                        <h3 className="font-bold text-lg">Спасибо за отзыв!</h3>
+                        <p className="py-4">Ваш отзыв успешно отправлен.</p>
+                        <div className="modal-action">
+                            <button
+                                type="button"
+                                className="btn btn-primary"
+                                onClick={handleConfirmClose}
+                            >
+                                Закрыть
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </PageContainer>
     );
 }

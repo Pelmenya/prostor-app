@@ -47,8 +47,15 @@ export function useCreateOrderFeedback() {
                 method: 'POST',
                 body: { orderId, executorId, clientParameters, comment },
             }),
-        onSuccess: (_, { orderId }) => {
+        onSuccess: (_, { orderId, executorId }) => {
             void queryClient.invalidateQueries({ queryKey: orderFeedbackKeys.myFeedback(orderId) });
+            void queryClient.invalidateQueries({ queryKey: orderFeedbackKeys.byOrder(orderId) });
+            void queryClient.invalidateQueries({
+                queryKey: orderFeedbackKeys.executorAverage(executorId),
+            });
+            void queryClient.invalidateQueries({
+                queryKey: orderFeedbackKeys.executorDetailed(executorId),
+            });
         },
     });
 }
@@ -59,15 +66,28 @@ export function useUpdateOrderFeedback() {
     return useMutation<
         TOrderFeedback,
         Error,
-        { feedbackId: string; orderId: number; clientParameters?: TParameters; comment?: string }
+        {
+            feedbackId: string;
+            orderId: number;
+            executorId: number;
+            clientParameters?: TParameters;
+            comment?: string;
+        }
     >({
         mutationFn: ({ feedbackId, clientParameters, comment }) =>
             api<TOrderFeedback>(`/order-feedback/${feedbackId}`, {
                 method: 'PATCH',
                 body: { clientParameters, comment },
             }),
-        onSuccess: (_, { orderId }) => {
+        onSuccess: (_, { orderId, executorId }) => {
             void queryClient.invalidateQueries({ queryKey: orderFeedbackKeys.myFeedback(orderId) });
+            void queryClient.invalidateQueries({ queryKey: orderFeedbackKeys.byOrder(orderId) });
+            void queryClient.invalidateQueries({
+                queryKey: orderFeedbackKeys.executorAverage(executorId),
+            });
+            void queryClient.invalidateQueries({
+                queryKey: orderFeedbackKeys.executorDetailed(executorId),
+            });
         },
     });
 }

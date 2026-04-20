@@ -39,3 +39,17 @@ export type {
     TUpdateRealEstate,
     TRetailStoreWithRouteInfo,
 } from './t-real-estate';
+
+export type {
+    TFeedbackRating,
+    TParameters,
+    TOrderFeedbackParameters,
+} from './t-order-feedback-parameters';
+export type { TOrderFeedback } from './t-order-feedback';
+export type {
+    TCriterionAvg,
+    TCategoryAvg,
+    TReviewItem,
+    TDetailedRating,
+} from './t-detailed-rating';
+export type { TExecutorAverageRating } from './t-executor-average-rating';
