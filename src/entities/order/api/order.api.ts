@@ -1,4 +1,10 @@
-import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+    useMutation,
+    useQuery,
+    useQueryClient,
+    useSuspenseInfiniteQuery,
+    useSuspenseQuery,
+} from '@tanstack/react-query';
 import { useApi } from '@/shared/api';
 import { buildSearchParams } from '@/shared/lib';
 import type { EOrderStatus } from '../model/types/e-order-status';
@@ -67,28 +73,21 @@ type TCreateOrderBody = {
 // ---- Хуки ----
 
 /**
- * Бесконечный список заказов с cursor-пагинацией
+ * Бесконечный список заказов с cursor-пагинацией.
  */
-export function useGetOrders(
-    filters: TOrdersQueryFilters,
-    { enabled = true }: TOrdersQueryOptions = {},
-) {
+export function useGetOrders(filters: TOrdersQueryFilters) {
     const api = useApi();
 
-    return useInfiniteQuery({
+    return useSuspenseInfiniteQuery({
         queryKey: orderKeys.list(filters),
-        queryFn: ({ pageParam }) => {
-            const queryString = buildSearchParams({
-                ...filters,
-                cursor: pageParam,
-            });
+        queryFn: ({ pageParam }: { pageParam: string | undefined }) => {
+            const queryString = buildSearchParams({ ...filters, cursor: pageParam });
             return api<TOrdersPaginatedResponse>(`/order/all/filters?${queryString}`);
         },
         initialPageParam: undefined as string | undefined,
         getNextPageParam: (lastPage) =>
             lastPage.hasMore ? (lastPage.nextCursor ?? undefined) : undefined,
         staleTime: 30_000,
-        enabled,
     });
 }
 
@@ -113,15 +112,14 @@ export function useGetOrdersCount(
 }
 
 /**
- * Один заказ по ID
+ * Один заказ по ID.
  */
-export function useGetOrderById(orderId: number, { enabled = true }: TOrdersQueryOptions = {}) {
+export function useGetOrderById(orderId: number) {
     const api = useApi();
 
-    return useQuery({
+    return useSuspenseQuery({
         queryKey: orderKeys.detail(orderId),
         queryFn: () => api<TOrder>(`/order/${orderId}`),
-        enabled: enabled && orderId > 0,
     });
 }
 

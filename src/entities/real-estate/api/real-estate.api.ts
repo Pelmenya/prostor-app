@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
 import { useApi } from '@/shared/api';
 import type {
     TRealEstate,
@@ -17,19 +17,18 @@ export const realEstateKeys = {
 export function useRealEstates() {
     const api = useApi();
 
-    return useQuery({
+    return useSuspenseQuery({
         queryKey: realEstateKeys.all,
         queryFn: () => api<TRealEstate[]>('/real-estate'),
     });
 }
 
-export function useRealEstate(id: number | undefined) {
+export function useRealEstate(id: number) {
     const api = useApi();
 
-    return useQuery({
-        queryKey: realEstateKeys.detail(id ?? 0),
+    return useSuspenseQuery({
+        queryKey: realEstateKeys.detail(id),
         queryFn: () => api<TRealEstate>(`/real-estate/${id}`),
-        enabled: id !== undefined && id > 0,
     });
 }
 

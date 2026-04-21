@@ -1,13 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
+import { ErrorBoundary } from 'react-error-boundary';
 import { useGetOrderById, useUpdateOrderStatus, EOrderStatus } from '@/entities/order';
 import { CartReadonlyView } from '@/features/cart';
 import { useSingleOrderThumbnails } from '@/features/orders';
 import Image from 'next/image';
 import { formatPrice, formatUserInitials } from '@/shared/lib';
-import { useAuth } from '@/shared/lib/platform';
-import { ConfirmDialog, PageContainer, PageTitle } from '@/shared/ui';
+import { ConfirmDialog, PageContainer, PageTitle, PageSpinner, PageError } from '@/shared/ui';
 import { HomeIcon, MapPinIcon } from '@heroicons/react/24/solid';
 import { OrderCompactItems } from './order-compact-items';
 import { OrderStatusBlock } from './order-status-block';
@@ -18,31 +18,26 @@ type TOrderDetailPageProps = {
 };
 
 export function OrderDetailPage({ orderId }: TOrderDetailPageProps) {
+    return (
+        <ErrorBoundary
+            fallbackRender={({ resetErrorBoundary }) => (
+                <PageError message="Ошибка загрузки заказа" onRetry={resetErrorBoundary} />
+            )}
+        >
+            <Suspense fallback={<PageSpinner />}>
+                <OrderDetailContent orderId={orderId} />
+            </Suspense>
+        </ErrorBoundary>
+    );
+}
+
+function OrderDetailContent({ orderId }: TOrderDetailPageProps) {
     const [isCancelOpen, setIsCancelOpen] = useState(false);
     const [cancelError, setCancelError] = useState<string | null>(null);
     const { mutate: updateStatus, isPending: isCancelling } = useUpdateOrderStatus();
-    const { isAuthenticated } = useAuth();
 
-    const {
-        data: order,
-        isLoading,
-        error,
-    } = useGetOrderById(orderId, { enabled: isAuthenticated });
-
+    const { data: order } = useGetOrderById(orderId);
     const { imageUrls, loadingIds } = useSingleOrderThumbnails(order);
-
-    if (!isAuthenticated || isLoading)
-        return (
-            <PageContainer className="flex items-center justify-center">
-                <span className="loading loading-spinner loading-lg text-primary" />
-            </PageContainer>
-        );
-    if (error || !order)
-        return (
-            <PageContainer className="flex items-center justify-center">
-                <p className="text-error font-medium">Ошибка загрузки заказа</p>
-            </PageContainer>
-        );
 
     const items = Object.values(order.cartState.items ?? {});
     const isCancelled = order.status === EOrderStatus.CANCELLED;

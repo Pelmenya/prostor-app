@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { createElement, type ReactNode } from 'react';
+import { createElement, Suspense, type ReactNode } from 'react';
 import {
     realEstateKeys,
     useRealEstates,
@@ -25,7 +25,11 @@ function createWrapper() {
     return {
         queryClient,
         wrapper: ({ children }: { children: ReactNode }) =>
-            createElement(QueryClientProvider, { client: queryClient }, children),
+            createElement(
+                QueryClientProvider,
+                { client: queryClient },
+                createElement(Suspense, { fallback: null }, children),
+            ),
     };
 }
 
@@ -87,14 +91,6 @@ describe('real-estate API', () => {
 
             await waitFor(() => expect(result.current.isSuccess).toBe(true));
             expect(mockApi).toHaveBeenCalledWith('/real-estate/1');
-        });
-
-        it('не отправляет запрос при id <= 0', () => {
-            const { wrapper } = createWrapper();
-
-            renderHook(() => useRealEstate(0), { wrapper });
-
-            expect(mockApi).not.toHaveBeenCalled();
         });
     });
 

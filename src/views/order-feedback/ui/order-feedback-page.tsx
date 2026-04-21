@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
+import { ErrorBoundary } from 'react-error-boundary';
 import { useRouter } from 'next/navigation';
 import {
     useGetMyOrderFeedback,
@@ -10,8 +11,7 @@ import {
     FeedbackSummaryCard,
 } from '@/entities/order-feedback';
 import { useGetOrderById, EOrderStatus } from '@/entities/order';
-import { useAuth } from '@/shared/lib/platform';
-import { PageContainer, PageTitle } from '@/shared/ui';
+import { PageContainer, PageTitle, PageSpinner, PageError } from '@/shared/ui';
 import type { TOrderFeedbackParameters } from '@/entities/order-feedback';
 
 type TOrderFeedbackPageProps = {
@@ -39,32 +39,33 @@ function FeedbackSuccessDialog({ onClose }: TFeedbackSuccessDialogProps) {
 }
 
 export function OrderFeedbackPage({ orderId }: TOrderFeedbackPageProps) {
+    return (
+        <ErrorBoundary
+            fallbackRender={({ resetErrorBoundary }) => (
+                <PageError message="Ошибка загрузки отзыва" onRetry={resetErrorBoundary} />
+            )}
+        >
+            <Suspense fallback={<PageSpinner />}>
+                <OrderFeedbackContent orderId={orderId} />
+            </Suspense>
+        </ErrorBoundary>
+    );
+}
+
+function OrderFeedbackContent({ orderId }: TOrderFeedbackPageProps) {
     const router = useRouter();
-    const { isAuthenticated } = useAuth();
     const [isEditing, setIsEditing] = useState(false);
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [submitError, setSubmitError] = useState<string | null>(null);
 
-    const { data: order, isLoading: isOrderLoading } = useGetOrderById(orderId, {
-        enabled: isAuthenticated,
-    });
-    const { data: myFeedback, isLoading: isFeedbackLoading } = useGetMyOrderFeedback(orderId, {
-        enabled: isAuthenticated,
-    });
+    const { data: order } = useGetOrderById(orderId);
+    const { data: myFeedback } = useGetMyOrderFeedback(orderId);
     const { mutate: createFeedback, isPending: isCreating } = useCreateOrderFeedback();
     const { mutate: updateFeedback, isPending: isUpdating } = useUpdateOrderFeedback();
 
-    if (!isAuthenticated || isOrderLoading || isFeedbackLoading) {
-        return (
-            <PageContainer className="flex items-center justify-center">
-                <span className="loading loading-spinner loading-lg text-primary" />
-            </PageContainer>
-        );
-    }
+    const canLeaveFeedback = order.status === EOrderStatus.COMPLETED && Boolean(order.executor);
 
-    const canLeaveFeedback = order?.status === EOrderStatus.COMPLETED && Boolean(order?.executor);
-
-    if (order && !canLeaveFeedback) {
+    if (!canLeaveFeedback) {
         return (
             <PageContainer>
                 <PageTitle className="mb-4">Отзыв о мастере</PageTitle>
@@ -91,7 +92,7 @@ export function OrderFeedbackPage({ orderId }: TOrderFeedbackPageProps) {
         parameters: TOrderFeedbackParameters;
         comment: string;
     }) => {
-        if (!order?.executor) {
+        if (!order.executor) {
             setSubmitError('Исполнитель не назначен');
             return;
         }
@@ -112,7 +113,7 @@ export function OrderFeedbackPage({ orderId }: TOrderFeedbackPageProps) {
         parameters: TOrderFeedbackParameters;
         comment: string;
     }) => {
-        if (!myFeedback || !order?.executor) {
+        if (!myFeedback || !order.executor) {
             setSubmitError('Исполнитель не назначен');
             return;
         }

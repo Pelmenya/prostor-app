@@ -1,4 +1,4 @@
-import { useQuery, useQueries, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQueries, useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
 import { useApi } from '@/shared/api';
 import type {
     TInstalledEquipment,
@@ -42,14 +42,13 @@ export function useInstalledEquipmentForRealEstates(realEstateIds: number[]) {
     };
 }
 
-export function useInstalledEquipmentByRealEstate(realEstateId: number | undefined) {
+export function useInstalledEquipmentByRealEstate(realEstateId: number) {
     const api = useApi();
 
-    return useQuery({
-        queryKey: installedEquipmentKeys.byRealEstate(realEstateId ?? 0),
+    return useSuspenseQuery({
+        queryKey: installedEquipmentKeys.byRealEstate(realEstateId),
         queryFn: () =>
             api<TInstalledEquipment[]>(`/installed-equipment/by-real-estate/${realEstateId}`),
-        enabled: !!realEstateId,
     });
 }
 

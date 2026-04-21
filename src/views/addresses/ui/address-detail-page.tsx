@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
+import { ErrorBoundary } from 'react-error-boundary';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -26,7 +27,7 @@ import {
     getProgressColor,
 } from '@/entities/installed-equipment';
 import { useProductThumbnails } from '@/entities/product';
-import { PageContainer, PageTitle, ConfirmDialog } from '@/shared/ui';
+import { PageContainer, PageTitle, ConfirmDialog, PageSpinner, PageError } from '@/shared/ui';
 import { AddEquipmentModal, ComponentRow } from '@/features/installed-equipment';
 
 type TAddressDetailPageProps = {
@@ -34,20 +35,33 @@ type TAddressDetailPageProps = {
 };
 
 export function AddressDetailPage({ id }: TAddressDetailPageProps) {
+    return (
+        <ErrorBoundary
+            fallbackRender={({ resetErrorBoundary }) => (
+                <PageError message="Ошибка загрузки адреса" onRetry={resetErrorBoundary} />
+            )}
+        >
+            <Suspense fallback={<PageSpinner />}>
+                <AddressDetailContent id={id} />
+            </Suspense>
+        </ErrorBoundary>
+    );
+}
+
+function AddressDetailContent({ id }: TAddressDetailPageProps) {
     const router = useRouter();
     const [isAddOpen, setIsAddOpen] = useState(false);
     const [isArchiveOpen, setIsArchiveOpen] = useState(false);
     const [demountingId, setDemountingId] = useState<string | null>(null);
     const [isDeletingAddress, setIsDeletingAddress] = useState(false);
-    const { data: realEstate, isLoading, error } = useRealEstate(id);
-    const { data: equipment = [], isLoading: isEquipmentLoading } =
-        useInstalledEquipmentByRealEstate(id);
+    const { data: realEstate } = useRealEstate(id);
+    const { data: equipment } = useInstalledEquipmentByRealEstate(id);
     const { mutate: updateEquipment } = useUpdateInstalledEquipment(id);
     const deleteRealEstate = useDeleteRealEstate();
 
     const activeEquipment = equipment.filter((e) => e.isActive);
     const archivedEquipment = equipment.filter((e) => !e.isActive);
-    const canDelete = !isEquipmentLoading && equipment.length === 0;
+    const canDelete = equipment.length === 0;
     const { imageUrls, loadingIds } = useProductThumbnails(
         activeEquipment.map((e) => e.msProductId),
     );
@@ -56,20 +70,6 @@ export function AddressDetailPage({ id }: TAddressDetailPageProps) {
         await deleteRealEstate.mutateAsync(id);
         router.push('/real-estate');
     };
-
-    if (isLoading || isEquipmentLoading)
-        return (
-            <PageContainer className="flex items-center justify-center">
-                <span className="loading loading-spinner loading-lg text-primary" />
-            </PageContainer>
-        );
-
-    if (error || !realEstate)
-        return (
-            <PageContainer className="flex items-center justify-center">
-                <p className="text-error font-medium">Ошибка загрузки адреса</p>
-            </PageContainer>
-        );
 
     const Icon = TYPE_ICONS[realEstate.activeType] ?? HomeModernIcon;
     const stats = getCriticalStats(activeEquipment);

@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { Suspense, useEffect, useRef, useState, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
+import { ErrorBoundary } from 'react-error-boundary';
 import { StepOne } from './components/step-one/step-one';
 import { StepTwo } from './components/step-two/step-two';
 import { StepThree } from './components/step-three/step-three';
@@ -17,17 +18,54 @@ type TRealEstateWizardProps = {
     onCancel?: () => void;
 };
 
-export function RealEstateWizard({
+export function RealEstateWizard(props: TRealEstateWizardProps) {
+    const { id } = props;
+
+    if (id) {
+        return (
+            <ErrorBoundary
+                fallbackRender={() => (
+                    <div className="alert alert-error text-sm">Ошибка загрузки объекта</div>
+                )}
+            >
+                <Suspense
+                    fallback={
+                        <div className="w-full h-full flex items-center justify-center">
+                            <span className="loading loading-spinner loading-xs text-primary" />
+                        </div>
+                    }
+                >
+                    <RealEstateWizardEdit {...props} id={id} />
+                </Suspense>
+            </ErrorBoundary>
+        );
+    }
+
+    return <RealEstateWizardForm {...props} data={undefined} />;
+}
+
+type TRealEstateWizardEditProps = TRealEstateWizardProps & { id: string };
+
+function RealEstateWizardEdit(props: TRealEstateWizardEditProps) {
+    const { data } = useRealEstate(Number(props.id));
+    return <RealEstateWizardForm {...props} data={data} />;
+}
+
+type TRealEstateWizardFormProps = TRealEstateWizardProps & {
+    data: ReturnType<typeof useRealEstate>['data'] | undefined;
+};
+
+function RealEstateWizardForm({
     id,
     addressSearchSlot,
     onSuccess,
     onCancel,
-}: TRealEstateWizardProps) {
+    data,
+}: TRealEstateWizardFormProps) {
     const [step, setStep] = useState(1);
     const router = useRouter();
 
     const editMode = Boolean(id);
-    const { data, isLoading, error } = useRealEstate(id ? Number(id) : undefined);
 
     const reset = useRealEstateWizardStore((s) => s.reset);
     const setAddress = useRealEstateWizardStore((s) => s.setAddress);
@@ -40,8 +78,6 @@ export function RealEstateWizard({
     const setWaterIntakePoints = useRealEstateWizardStore((s) => s.setWaterIntakePoints);
     const setDepthWaterSource = useRealEstateWizardStore((s) => s.setDepthWaterSource);
 
-    // Храним id, для которого уже инициализировали стор.
-    // Это предотвращает перезапись изменений пользователя при refetchOnWindowFocus.
     const initializedForId = useRef<string | undefined>(undefined);
 
     useEffect(() => {
@@ -76,18 +112,6 @@ export function RealEstateWizard({
     }, [editMode, data, id]);
 
     const handleCancel = onCancel ?? (() => router.push('/real-estate'));
-
-    if (editMode && isLoading) {
-        return (
-            <div className="w-full h-full flex items-center justify-center">
-                <span className="loading loading-spinner loading-xs text-primary" />
-            </div>
-        );
-    }
-
-    if (editMode && error) {
-        return <div className="alert alert-error text-sm">Ошибка загрузки объекта</div>;
-    }
 
     return (
         <div className="flex flex-col gap-4 w-full">
