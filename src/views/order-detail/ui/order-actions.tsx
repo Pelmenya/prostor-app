@@ -1,7 +1,9 @@
+import Link from 'next/link';
 import { EOrderStatus } from '@/entities/order';
 import type { TUser } from '@/shared/model';
 
 type TOrderActionsProps = {
+    orderId: number;
     status: EOrderStatus;
     executor: Pick<TUser, 'first_name' | 'last_name'> | null | undefined;
     isCancelled: boolean;
@@ -10,6 +12,7 @@ type TOrderActionsProps = {
 };
 
 export function OrderActions({
+    orderId,
     status,
     executor,
     isCancelled,
@@ -20,9 +23,12 @@ export function OrderActions({
         if (!executor) return null;
         return (
             <div className="flex gap-4">
-                <button type="button" disabled className="flex-1 btn btn-md btn-primary">
+                <Link
+                    href={`/orders/${orderId}/feedback`}
+                    className="flex-1 btn btn-md btn-primary"
+                >
                     Оценить мастера
-                </button>
+                </Link>
             </div>
         );
     }

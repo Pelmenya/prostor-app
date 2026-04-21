@@ -4,7 +4,8 @@ import { useState } from 'react';
 import { useGetOrderById, useUpdateOrderStatus, EOrderStatus } from '@/entities/order';
 import { CartReadonlyView } from '@/features/cart';
 import { useSingleOrderThumbnails } from '@/features/orders';
-import { formatPrice } from '@/shared/lib';
+import Image from 'next/image';
+import { formatPrice, formatUserInitials } from '@/shared/lib';
 import { useAuth } from '@/shared/lib/platform';
 import { ConfirmDialog, PageContainer, PageTitle } from '@/shared/ui';
 import { HomeIcon, MapPinIcon } from '@heroicons/react/24/solid';
@@ -49,7 +50,7 @@ export function OrderDetailPage({ orderId }: TOrderDetailPageProps) {
 
     return (
         <PageContainer>
-            <PageTitle>Детали заказа №{order.id}</PageTitle>
+            <PageTitle className="mb-4">Детали заказа №{order.id}</PageTitle>
             <div className="flex flex-col gap-4 pb-4 max-w-lg mx-auto w-full">
                 {/* Состав заказа — полный вид */}
                 {!isCompact && (
@@ -141,9 +142,33 @@ export function OrderDetailPage({ orderId }: TOrderDetailPageProps) {
 
                         {/* Исполнитель */}
                         {order.executor && (
-                            <div className="relative flex items-center gap-2 p-4 bg-base-100 border border-base-300 rounded-2xl w-full">
-                                <span>{order.executor.first_name}</span>
-                                <span>{order.executor.last_name}</span>
+                            <div className="relative flex items-center gap-3 p-4 bg-base-100 border border-base-300 rounded-2xl w-full">
+                                {order.executor.photo_url ? (
+                                    <Image
+                                        src={order.executor.photo_url}
+                                        alt={`${order.executor.first_name} ${order.executor.last_name}`}
+                                        width={40}
+                                        height={40}
+                                        className="rounded-full object-cover shrink-0"
+                                    />
+                                ) : (
+                                    <div className="avatar avatar-placeholder shrink-0">
+                                        <div className="size-10 rounded-full bg-primary text-primary-content flex items-center justify-center">
+                                            <span className="text-sm font-semibold">
+                                                {formatUserInitials(
+                                                    order.executor.first_name,
+                                                    order.executor.last_name,
+                                                )}
+                                            </span>
+                                        </div>
+                                    </div>
+                                )}
+                                <div className="flex flex-col gap-0.5">
+                                    <span className="text-xs leading-tight">Исполнитель</span>
+                                    <span className="font-medium text-sm leading-tight">
+                                        {order.executor.first_name} {order.executor.last_name}
+                                    </span>
+                                </div>
                             </div>
                         )}
                     </>
@@ -151,6 +176,7 @@ export function OrderDetailPage({ orderId }: TOrderDetailPageProps) {
 
                 {/* Кнопки */}
                 <OrderActions
+                    orderId={orderId}
                     status={order.status}
                     executor={order.executor}
                     isCancelled={isCancelled}

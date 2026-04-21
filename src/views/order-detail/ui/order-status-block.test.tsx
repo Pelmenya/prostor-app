@@ -61,6 +61,6 @@ describe('OrderStatusBlock', () => {
                 }}
             />,
         );
-        expect(screen.getByText(/09:00/)).toBeInTheDocument();
+        expect(screen.getByText(/10 февраля/)).toBeInTheDocument();
     });
 });

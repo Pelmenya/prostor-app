@@ -30,7 +30,7 @@ export function OrderStatusBlock({
                         <span className="font-semibold text-sm leading-110">Дата доставки</span>
                         <span className="text-sm leading-110">
                             {scheduledDate?.date
-                                ? `${formatDateRu(scheduledDate.date)} ${String(scheduledDate.startHour).padStart(2, '0')}:${String(scheduledDate.startMinute).padStart(2, '0')}`
+                                ? `${formatDateRu(scheduledDate.date)}`
                                 : 'Уточняется'}
                         </span>
                     </div>
