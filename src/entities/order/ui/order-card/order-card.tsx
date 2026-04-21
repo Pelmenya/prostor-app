@@ -14,21 +14,19 @@ type TOrderCardProps = {
 
 export function OrderCard({ order, imageUrls, loadingIds }: TOrderCardProps) {
     return (
-        <li>
-            <Link href={`/orders/${order.id}`}>
-                <CardWrapper className="flex-col gap-6 w-full">
-                    <OrderCardHeader
-                        title={String(order.id)}
-                        date={order.createdAt}
-                        status={order.status}
-                    />
-                    <OrderPositionsList
-                        cartState={order.cartState}
-                        imageUrls={imageUrls}
-                        loadingIds={loadingIds}
-                    />
-                </CardWrapper>
-            </Link>
-        </li>
+        <Link href={`/orders/${order.id}`}>
+            <CardWrapper className="flex-col gap-6 w-full">
+                <OrderCardHeader
+                    title={String(order.id)}
+                    date={order.createdAt}
+                    status={order.status}
+                />
+                <OrderPositionsList
+                    cartState={order.cartState}
+                    imageUrls={imageUrls}
+                    loadingIds={loadingIds}
+                />
+            </CardWrapper>
+        </Link>
     );
 }

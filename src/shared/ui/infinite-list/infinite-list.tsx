@@ -74,7 +74,7 @@ export function InfiniteList<T>({
             </ul>
 
             {hasMore && (
-                <div ref={ref} className="py-8 text-center min-h-[100px]">
+                <div ref={ref} className="py-8 text-center min-h-25">
                     {isLoading ? (
                         <>
                             {loadingComponent ?? (
