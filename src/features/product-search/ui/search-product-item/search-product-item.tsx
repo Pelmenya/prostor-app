@@ -1,5 +1,3 @@
-'use client';
-
 import { CardImage } from '@/shared/ui';
 import { formatPrice, getSalePrices } from '@/shared/lib';
 import type { TProduct } from '@/entities/product';

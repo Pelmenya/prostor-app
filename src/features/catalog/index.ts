@@ -9,4 +9,3 @@ export { ServicesList } from './ui/service-list';
 export { ServiceCard } from './ui/service-card';
 export { useCartActions } from './lib/hooks/use-cart-actions';
 export { useCatalogBreadcrumbs } from './lib/hooks/use-breadcrumbs';
-export { getSalePrices } from '@/shared/lib';

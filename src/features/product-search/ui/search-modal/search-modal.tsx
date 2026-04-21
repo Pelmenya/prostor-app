@@ -1,6 +1,5 @@
 'use client';
 
-import { useRef } from 'react';
 import { Dialog, DialogBackdrop, DialogPanel } from '@headlessui/react';
 import {
     useProductSearchPaginated,
@@ -14,14 +13,17 @@ import { SearchList } from '../search-list/search-list';
 
 export function SearchModal() {
     const isOpen = useProductSearchStore((s) => s.isOpen);
-    const inputRef = useRef<HTMLInputElement>(null);
 
     const { innerQuery, setInnerQuery, query, handleClose, handleClear } = useSearchState();
 
-    const { data, isLoading, isFetching, fetchNextPage, hasNextPage } =
+    const { data, isLoading, isFetching, isError, fetchNextPage, hasNextPage, refetch } =
         useProductSearchPaginated(query);
 
-    const { data: countData, isLoading: isLoadingCount } = useProductSearchCount(query);
+    const {
+        data: countData,
+        isLoading: isLoadingCount,
+        isFetching: isFetchingCount,
+    } = useProductSearchCount(query);
 
     const items = data?.pages.flatMap((page) => page.items) ?? [];
     const { imageUrls, loadingIds } = useProductThumbnails(items.map((p) => p.id));
@@ -35,6 +37,7 @@ export function SearchModal() {
         !isLoading &&
         !isFetching &&
         !isLoadingCount &&
+        !isFetchingCount &&
         countData !== undefined;
 
     return (
@@ -52,7 +55,6 @@ export function SearchModal() {
                     <div className="flex-1 flex flex-col overflow-hidden">
                         <SearchModalHeader
                             innerQuery={innerQuery}
-                            inputRef={inputRef}
                             countData={countData}
                             showCount={showCount}
                             onClose={handleClose}
@@ -60,20 +62,22 @@ export function SearchModal() {
                             onChange={setInnerQuery}
                         />
 
-                        <main className="flex-1 overflow-y-auto">
+                        <div className="flex-1 overflow-y-auto">
                             {query.length >= 2 && (
                                 <SearchList
                                     items={items}
                                     hasMore={!!hasNextPage}
                                     isLoading={isLoading}
                                     isFetching={isFetching}
+                                    isError={isError}
                                     imageUrls={imageUrls}
                                     loadingIds={loadingIds}
                                     onLoadMore={handleLoadMore}
                                     onClose={handleClose}
+                                    onRetry={() => void refetch()}
                                 />
                             )}
-                        </main>
+                        </div>
                     </div>
                 </DialogPanel>
             </div>

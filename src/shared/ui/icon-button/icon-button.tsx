@@ -1,11 +1,12 @@
-import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from 'react';
+import { type ButtonHTMLAttributes, type ReactNode, type Ref } from 'react';
 
 type TIconButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
     children: ReactNode;
+    ref?: Ref<HTMLButtonElement>;
 };
 
-export const IconButton = forwardRef<HTMLButtonElement, TIconButtonProps>(
-    ({ className = '', children, ...props }, ref) => (
+export function IconButton({ className = '', children, ref, ...props }: TIconButtonProps) {
+    return (
         <button
             ref={ref}
             type="button"
@@ -14,7 +15,5 @@ export const IconButton = forwardRef<HTMLButtonElement, TIconButtonProps>(
         >
             {children}
         </button>
-    ),
-);
-
-IconButton.displayName = 'IconButton';
+    );
+}

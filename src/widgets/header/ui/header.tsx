@@ -9,7 +9,7 @@ import { useLogout } from '@/features/auth';
 import { flushCartSync } from '@/features/cart';
 import { formatUserInitials } from '@/shared/lib';
 import { IconButton } from '@/shared/ui';
-import { SearchButton } from '@/features/product-search';
+import { SearchButton, isCatalogRoute } from '@/features/product-search';
 import { BurgerMenu } from './burger-menu';
 import { getBackDestination } from '../lib/get-back-destination';
 
@@ -62,9 +62,7 @@ export function Header({ back: backProp, backTo: backToProp }: THeaderProps) {
                 </div>
 
                 <div className="navbar-end">
-                    {(pathname.startsWith('/catalog') ||
-                        pathname.startsWith('/product') ||
-                        pathname === '/') && <SearchButton />}
+                    {isCatalogRoute(pathname) && <SearchButton />}
                     <IconButton
                         ref={burgerRef}
                         aria-label="Меню"

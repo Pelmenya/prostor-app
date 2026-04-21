@@ -1,13 +1,12 @@
 'use client';
 
-import { type RefObject } from 'react';
+import { DialogTitle } from '@headlessui/react';
 import { ArrowLeftIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { XMarkIcon } from '@heroicons/react/16/solid';
 import { IconButton } from '@/shared/ui';
 
 type TSearchModalHeaderProps = {
     innerQuery: string;
-    inputRef: RefObject<HTMLInputElement | null>;
     countData: { count: number } | undefined;
     showCount: boolean;
     onClose: () => void;
@@ -17,7 +16,6 @@ type TSearchModalHeaderProps = {
 
 export function SearchModalHeader({
     innerQuery,
-    inputRef,
     countData,
     showCount,
     onClose,
@@ -33,16 +31,17 @@ export function SearchModalHeader({
                     </IconButton>
                 </div>
                 <div className="navbar-center">
-                    <p className="text-lg font-bold">Поиск товаров</p>
+                    <DialogTitle as="h2" className="text-lg font-bold">
+                        Поиск товаров
+                    </DialogTitle>
                 </div>
                 <div className="navbar-end" />
             </div>
 
             <div className="flex justify-center p-4">
                 <label className="input w-full lg:max-w-150">
-                    <MagnifyingGlassIcon className="size-3.5 shrink-0 text-base-content/50" />
+                    <MagnifyingGlassIcon className="size-4 shrink-0 text-base-content/50" />
                     <input
-                        ref={inputRef}
                         type="text"
                         value={innerQuery}
                         onChange={(e) => onChange(e.target.value)}
@@ -51,8 +50,13 @@ export function SearchModalHeader({
                         data-autofocus
                     />
                     {innerQuery && (
-                        <button type="button" onClick={onClear} aria-label="Очистить">
-                            <XMarkIcon className="size-3.5" />
+                        <button
+                            type="button"
+                            onClick={onClear}
+                            aria-label="Очистить"
+                            className="p-2 -mr-2"
+                        >
+                            <XMarkIcon className="size-4" />
                         </button>
                     )}
                 </label>

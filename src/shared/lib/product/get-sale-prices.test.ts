@@ -1,5 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
-import { getSalePrices } from './get-sale-prices';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import type { TSalePrice } from '@/shared/model';
 
 const mockPrices: TSalePrice[] = [
@@ -21,28 +20,44 @@ const mockPrices: TSalePrice[] = [
 ];
 
 describe('getSalePrices', () => {
-    it('возвращает пустой массив если prices undefined', () => {
+    afterEach(() => {
+        vi.unstubAllEnvs();
+        vi.resetModules();
+    });
+
+    it('возвращает пустой массив если prices undefined', async () => {
+        const { getSalePrices } = await import('./get-sale-prices');
         expect(getSalePrices(undefined)).toEqual([]);
     });
 
-    it('возвращает пустой массив если prices пустой', () => {
+    it('возвращает пустой массив если prices пустой', async () => {
+        const { getSalePrices } = await import('./get-sale-prices');
         expect(getSalePrices([])).toEqual([]);
     });
 
-    it('фильтрует цены по NEXT_PUBLIC_SALE_PRICES', () => {
-        // env по умолчанию = 'Приложение'
+    it('фильтрует цены по дефолтному значению Приложение', async () => {
+        const { getSalePrices } = await import('./get-sale-prices');
         const result = getSalePrices(mockPrices);
         expect(result).toHaveLength(1);
         expect(result[0].value).toBe(1500000);
     });
 
-    it('фильтрует по нескольким типам через __', () => {
+    it('фильтрует по нескольким типам через __', async () => {
         vi.stubEnv('NEXT_PUBLIC_SALE_PRICES', 'Приложение__Акция');
-
-        // Нужно переимпортировать чтобы env пересчитался
-        // Но SALE_PRICE_TYPES вычисляется при загрузке модуля
-        // Поэтому просто проверяем что функция не падает
+        vi.resetModules();
+        const { getSalePrices } = await import('./get-sale-prices');
         const result = getSalePrices(mockPrices);
-        expect(Array.isArray(result)).toBe(true);
+        expect(result).toHaveLength(2);
+        expect(result.map((p) => p.value)).toContain(1500000);
+        expect(result.map((p) => p.value)).toContain(1800000);
+    });
+
+    it('фолбэк работает при пустой строке env', async () => {
+        vi.stubEnv('NEXT_PUBLIC_SALE_PRICES', '');
+        vi.resetModules();
+        const { getSalePrices } = await import('./get-sale-prices');
+        const result = getSalePrices(mockPrices);
+        expect(result).toHaveLength(1);
+        expect(result[0].value).toBe(1500000);
     });
 });
