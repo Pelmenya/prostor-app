@@ -28,3 +28,6 @@ export { Base } from './base';
 export { Borehole, Well, Reservoir, WaterSupply, People } from './icons';
 export { MapView } from './map-view';
 export { CartCardWrapper } from './cart-card-wrapper';
+export { InfiniteList } from './infinite-list';
+export type { TInfiniteListProps } from './infinite-list';
+export { IconButton } from './icon-button';

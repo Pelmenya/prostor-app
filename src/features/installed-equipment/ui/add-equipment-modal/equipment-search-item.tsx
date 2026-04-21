@@ -1,19 +1,19 @@
 import { CardImage } from '@/shared/ui';
 import type { TProduct } from '@/shared/model';
 
-type TSearchProductItemProps = {
+type TEquipmentSearchItemProps = {
     product: TProduct;
     imageUrl: string | undefined;
     isImageLoading: boolean;
     onClick: () => void;
 };
 
-export function SearchProductItem({
+export function EquipmentSearchItem({
     product,
     imageUrl,
     isImageLoading,
     onClick,
-}: TSearchProductItemProps) {
+}: TEquipmentSearchItemProps) {
     return (
         <button
             type="button"

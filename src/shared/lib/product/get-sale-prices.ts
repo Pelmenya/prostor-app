@@ -1,4 +1,4 @@
-import type { TSalePrice } from '@/entities/product';
+import type { TSalePrice } from '@/shared/model';
 
 const SALE_PRICE_TYPES = (process.env.NEXT_PUBLIC_SALE_PRICES || 'Приложение').split('__');
 

@@ -8,7 +8,7 @@ import { extractErrorMessage } from '@/shared/lib';
 import { useProductSearch, useProductThumbnails } from '@/entities/product';
 import { useCreateInstalledEquipment } from '@/entities/installed-equipment';
 import type { TProduct } from '@/shared/model';
-import { SearchProductItem } from './search-product-item';
+import { EquipmentSearchItem } from './equipment-search-item';
 
 type TAddEquipmentModalProps = {
     isOpen: boolean;
@@ -207,7 +207,7 @@ export function AddEquipmentModal({ isOpen, onClose, realEstateId }: TAddEquipme
                     {!isSearching && searchResults && searchResults.length > 0 && (
                         <div className="flex flex-col gap-2">
                             {searchResults.map((product) => (
-                                <SearchProductItem
+                                <EquipmentSearchItem
                                     key={product.id}
                                     product={product}
                                     imageUrl={imageUrls[product.id]}

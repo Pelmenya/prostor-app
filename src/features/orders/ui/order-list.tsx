@@ -1,9 +1,8 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useInView } from 'react-intersection-observer';
 import type { TOrder } from '@/entities/order';
 import { OrderCard } from '@/entities/order';
+import { InfiniteList } from '@/shared/ui';
 
 type TOrderListProps = {
     orders: TOrder[];
@@ -22,42 +21,17 @@ export function OrderList({
     imageUrls,
     loadingIds,
 }: TOrderListProps) {
-    const { ref, inView } = useInView({
-        threshold: 0,
-        rootMargin: '100px',
-    });
-
-    useEffect(() => {
-        if (inView && hasMore && !isFetchingNextPage) {
-            onLoadMore();
-        }
-    }, [inView, hasMore, isFetchingNextPage, onLoadMore]);
-
     return (
-        <div>
-            <ul className="flex flex-col gap-4 lg:gap-6">
-                {orders.map((order) => (
-                    <OrderCard
-                        key={order.id}
-                        order={order}
-                        imageUrls={imageUrls}
-                        loadingIds={loadingIds}
-                    />
-                ))}
-            </ul>
-
-            {hasMore && (
-                <div ref={ref} className="py-8 text-center min-h-[100px]">
-                    {isFetchingNextPage ? (
-                        <div className="flex flex-col items-center gap-2">
-                            <span className="loading loading-spinner loading-md" />
-                            <span className="text-sm text-base-content/60">Загрузка...</span>
-                        </div>
-                    ) : (
-                        <div className="h-4" />
-                    )}
-                </div>
+        <InfiniteList
+            items={orders}
+            hasMore={hasMore}
+            isLoading={isFetchingNextPage}
+            onLoadMore={onLoadMore}
+            renderItem={(order) => (
+                <OrderCard order={order} imageUrls={imageUrls} loadingIds={loadingIds} />
             )}
-        </div>
+            keyExtractor={(order) => order.id}
+            className="flex flex-col gap-4 lg:gap-6"
+        />
     );
 }
