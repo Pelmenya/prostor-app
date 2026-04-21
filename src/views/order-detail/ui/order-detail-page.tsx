@@ -70,8 +70,18 @@ export function OrderDetailPage({ orderId }: TOrderDetailPageProps) {
                     />
                 )}
 
+                {/* Итого */}
+                {order.totalAmount != null && (
+                    <div className="relative flex justify-between gap-4 p-4 bg-base-100 border border-base-300 rounded-2xl w-full">
+                        <span className="font-medium text-sm leading-110">Итого</span>
+                        <span className="text-primary font-semibold text-sm leading-110">
+                            {formatPrice(order.totalAmount)}
+                        </span>
+                    </div>
+                )}
+
                 {/* Доставка */}
-                {!isCompact && (
+                {!isCancelled && (
                     <div className="relative flex justify-between gap-4 p-4 bg-base-100 border border-base-300 rounded-2xl w-full">
                         <span className="font-medium text-sm leading-110">Доставка</span>
                         {order.deliveryCost != null && order.deliveryCost > 0 ? (

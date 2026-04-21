@@ -1,13 +1,13 @@
 import type { TUser } from './t-user';
-import type { TParameters } from './t-order-feedback-parameters';
+import type { TOrderFeedbackParameters } from './t-order-feedback-parameters';
 
 export type TOrderFeedback = {
     id: string;
     order: { id: number };
     author: TUser;
     executor: TUser;
-    clientParameters: TParameters;
-    internalParameters?: TParameters;
+    clientParameters: TOrderFeedbackParameters;
+    internalParameters?: TOrderFeedbackParameters;
     comment?: string | null;
     createdAt: string;
 };

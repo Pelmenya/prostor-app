@@ -2,11 +2,11 @@
 
 import { useId } from 'react';
 import { FEEDBACK_STRUCTURE, type TFeedbackStructure } from '../../lib/feedback-structure';
-import type { TParameters } from '../../model/types/t-order-feedback-parameters';
+import type { TOrderFeedbackParameters } from '@/shared/model';
 
 type TFeedbackStarsBlockProps = {
     structure?: TFeedbackStructure;
-    parameters: TParameters;
+    parameters: TOrderFeedbackParameters;
     onChange?: (path: string[], value: number) => void;
     readonly?: boolean;
     path?: string[];
@@ -21,7 +21,7 @@ export function FeedbackStarsBlock({
 }: TFeedbackStarsBlockProps) {
     const uid = useId();
 
-    const getNumberSafe = (obj: TParameters, keys: string[]): number | null => {
+    const getNumberSafe = (obj: TOrderFeedbackParameters, keys: string[]): number | null => {
         let val: unknown = obj;
         for (const key of keys) {
             if (typeof val !== 'object' || val === null) return null;

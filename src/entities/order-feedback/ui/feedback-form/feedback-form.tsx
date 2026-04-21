@@ -1,16 +1,16 @@
 'use client';
 
 import { useState } from 'react';
+import type { TOrderFeedbackParameters } from '@/shared/model';
 import { allStarsSelected } from '../../lib/all-stars-selected';
 import { FEEDBACK_STRUCTURE } from '../../lib/feedback-structure';
-import type { TParameters } from '../../model/types/t-order-feedback-parameters';
 import { CommentField } from '../comment-field/comment-field';
 import { FeedbackStarsBlock } from '../feedback-stars-block/feedback-stars-block';
 
 type TFeedbackFormProps = {
     isSubmitting: boolean;
-    onSubmit: (params: { parameters: TParameters; comment: string }) => void;
-    initialParameters?: TParameters;
+    onSubmit: (params: { parameters: TOrderFeedbackParameters; comment: string }) => void;
+    initialParameters?: TOrderFeedbackParameters;
     initialComment?: string;
     submitLabel?: string;
     onCancel?: () => void;
@@ -24,23 +24,20 @@ export function FeedbackForm({
     submitLabel,
     onCancel,
 }: TFeedbackFormProps) {
-    const [parameters, setParameters] = useState<TParameters>(initialParameters ?? {});
+    const [parameters, setParameters] = useState<TOrderFeedbackParameters>(initialParameters ?? {});
     const [comment, setComment] = useState(initialComment ?? '');
     const [wasTried, setWasTried] = useState(false);
 
     const notAllStars = !allStarsSelected(parameters, FEEDBACK_STRUCTURE, []);
 
     const handleStarsChange = (path: string[], value: number) => {
-        setParameters((prev: TParameters) => {
-            const copy = { ...prev };
-            let obj: TParameters = copy;
-            for (let i = 0; i < path.length - 1; i++) {
-                const nested = { ...(obj[path[i]] as Record<string, number>) };
-                obj[path[i]] = nested;
-                obj = nested as TParameters;
-            }
-            obj[path[path.length - 1]] = value;
-            return copy;
+        setParameters((prev) => {
+            if (path.length === 1) return { ...prev, [path[0]]: value };
+            const [section, key] = path;
+            const prevSection = prev[section];
+            const nested =
+                typeof prevSection === 'object' && prevSection !== null ? prevSection : {};
+            return { ...prev, [section]: { ...nested, [key]: value } };
         });
     };
 
@@ -57,7 +54,7 @@ export function FeedbackForm({
                     <FeedbackStarsBlock parameters={parameters} onChange={handleStarsChange} />
                     <CommentField value={comment} onChange={setComment} disabled={isSubmitting} />
                     {wasTried && notAllStars && (
-                        <div className="alert alert-warning alert-sm mt-2 py-1">
+                        <div className="alert alert-warning py-2 text-sm mt-2">
                             Пожалуйста, поставьте оценки по всем параметрам
                         </div>
                     )}

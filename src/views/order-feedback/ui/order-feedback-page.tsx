@@ -12,11 +12,31 @@ import {
 import { useGetOrderById, EOrderStatus } from '@/entities/order';
 import { useAuth } from '@/shared/lib/platform';
 import { PageContainer, PageTitle } from '@/shared/ui';
-import type { TParameters } from '@/entities/order-feedback';
+import type { TOrderFeedbackParameters } from '@/entities/order-feedback';
 
 type TOrderFeedbackPageProps = {
     orderId: number;
 };
+
+type TFeedbackSuccessDialogProps = {
+    onClose: () => void;
+};
+
+function FeedbackSuccessDialog({ onClose }: TFeedbackSuccessDialogProps) {
+    return (
+        <div className="modal modal-open">
+            <div className="modal-box">
+                <h3 className="font-bold text-lg">Спасибо за отзыв!</h3>
+                <p className="py-4">Ваш отзыв успешно отправлен.</p>
+                <div className="modal-action">
+                    <button type="button" className="btn btn-primary" onClick={onClose}>
+                        Закрыть
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
 
 export function OrderFeedbackPage({ orderId }: TOrderFeedbackPageProps) {
     const router = useRouter();
@@ -68,10 +88,13 @@ export function OrderFeedbackPage({ orderId }: TOrderFeedbackPageProps) {
         parameters,
         comment,
     }: {
-        parameters: TParameters;
+        parameters: TOrderFeedbackParameters;
         comment: string;
     }) => {
-        if (!order?.executor) return;
+        if (!order?.executor) {
+            setSubmitError('Исполнитель не назначен');
+            return;
+        }
         setSubmitError(null);
         createFeedback(
             { orderId, executorId: order.executor.id, clientParameters: parameters, comment },
@@ -86,10 +109,13 @@ export function OrderFeedbackPage({ orderId }: TOrderFeedbackPageProps) {
         parameters,
         comment,
     }: {
-        parameters: TParameters;
+        parameters: TOrderFeedbackParameters;
         comment: string;
     }) => {
-        if (!myFeedback || !order?.executor) return;
+        if (!myFeedback || !order?.executor) {
+            setSubmitError('Исполнитель не назначен');
+            return;
+        }
         setSubmitError(null);
         updateFeedback(
             {
@@ -134,6 +160,7 @@ export function OrderFeedbackPage({ orderId }: TOrderFeedbackPageProps) {
                 <div className="max-w-lg mx-auto w-full">
                     {submitError && <div className="alert alert-error mb-4">{submitError}</div>}
                     <FeedbackForm
+                        key={myFeedback.id}
                         isSubmitting={isUpdating}
                         onSubmit={handleUpdate}
                         initialParameters={myFeedback.clientParameters}
@@ -154,23 +181,7 @@ export function OrderFeedbackPage({ orderId }: TOrderFeedbackPageProps) {
                 <FeedbackForm isSubmitting={isCreating} onSubmit={handleCreate} />
             </div>
 
-            {confirmOpen && (
-                <div className="modal modal-open">
-                    <div className="modal-box">
-                        <h3 className="font-bold text-lg">Спасибо за отзыв!</h3>
-                        <p className="py-4">Ваш отзыв успешно отправлен.</p>
-                        <div className="modal-action">
-                            <button
-                                type="button"
-                                className="btn btn-primary"
-                                onClick={handleConfirmClose}
-                            >
-                                Закрыть
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            {confirmOpen && <FeedbackSuccessDialog onClose={handleConfirmClose} />}
         </PageContainer>
     );
 }

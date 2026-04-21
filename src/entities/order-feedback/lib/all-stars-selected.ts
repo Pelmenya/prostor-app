@@ -1,4 +1,4 @@
-import type { TParameters } from '../model/types/t-order-feedback-parameters';
+import type { TOrderFeedbackParameters } from '@/shared/model';
 import type {
     TFeedbackStructure,
     TFeedbackParameterNode,
@@ -6,7 +6,7 @@ import type {
 } from './feedback-structure';
 
 export function allStarsSelected(
-    obj: TParameters,
+    obj: TOrderFeedbackParameters,
     structure: TFeedbackStructure,
     excludeKeys: string[] = [],
 ): boolean {

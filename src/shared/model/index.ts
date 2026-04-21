@@ -40,11 +40,7 @@ export type {
     TRetailStoreWithRouteInfo,
 } from './t-real-estate';
 
-export type {
-    TFeedbackRating,
-    TParameters,
-    TOrderFeedbackParameters,
-} from './t-order-feedback-parameters';
+export type { TOrderFeedbackParameters } from './t-order-feedback-parameters';
 export type { TOrderFeedback } from './t-order-feedback';
 export type {
     TCriterionAvg,

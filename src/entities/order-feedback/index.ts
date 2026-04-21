@@ -7,11 +7,7 @@ export {
 } from './api/order-feedback.api';
 
 // Типы
-export type { TOrderFeedback } from './model/types/t-order-feedback';
-export type {
-    TParameters,
-    TOrderFeedbackParameters,
-} from './model/types/t-order-feedback-parameters';
+export type { TOrderFeedback, TOrderFeedbackParameters } from '@/shared/model';
 
 // Lib
 export { FEEDBACK_STRUCTURE, allStarsSelected } from './lib';

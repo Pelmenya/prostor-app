@@ -1,9 +1,11 @@
+'use client';
+
 import { PencilIcon } from '@heroicons/react/16/solid';
-import type { TParameters } from '../../model/types/t-order-feedback-parameters';
+import type { TOrderFeedbackParameters } from '@/shared/model';
 import { FeedbackStarsBlock } from '../feedback-stars-block/feedback-stars-block';
 
 type TFeedbackSummaryCardProps = {
-    parameters: TParameters;
+    parameters: TOrderFeedbackParameters;
     comment?: string | null;
     onEdit?: () => void;
 };

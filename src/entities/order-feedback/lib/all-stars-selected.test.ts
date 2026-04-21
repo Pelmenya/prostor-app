@@ -1,7 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { allStarsSelected } from './all-stars-selected';
 import { FEEDBACK_STRUCTURE } from './feedback-structure';
-import { getDefaultParams } from './get-default-params';
 
 const fullParams = {
     quality: { politeness: 5, accuracy: 4, shoeChange: 3, appearance: 5 },
@@ -34,9 +33,8 @@ describe('allStarsSelected', () => {
         );
     });
 
-    it('возвращает false для пустого объекта (getDefaultParams)', () => {
-        const empty = getDefaultParams(FEEDBACK_STRUCTURE);
-        expect(allStarsSelected(empty, FEEDBACK_STRUCTURE)).toBe(false);
+    it('возвращает false для пустого объекта', () => {
+        expect(allStarsSelected({}, FEEDBACK_STRUCTURE)).toBe(false);
     });
 
     it('игнорирует секции из excludeKeys', () => {
