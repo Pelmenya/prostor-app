@@ -7,6 +7,6 @@ export function useCurrentUser() {
 
     return useQuery({
         queryKey: ['user', 'me'],
-        queryFn: () => api<TUser>('/user/me'),
+        queryFn: () => api<TUser>('/auth/me'),
     });
 }

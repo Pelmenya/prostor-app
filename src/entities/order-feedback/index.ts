@@ -3,6 +3,7 @@ export {
     useGetMyOrderFeedback,
     useCreateOrderFeedback,
     useUpdateOrderFeedback,
+    useGetExecutorAverageRating,
     orderFeedbackKeys,
 } from './api/order-feedback.api';
 

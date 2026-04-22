@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useAuthStore } from './auth-store';
+import { EUserRole } from '@/shared/model';
 import type { TUser } from '@/shared/model';
 
 const mockUser: TUser = {
@@ -10,7 +11,7 @@ const mockUser: TUser = {
     phone: '79001234567',
     email: 'ivan@example.com',
     username: 'ivan',
-    role: 'CLIENT',
+    role: EUserRole.CLIENT,
     is_auth: true,
 };
 
