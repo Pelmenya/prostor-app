@@ -2,7 +2,7 @@
 
 import { PageContainer } from '../page-container';
 
-type TPageErrorProps = {
+export type TPageErrorProps = {
     message?: string;
     onRetry?: () => void;
 };

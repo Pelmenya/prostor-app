@@ -1,7 +1,6 @@
 'use client';
 
-import { Suspense, useState } from 'react';
-import { ErrorBoundary } from 'react-error-boundary';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
     useGetMyOrderFeedback,
@@ -11,7 +10,8 @@ import {
     FeedbackSummaryCard,
 } from '@/entities/order-feedback';
 import { useGetOrderById, EOrderStatus } from '@/entities/order';
-import { PageContainer, PageTitle, PageSpinner, PageError } from '@/shared/ui';
+import { PageContainer, PageTitle, PageSpinner, QueryBoundary } from '@/shared/ui';
+import { useAuth } from '@/shared/lib/platform';
 import type { TOrderFeedbackParameters } from '@/entities/order-feedback';
 
 type TOrderFeedbackPageProps = {
@@ -39,16 +39,12 @@ function FeedbackSuccessDialog({ onClose }: TFeedbackSuccessDialogProps) {
 }
 
 export function OrderFeedbackPage({ orderId }: TOrderFeedbackPageProps) {
+    const { isAuthenticated } = useAuth();
+    if (!isAuthenticated) return <PageSpinner />;
     return (
-        <ErrorBoundary
-            fallbackRender={({ resetErrorBoundary }) => (
-                <PageError message="Ошибка загрузки отзыва" onRetry={resetErrorBoundary} />
-            )}
-        >
-            <Suspense fallback={<PageSpinner />}>
-                <OrderFeedbackContent orderId={orderId} />
-            </Suspense>
-        </ErrorBoundary>
+        <QueryBoundary errorMessage="Ошибка загрузки отзыва" resetKeys={[orderId]}>
+            <OrderFeedbackContent orderId={orderId} />
+        </QueryBoundary>
     );
 }
 

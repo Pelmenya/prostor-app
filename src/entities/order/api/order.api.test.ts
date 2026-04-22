@@ -157,6 +157,55 @@ describe('order API', () => {
         });
     });
 
+    describe('Suspense-контракт', () => {
+        it('useGetOrderById.data никогда не undefined после загрузки', async () => {
+            mockApi.mockResolvedValue(MOCK_ORDER);
+            const { wrapper } = createWrapper();
+            const { result } = renderHook(() => useGetOrderById(1), { wrapper });
+            await waitFor(() => expect(result.current.data).toBeDefined());
+            expect(result.current.data.id).toBe(1);
+        });
+
+        it('useGetOrderById ставит ошибку в query state при неудачном запросе', async () => {
+            const error = new Error('Network error');
+            mockApi.mockRejectedValue(error);
+            const { wrapper, queryClient } = createWrapper();
+            renderHook(() => useGetOrderById(1), { wrapper });
+            // useSuspenseQuery выбрасывает — проверяем через queryClient state
+            await waitFor(() => {
+                const state = queryClient.getQueryState(orderKeys.detail(1));
+                expect(state?.error).toBeInstanceOf(Error);
+            });
+        });
+
+        it('useGetOrders.data никогда не undefined после загрузки', async () => {
+            mockApi.mockResolvedValue(MOCK_PAGINATED_RESPONSE);
+            const { wrapper } = createWrapper();
+            const { result } = renderHook(() => useGetOrders({ limit: 10 }), { wrapper });
+            await waitFor(() => expect(result.current.data).toBeDefined());
+            expect(result.current.data.pages).toHaveLength(1);
+        });
+
+        it('fetchNextPage не обнуляет данные первой страницы — Suspense не срабатывает повторно', async () => {
+            const secondPage = { items: [MOCK_ORDER], nextCursor: null, hasMore: false };
+            mockApi
+                .mockResolvedValueOnce(MOCK_PAGINATED_RESPONSE)
+                .mockResolvedValueOnce(secondPage);
+
+            const { wrapper } = createWrapper();
+            const { result } = renderHook(() => useGetOrders({ limit: 10 }), { wrapper });
+
+            await waitFor(() => expect(result.current.isSuccess).toBe(true));
+            expect(result.current.data.pages).toHaveLength(1);
+
+            result.current.fetchNextPage();
+
+            // Ожидаем вторую страницу — data первой страницы должна сохраниться
+            await waitFor(() => expect(result.current.data.pages).toHaveLength(2));
+            expect(result.current.data.pages[0]).toEqual(MOCK_PAGINATED_RESPONSE);
+        });
+    });
+
     describe('useUpdateOrderStatus', () => {
         it('PATCH /order/:id/status и инвалидирует detail + all', async () => {
             mockApi.mockResolvedValue({ ...MOCK_ORDER, status: EOrderStatus.CONFIRMED });

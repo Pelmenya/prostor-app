@@ -1,4 +1,5 @@
-import { AddressDetailPage } from '@/views/addresses';
+import { notFound } from 'next/navigation';
+import { AddressDetailClient } from './real-estate-detail-client';
 
 type TProps = {
     params: Promise<{ id: string }>;
@@ -6,5 +7,7 @@ type TProps = {
 
 export default async function RealEstateDetailRoute({ params }: TProps) {
     const { id } = await params;
-    return <AddressDetailPage id={Number(id)} />;
+    const numId = Number(id);
+    if (!Number.isFinite(numId) || numId <= 0) notFound();
+    return <AddressDetailClient id={numId} />;
 }

@@ -1,7 +1,5 @@
 'use client';
 
-import { Suspense } from 'react';
-import { ErrorBoundary } from 'react-error-boundary';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { PlusCircleIcon } from '@heroicons/react/24/solid';
@@ -10,19 +8,16 @@ import {
     useInstalledEquipmentForRealEstates,
     getCriticalStats,
 } from '@/entities/installed-equipment';
-import { PageContainer, PageTitle, PageSpinner, PageError } from '@/shared/ui';
+import { PageContainer, PageTitle, PageSpinner, QueryBoundary } from '@/shared/ui';
+import { useAuth } from '@/shared/lib/platform';
 
 export function AddressesPage() {
+    const { isAuthenticated } = useAuth();
+    if (!isAuthenticated) return <PageSpinner />;
     return (
-        <ErrorBoundary
-            fallbackRender={({ resetErrorBoundary }) => (
-                <PageError message="Не удалось загрузить адреса" onRetry={resetErrorBoundary} />
-            )}
-        >
-            <Suspense fallback={<PageSpinner />}>
-                <AddressesContent />
-            </Suspense>
-        </ErrorBoundary>
+        <QueryBoundary errorMessage="Не удалось загрузить адреса">
+            <AddressesContent />
+        </QueryBoundary>
     );
 }
 

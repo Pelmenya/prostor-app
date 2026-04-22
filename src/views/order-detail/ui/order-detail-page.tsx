@@ -1,13 +1,13 @@
 'use client';
 
-import { Suspense, useState } from 'react';
-import { ErrorBoundary } from 'react-error-boundary';
+import { useState } from 'react';
 import { useGetOrderById, useUpdateOrderStatus, EOrderStatus } from '@/entities/order';
 import { CartReadonlyView } from '@/features/cart';
 import { useSingleOrderThumbnails } from '@/features/orders';
 import Image from 'next/image';
 import { formatPrice, formatUserInitials } from '@/shared/lib';
-import { ConfirmDialog, PageContainer, PageTitle, PageSpinner, PageError } from '@/shared/ui';
+import { ConfirmDialog, PageContainer, PageTitle, PageSpinner, QueryBoundary } from '@/shared/ui';
+import { useAuth } from '@/shared/lib/platform';
 import { HomeIcon, MapPinIcon } from '@heroicons/react/24/solid';
 import { OrderCompactItems } from './order-compact-items';
 import { OrderStatusBlock } from './order-status-block';
@@ -18,16 +18,12 @@ type TOrderDetailPageProps = {
 };
 
 export function OrderDetailPage({ orderId }: TOrderDetailPageProps) {
+    const { isAuthenticated } = useAuth();
+    if (!isAuthenticated) return <PageSpinner />;
     return (
-        <ErrorBoundary
-            fallbackRender={({ resetErrorBoundary }) => (
-                <PageError message="Ошибка загрузки заказа" onRetry={resetErrorBoundary} />
-            )}
-        >
-            <Suspense fallback={<PageSpinner />}>
-                <OrderDetailContent orderId={orderId} />
-            </Suspense>
-        </ErrorBoundary>
+        <QueryBoundary errorMessage="Ошибка загрузки заказа" resetKeys={[orderId]}>
+            <OrderDetailContent orderId={orderId} />
+        </QueryBoundary>
     );
 }
 

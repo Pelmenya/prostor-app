@@ -94,6 +94,35 @@ describe('real-estate API', () => {
         });
     });
 
+    describe('Suspense-контракт', () => {
+        it('useRealEstates.data никогда не undefined после загрузки', async () => {
+            mockApi.mockResolvedValue([MOCK_REAL_ESTATE]);
+            const { wrapper } = createWrapper();
+            const { result } = renderHook(() => useRealEstates(), { wrapper });
+            await waitFor(() => expect(result.current.data).toBeDefined());
+            expect(result.current.data).toHaveLength(1);
+        });
+
+        it('useRealEstate.data никогда не undefined после загрузки', async () => {
+            mockApi.mockResolvedValue(MOCK_REAL_ESTATE);
+            const { wrapper } = createWrapper();
+            const { result } = renderHook(() => useRealEstate(1), { wrapper });
+            await waitFor(() => expect(result.current.data).toBeDefined());
+            expect(result.current.data.id).toBe(1);
+        });
+
+        it('useRealEstate ставит ошибку в query state при неудачном запросе', async () => {
+            mockApi.mockRejectedValue(new Error('Not found'));
+            const { wrapper, queryClient } = createWrapper();
+            renderHook(() => useRealEstate(999), { wrapper });
+            // useSuspenseQuery выбрасывает — проверяем через queryClient state
+            await waitFor(() => {
+                const state = queryClient.getQueryState(realEstateKeys.detail(999));
+                expect(state?.error).toBeInstanceOf(Error);
+            });
+        });
+    });
+
     describe('useCreateRealEstate', () => {
         it('POST /real-estate и инвалидирует список', async () => {
             mockApi.mockResolvedValue(MOCK_REAL_ESTATE);

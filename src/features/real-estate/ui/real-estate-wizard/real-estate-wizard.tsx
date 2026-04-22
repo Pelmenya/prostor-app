@@ -1,15 +1,15 @@
 'use client';
 
-import { Suspense, useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
-import { ErrorBoundary } from 'react-error-boundary';
 import { StepOne } from './components/step-one/step-one';
 import { StepTwo } from './components/step-two/step-two';
 import { StepThree } from './components/step-three/step-three';
 import { WizardStepper } from './components/wizard-stepper/wizard-stepper';
 import { useRealEstate } from '@/entities/real-estate';
 import { useRealEstateWizardStore } from '../../model/real-estate-wizard.store';
-import { PageTitle } from '@/shared/ui';
+import { PageTitle, QueryBoundary } from '@/shared/ui';
+import type { TRealEstate } from '@/shared/model';
 
 type TRealEstateWizardProps = {
     id?: string;
@@ -23,21 +23,17 @@ export function RealEstateWizard(props: TRealEstateWizardProps) {
 
     if (id) {
         return (
-            <ErrorBoundary
-                fallbackRender={() => (
-                    <div className="alert alert-error text-sm">Ошибка загрузки объекта</div>
-                )}
+            <QueryBoundary
+                errorMessage="Ошибка загрузки объекта"
+                resetKeys={[id]}
+                fallback={
+                    <div className="w-full h-full flex items-center justify-center">
+                        <span className="loading loading-spinner loading-xs text-primary" />
+                    </div>
+                }
             >
-                <Suspense
-                    fallback={
-                        <div className="w-full h-full flex items-center justify-center">
-                            <span className="loading loading-spinner loading-xs text-primary" />
-                        </div>
-                    }
-                >
-                    <RealEstateWizardEdit {...props} id={id} />
-                </Suspense>
-            </ErrorBoundary>
+                <RealEstateWizardEdit {...props} id={id} />
+            </QueryBoundary>
         );
     }
 
@@ -52,7 +48,7 @@ function RealEstateWizardEdit(props: TRealEstateWizardEditProps) {
 }
 
 type TRealEstateWizardFormProps = TRealEstateWizardProps & {
-    data: ReturnType<typeof useRealEstate>['data'] | undefined;
+    data: TRealEstate | undefined;
 };
 
 function RealEstateWizardForm({
@@ -78,6 +74,8 @@ function RealEstateWizardForm({
     const setWaterIntakePoints = useRealEstateWizardStore((s) => s.setWaterIntakePoints);
     const setDepthWaterSource = useRealEstateWizardStore((s) => s.setDepthWaterSource);
 
+    // Храним id, для которого уже инициализировали стор.
+    // Предотвращает перезапись изменений пользователя при refetchOnWindowFocus.
     const initializedForId = useRef<string | undefined>(undefined);
 
     useEffect(() => {

@@ -1,4 +1,5 @@
-import { EditAddressPage } from '@/views/addresses';
+import { notFound } from 'next/navigation';
+import { EditAddressClient } from './real-estate-edit-client';
 
 type TProps = {
     params: Promise<{ id: string }>;
@@ -6,5 +7,7 @@ type TProps = {
 
 export default async function EditRealEstateRoute({ params }: TProps) {
     const { id } = await params;
-    return <EditAddressPage id={id} />;
+    const numId = Number(id);
+    if (!Number.isFinite(numId) || numId <= 0) notFound();
+    return <EditAddressClient id={id} />;
 }

@@ -1,5 +1,5 @@
-import { AddressesPage } from '@/views/addresses';
+import { AddressesClient } from './real-estate-client';
 
 export default function RealEstateRoute() {
-    return <AddressesPage />;
+    return <AddressesClient />;
 }

@@ -1,32 +1,31 @@
 'use client';
 
-import { Suspense, useState } from 'react';
-import { ErrorBoundary } from 'react-error-boundary';
+import { useState, useTransition } from 'react';
 import { useGetOrders, useGetOrdersCount } from '@/entities/order';
 import { useOrderThumbnails, TAB_STATUS_PRESETS } from '@/features/orders';
 import type { TTabType } from '@/features/orders';
-import { PageSpinner, PageError } from '@/shared/ui';
+import { PageSpinner, QueryBoundary } from '@/shared/ui';
+import { useAuth } from '@/shared/lib/platform';
 import { OrdersPageContent } from './orders-page-content';
 
 export function OrdersPage() {
+    const { isAuthenticated } = useAuth();
+    if (!isAuthenticated) return <PageSpinner />;
     return (
-        <ErrorBoundary
-            fallbackRender={({ resetErrorBoundary }) => (
-                <PageError message="Ошибка загрузки заказов" onRetry={resetErrorBoundary} />
-            )}
-        >
-            <Suspense fallback={<PageSpinner />}>
-                <OrdersContent />
-            </Suspense>
-        </ErrorBoundary>
+        <QueryBoundary errorMessage="Ошибка загрузки заказов">
+            <OrdersContent />
+        </QueryBoundary>
     );
 }
 
 function OrdersContent() {
     const [activeTab, setActiveTab] = useState<TTabType>('actual');
+    const [isPending, startTransition] = useTransition();
 
     const statusFilter = TAB_STATUS_PRESETS[activeTab];
 
+    // useSuspenseInfiniteQuery suspend'ит только первую страницу.
+    // fetchNextPage() использует isFetchingNextPage — локальный индикатор внутри OrderList.
     const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = useGetOrders({
         limit: 10,
         status: [...statusFilter],
@@ -50,6 +49,10 @@ function OrdersContent() {
     const isCountsLoaded = !isActualCountLoading && !isCompletedCountLoading;
     const hasAnyOrders = isCountsLoaded && (actualCount > 0 || completedCount > 0);
 
+    const handleTabChange = (tab: TTabType) => {
+        startTransition(() => setActiveTab(tab));
+    };
+
     const handleLoadMore = () => {
         if (hasNextPage && !isFetchingNextPage) {
             void fetchNextPage();
@@ -57,22 +60,24 @@ function OrdersContent() {
     };
 
     return (
-        <OrdersPageContent
-            orders={orders}
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-            hasOrders={hasOrders}
-            hasAnyOrders={hasAnyOrders}
-            isCountsLoaded={isCountsLoaded}
-            hasMore={!!hasNextPage}
-            isLoadingMore={isFetchingNextPage}
-            onLoadMore={handleLoadMore}
-            actualCount={actualCountData?.count}
-            completedCount={completedCountData?.count}
-            isActualCountLoading={isActualCountLoading}
-            isCompletedCountLoading={isCompletedCountLoading}
-            imageUrls={imageUrls}
-            loadingIds={loadingIds}
-        />
+        <div className={isPending ? 'opacity-60 transition-opacity' : ''}>
+            <OrdersPageContent
+                orders={orders}
+                activeTab={activeTab}
+                onTabChange={handleTabChange}
+                hasOrders={hasOrders}
+                hasAnyOrders={hasAnyOrders}
+                isCountsLoaded={isCountsLoaded}
+                hasMore={!!hasNextPage}
+                isLoadingMore={isFetchingNextPage}
+                onLoadMore={handleLoadMore}
+                actualCount={actualCountData?.count}
+                completedCount={completedCountData?.count}
+                isActualCountLoading={isActualCountLoading}
+                isCompletedCountLoading={isCompletedCountLoading}
+                imageUrls={imageUrls}
+                loadingIds={loadingIds}
+            />
+        </div>
     );
 }

@@ -201,6 +201,7 @@ FSD 2.1 — **строгое архитектурное требование**. 
 - **Компоненты по умолчанию серверные** (без `'use client'`). `'use client'` только когда нужен клиентский JS
 - **Header/Footer в layout, не в views.** `app/(web)/layout.tsx` оборачивает все web-страницы. Views содержат только контент. Не дублировать обрамление в каждом view
 - **ISR/SSR для публичных данных.** Каталог, товары — prefetchQuery на сервере + HydrationBoundary + revalidate. Скелетоны только как fallback, не основной UX
+- **`useSuspenseQuery` vs `useQuery`:** `useSuspenseQuery` / `useSuspenseInfiniteQuery` — когда данные **обязательны** для рендера страницы (detail-страницы, защищённые списки). Страница оборачивается в `<QueryBoundary>` — auth guard ставится **до** него (иначе незалогиненный получит 401 вместо спиннера). `useQuery` / `useInfiniteQuery` с `enabled` — когда запрос условный (поиск с непустым `q`, счётчики, опциональные lookup'ы). `useSuspenseQuery` не поддерживает `enabled: false`.
 - **FSD Public API обязательно.** Каждый слайс экспортирует через `index.ts`. Импорт из внутренних файлов (`features/catalog/ui/product-card/product-card.tsx`) запрещён — только через `@/features/catalog`
 - **Бизнес-типы в `shared/model/`.** TProduct, TUser, TGroup — единый источник правды. Entities реэкспортируют, не дублируют
 - **Не дублировать логику.** Общие паттерны (хлебные крошки, форматирование цен) — выносить в хуки/утилиты в features или shared
