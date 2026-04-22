@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { useCartStore } from '@/entities/cart';
 import { useAuth } from '@/shared/lib/platform';
 import { useClientVisitPrices } from '@/entities/delivery';
@@ -156,7 +156,16 @@ export function CheckoutPage() {
                 <div className="flex flex-col gap-4 pb-4">
                     <PageTitle>Оформление</PageTitle>
 
-                    <CheckoutAddressSelector onChange={handleAddressChange} />
+                    <Suspense
+                        fallback={
+                            <div className="flex flex-col gap-4">
+                                <div className="skeleton h-4 w-20" />
+                                <div className="skeleton h-26.5 w-full rounded-2xl" />
+                            </div>
+                        }
+                    >
+                        <CheckoutAddressSelector onChange={handleAddressChange} />
+                    </Suspense>
 
                     {selectedRealEstateId && hasContent && (
                         <>

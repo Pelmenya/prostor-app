@@ -14,12 +14,12 @@ type TCheckoutAddressSelectorProps = {
 };
 
 export function CheckoutAddressSelector({ onChange }: TCheckoutAddressSelectorProps) {
-    const { data, isLoading, error } = useRealEstates();
+    const { data } = useRealEstates();
     const selectedRealEstateId = useCheckoutStore((s) => s.selectedRealEstateId);
     const setSelectedRealEstateId = useCheckoutStore((s) => s.setSelectedRealEstateId);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    const selectedRealEstate = data?.find((re) => re.id === selectedRealEstateId) ?? null;
+    const selectedRealEstate = data.find((re) => re.id === selectedRealEstateId) ?? null;
 
     const handleSelect = (id: number) => {
         setSelectedRealEstateId(id);
@@ -27,20 +27,7 @@ export function CheckoutAddressSelector({ onChange }: TCheckoutAddressSelectorPr
         onChange?.(id);
     };
 
-    if (isLoading) {
-        return (
-            <div className="flex flex-col gap-4">
-                <div className="skeleton h-4 w-20" />
-                <div className="skeleton h-26.5 w-full rounded-2xl" />
-            </div>
-        );
-    }
-
-    if (error) {
-        return <p className="text-error text-sm">Не удалось загрузить адреса</p>;
-    }
-
-    if (!data?.length) {
+    if (!data.length) {
         return (
             <CheckoutSection title="Адрес">
                 <div className="rounded-2xl bg-base-100 p-4 flex flex-col items-center gap-3 text-sm text-center">

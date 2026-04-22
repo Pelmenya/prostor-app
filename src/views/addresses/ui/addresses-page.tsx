@@ -8,13 +8,24 @@ import {
     useInstalledEquipmentForRealEstates,
     getCriticalStats,
 } from '@/entities/installed-equipment';
-import { PageContainer, PageTitle } from '@/shared/ui';
+import { PageContainer, PageTitle, PageSpinner, QueryBoundary } from '@/shared/ui';
+import { useAuth } from '@/shared/lib/platform';
 
 export function AddressesPage() {
+    const { isAuthenticated } = useAuth();
+    if (!isAuthenticated) return <PageSpinner />;
+    return (
+        <QueryBoundary errorMessage="Не удалось загрузить адреса">
+            <AddressesContent />
+        </QueryBoundary>
+    );
+}
+
+function AddressesContent() {
     const router = useRouter();
-    const { data: realEstates, isLoading, isError } = useRealEstates();
+    const { data: realEstates } = useRealEstates();
     const { equipmentByRealEstate } = useInstalledEquipmentForRealEstates(
-        realEstates?.map((re) => re.id) ?? [],
+        realEstates.map((re) => re.id),
     );
 
     return (
@@ -28,18 +39,7 @@ export function AddressesPage() {
                     </Link>
                 </div>
 
-                {isLoading && (
-                    <div className="flex flex-col gap-3">
-                        <div className="skeleton h-24 w-full rounded-2xl" />
-                        <div className="skeleton h-24 w-full rounded-2xl" />
-                    </div>
-                )}
-
-                {isError && (
-                    <div className="alert alert-error text-sm">Не удалось загрузить адреса</div>
-                )}
-
-                {!isLoading && !isError && (!realEstates || realEstates.length === 0) && (
+                {realEstates.length === 0 && (
                     <div className="card bg-base-100 border border-base-300 p-8 text-center">
                         <p className="text-base-content/60 mb-4">У вас пока нет адресов</p>
                         <Link href="/real-estate/add" className="btn btn-primary btn-sm mx-auto">
@@ -48,7 +48,7 @@ export function AddressesPage() {
                     </div>
                 )}
 
-                {realEstates && realEstates.length > 0 && (
+                {realEstates.length > 0 && (
                     <div className="flex flex-col gap-3">
                         {realEstates.map((re) => {
                             const equipment = equipmentByRealEstate[re.id] ?? [];

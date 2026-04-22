@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { createElement, type ReactNode } from 'react';
+import { createElement, Suspense, type ReactNode } from 'react';
 import {
     realEstateKeys,
     useRealEstates,
@@ -25,7 +25,11 @@ function createWrapper() {
     return {
         queryClient,
         wrapper: ({ children }: { children: ReactNode }) =>
-            createElement(QueryClientProvider, { client: queryClient }, children),
+            createElement(
+                QueryClientProvider,
+                { client: queryClient },
+                createElement(Suspense, { fallback: null }, children),
+            ),
     };
 }
 
@@ -88,13 +92,34 @@ describe('real-estate API', () => {
             await waitFor(() => expect(result.current.isSuccess).toBe(true));
             expect(mockApi).toHaveBeenCalledWith('/real-estate/1');
         });
+    });
 
-        it('не отправляет запрос при id <= 0', () => {
+    describe('Suspense-контракт', () => {
+        it('useRealEstates.data никогда не undefined после загрузки', async () => {
+            mockApi.mockResolvedValue([MOCK_REAL_ESTATE]);
             const { wrapper } = createWrapper();
+            const { result } = renderHook(() => useRealEstates(), { wrapper });
+            await waitFor(() => expect(result.current.data).toBeDefined());
+            expect(result.current.data).toHaveLength(1);
+        });
 
-            renderHook(() => useRealEstate(0), { wrapper });
+        it('useRealEstate.data никогда не undefined после загрузки', async () => {
+            mockApi.mockResolvedValue(MOCK_REAL_ESTATE);
+            const { wrapper } = createWrapper();
+            const { result } = renderHook(() => useRealEstate(1), { wrapper });
+            await waitFor(() => expect(result.current.data).toBeDefined());
+            expect(result.current.data.id).toBe(1);
+        });
 
-            expect(mockApi).not.toHaveBeenCalled();
+        it('useRealEstate ставит ошибку в query state при неудачном запросе', async () => {
+            mockApi.mockRejectedValue(new Error('Not found'));
+            const { wrapper, queryClient } = createWrapper();
+            renderHook(() => useRealEstate(999), { wrapper });
+            // useSuspenseQuery выбрасывает — проверяем через queryClient state
+            await waitFor(() => {
+                const state = queryClient.getQueryState(realEstateKeys.detail(999));
+                expect(state?.error).toBeInstanceOf(Error);
+            });
         });
     });
 

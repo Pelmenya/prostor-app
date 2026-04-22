@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useSuspenseQuery, useQueryClient } from '@tanstack/react-query';
 import { useApi } from '@/shared/api';
 import type { TOrderFeedback, TOrderFeedbackParameters } from '@/shared/model';
 
@@ -10,13 +10,12 @@ export const orderFeedbackKeys = {
         ['order-feedback', 'executor-detailed', executorId] as const,
 };
 
-export function useGetMyOrderFeedback(orderId: number, options?: { enabled?: boolean }) {
+export function useGetMyOrderFeedback(orderId: number) {
     const api = useApi();
-    return useQuery<TOrderFeedback | null>({
+    return useSuspenseQuery<TOrderFeedback | null>({
         queryKey: orderFeedbackKeys.myFeedback(orderId),
         queryFn: async () =>
             (await api<TOrderFeedback | null>(`/order-feedback/order/${orderId}/my`)) ?? null,
-        enabled: options?.enabled ?? true,
     });
 }
 

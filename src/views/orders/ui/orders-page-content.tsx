@@ -8,7 +8,6 @@ type TOrdersPageContentProps = {
     activeTab: TTabType;
     onTabChange: (tab: TTabType) => void;
     hasOrders: boolean;
-    isInitialLoading: boolean;
     hasAnyOrders: boolean;
     isCountsLoaded: boolean;
     hasMore: boolean;
@@ -27,7 +26,6 @@ export function OrdersPageContent({
     activeTab,
     onTabChange,
     hasOrders,
-    isInitialLoading,
     hasAnyOrders,
     isCountsLoaded,
     hasMore,
@@ -56,12 +54,7 @@ export function OrdersPageContent({
                     />
                 )}
 
-                {isInitialLoading ? (
-                    <div className="flex flex-col items-center justify-center gap-4 py-20">
-                        <div className="loading loading-spinner loading-lg" />
-                        <div className="text-base-content/70">Загрузка заказов...</div>
-                    </div>
-                ) : hasOrders ? (
+                {hasOrders ? (
                     <OrderList
                         orders={orders}
                         hasMore={hasMore}
