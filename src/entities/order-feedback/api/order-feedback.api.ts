@@ -1,4 +1,4 @@
-import { useMutation, useSuspenseQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useSuspenseQuery, useQueryClient } from '@tanstack/react-query';
 import { useApi } from '@/shared/api';
 import type {
     TOrderFeedback,

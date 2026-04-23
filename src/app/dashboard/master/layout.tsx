@@ -11,7 +11,6 @@ export default function MasterLayout({ children }: { children: React.ReactNode }
 
     useEffect(() => {
         if (isLoading) return;
-        console.log('[MasterLayout] user:', user);
         if (!user) {
             router.replace('/');
             return;
