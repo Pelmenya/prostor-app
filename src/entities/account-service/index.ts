@@ -1,4 +1,9 @@
-export { useAccountService, accountServiceKeys } from './api/account-service.api';
+export {
+    useAccountService,
+    useUpdateAccountService,
+    accountServiceKeys,
+} from './api/account-service.api';
+export type { TUpdateAccountService } from './model/t-update-account-service';
 
 export type { TAccountService } from './model/t-account-service';
 export type { TServiceSetup } from './model/t-service-setup';
