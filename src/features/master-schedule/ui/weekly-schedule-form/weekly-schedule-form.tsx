@@ -73,7 +73,7 @@ export function WeeklyScheduleForm() {
                         max={12}
                         value={calendarMonths}
                         onChange={(e) => setCalendarMonths(Number(e.target.value))}
-                        className="range range-primary range-sm"
+                        className="range range-primary range-sm w-full"
                     />
                     <div className="flex justify-between text-xs text-base-content/40 px-1">
                         <span>0</span>
