@@ -50,3 +50,4 @@ export type {
     TDetailedRating,
 } from './t-detailed-rating';
 export type { TExecutorAverageRating } from './t-executor-average-rating';
+export type { TWorkDay } from './t-work-day';

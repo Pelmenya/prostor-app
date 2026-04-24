@@ -1,5 +1,6 @@
 import type { EDepartureBasis } from './e-departure-basis';
 import type { EServiceGrade } from './e-service-grade';
+import type { TWorkDay } from '@/shared/model';
 
 export type TUpdateAccountService = {
     grade?: EServiceGrade;
@@ -15,4 +16,6 @@ export type TUpdateAccountService = {
     coordinates?: { type: 'Point'; coordinates: [number, number] };
     departureBasis?: EDepartureBasis;
     storeId?: string | null;
+    workDays?: TWorkDay[];
+    calendarMonths?: number;
 };

@@ -1,6 +1,7 @@
 import type { EDepartureBasis } from './e-departure-basis';
 import type { EServiceGrade } from './e-service-grade';
 import type { TServiceSetup } from './t-service-setup';
+import type { TWorkDay } from '@/shared/model';
 
 export type TAccountService = {
     id: string | null;
@@ -22,4 +23,6 @@ export type TAccountService = {
     needsOfferReaccept: boolean | null;
     serviceSetup: TServiceSetup | null;
     coordinates: { type: 'Point'; coordinates: [number, number] } | null;
+    workDays: TWorkDay[] | null;
+    calendarMonths: number | null;
 };
