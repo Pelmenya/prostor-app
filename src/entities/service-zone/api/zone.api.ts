@@ -1,4 +1,4 @@
-import { useMutation, useSuspenseQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useSuspenseQuery, useQueryClient } from '@tanstack/react-query';
 import { useApi } from '@/shared/api';
 import type { TServiceZone } from '../model/t-service-zone';
 
@@ -19,6 +19,18 @@ export function useGetZones() {
 export function useGetMyZones() {
     const api = useApi();
     return useSuspenseQuery<TServiceZone[]>({
+        queryKey: zoneKeys.my(),
+        queryFn: async () => {
+            const data = await api<TServiceZone[]>('/zones/my');
+            return data ?? [];
+        },
+    });
+}
+
+// Не-suspense версия для виджетов: не блокирует рендер, берёт кеш если есть
+export function useMyZonesCount() {
+    const api = useApi();
+    return useQuery<TServiceZone[]>({
         queryKey: zoneKeys.my(),
         queryFn: async () => {
             const data = await api<TServiceZone[]>('/zones/my');

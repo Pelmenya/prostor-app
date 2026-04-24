@@ -2,6 +2,7 @@
 
 import { useCurrentUser } from '@/entities/user';
 import { useAccountService } from '@/entities/account-service';
+import { useMyZonesCount } from '@/entities/service-zone';
 import { QueryBoundary, PageSpinner } from '@/shared/ui';
 import { useAuth } from '@/shared/lib/platform';
 import {
@@ -28,6 +29,7 @@ export function MasterAccountPage() {
 function MasterAccountContent() {
     const { data: user } = useCurrentUser();
     const { data: accountService } = useAccountService();
+    const { data: myZones } = useMyZonesCount();
 
     const hasLocation = !!accountService?.address;
 
@@ -51,7 +53,7 @@ function MasterAccountContent() {
 
             <QualificationCard grade={accountService?.grade} />
 
-            {hasLocation && <ServiceAreaCard />}
+            {hasLocation && <ServiceAreaCard zoneCount={myZones?.length} />}
 
             <ScheduleCard />
 
