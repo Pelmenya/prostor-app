@@ -50,7 +50,7 @@ function MasterPersonalInfoContent() {
                     </div>
                 )}
                 <ProfileForm user={user ?? null} onSubmit={handleSubmit} isLoading={isPending} />
-                <div className="card bg-base-100 rounded-2xl p-4">
+                <div className="card bg-base-100 rounded-2xl p-4 max-w-md mx-auto w-full">
                     <div className="flex items-center justify-between gap-3">
                         <div className="flex flex-col gap-0.5 min-w-0">
                             <p className="text-xs text-base-content/50">Email</p>
