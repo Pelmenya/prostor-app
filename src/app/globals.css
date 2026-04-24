@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@import 'react-datepicker/dist/react-datepicker.css';
 @plugin "daisyui" {
     themes:
         light --default,
@@ -90,6 +91,35 @@
 @utility full-bleed {
     margin-inline: calc(-1 * var(--page-padding));
     width: calc(100% + 2 * var(--page-padding));
+}
+
+/* react-datepicker: подстройка под тему */
+.react-datepicker {
+    font-family: inherit;
+    border: 1px solid oklch(95% 0 0);
+    border-radius: 1rem;
+    overflow: hidden;
+    width: 100%;
+}
+.react-datepicker__month-container {
+    width: 100%;
+}
+.react-datepicker__header {
+    background: oklch(98% 0 0);
+    border-bottom: 1px solid oklch(95% 0 0);
+}
+.react-datepicker__day--highlighted-future {
+    background-color: oklch(54% 0.245 262.881);
+    color: oklch(93% 0.034 272.788);
+    border-radius: 0.375rem;
+}
+.react-datepicker__day--highlighted-future:hover {
+    background-color: oklch(46% 0.245 262.881);
+}
+.react-datepicker__day--highlighted-past {
+    background-color: oklch(80% 0 0);
+    color: oklch(40% 0 0);
+    border-radius: 0.375rem;
 }
 
 @utility leading-110 {

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { XMarkIcon } from '@heroicons/react/24/outline';
+import { CompactModal } from '@/shared/ui';
 import type { TWorkDay } from '@/shared/model';
 
 const DAY_NAMES = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
@@ -52,42 +52,27 @@ export function WorkDayTimeEditor({ workDay, onSave, onRemove, onClose }: TWorkD
     }
 
     return (
-        <div className="fixed inset-0 z-50 flex items-end justify-center">
-            <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-            <div className="relative w-full max-w-lg bg-base-100 rounded-t-2xl p-6 flex flex-col gap-5">
-                <div className="flex items-center justify-between">
-                    <p className="font-semibold text-base">{dayName}</p>
-                    <button
-                        onClick={onClose}
-                        className="btn btn-ghost btn-sm btn-circle"
-                        aria-label="Закрыть"
-                    >
-                        <XMarkIcon className="size-5" />
-                    </button>
+        <CompactModal isOpen onClose={onClose} title={dayName}>
+            <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-1">
+                    <label className="text-sm text-base-content/60">Начало рабочего дня</label>
+                    <input
+                        type="time"
+                        value={startTime}
+                        onChange={(e) => setStartTime(e.target.value)}
+                        className="input input-bordered input-sm w-full"
+                    />
                 </div>
-
-                <div className="flex flex-col gap-4">
-                    <div className="flex flex-col gap-1">
-                        <label className="text-sm text-base-content/60">Начало рабочего дня</label>
-                        <input
-                            type="time"
-                            value={startTime}
-                            onChange={(e) => setStartTime(e.target.value)}
-                            className="input input-bordered input-sm w-full"
-                        />
-                    </div>
-                    <div className="flex flex-col gap-1">
-                        <label className="text-sm text-base-content/60">Конец рабочего дня</label>
-                        <input
-                            type="time"
-                            value={endTime}
-                            onChange={(e) => setEndTime(e.target.value)}
-                            className="input input-bordered input-sm w-full"
-                        />
-                    </div>
+                <div className="flex flex-col gap-1">
+                    <label className="text-sm text-base-content/60">Конец рабочего дня</label>
+                    <input
+                        type="time"
+                        value={endTime}
+                        onChange={(e) => setEndTime(e.target.value)}
+                        className="input input-bordered input-sm w-full"
+                    />
                 </div>
-
-                <div className="flex gap-2">
+                <div className="flex gap-2 pt-1">
                     <button onClick={handleSave} className="btn btn-primary flex-1">
                         Сохранить
                     </button>
@@ -101,6 +86,6 @@ export function WorkDayTimeEditor({ workDay, onSave, onRemove, onClose }: TWorkD
                     )}
                 </div>
             </div>
-        </div>
+        </CompactModal>
     );
 }

@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
-import { WeeklyScheduleForm } from '@/features/master-schedule';
+import { WeeklyScheduleForm, WorkScheduleCalendar } from '@/features/master-schedule';
 import { PageContainer, PageTitle, PageSpinner, QueryBoundary } from '@/shared/ui';
 import { useAuth } from '@/shared/lib/platform';
 
@@ -31,12 +31,25 @@ function MasterScheduleContent() {
                 </button>
                 <PageTitle>График работы</PageTitle>
             </div>
-            <div className="flex flex-col gap-6 max-w-lg mx-auto py-4">
-                <p className="text-sm text-base-content/60">
-                    Укажите дни и часы работы. Календарь будет заполнен автоматически на указанное
-                    количество месяцев вперёд.
-                </p>
-                <WeeklyScheduleForm />
+            <div className="flex flex-col gap-8 max-w-lg mx-auto py-4">
+                <div className="flex flex-col gap-3">
+                    <p className="text-sm font-medium">Рабочие дни</p>
+                    <p className="text-sm text-base-content/60">
+                        Нажмите на дату чтобы добавить или изменить рабочий день.
+                    </p>
+                    <WorkScheduleCalendar />
+                </div>
+
+                <div className="divider my-0" />
+
+                <div className="flex flex-col gap-3">
+                    <p className="text-sm font-medium">Еженедельное расписание</p>
+                    <p className="text-sm text-base-content/60">
+                        Шаблон для автоматического заполнения календаря на выбранное количество
+                        месяцев вперёд.
+                    </p>
+                    <WeeklyScheduleForm />
+                </div>
             </div>
         </PageContainer>
     );
