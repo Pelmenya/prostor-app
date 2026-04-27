@@ -43,8 +43,12 @@ export function useGetOrdersByDate(date: string) {
     return useSuspenseQuery<TOrder[]>({
         queryKey: workDayKeys.orders(date),
         queryFn: async () => {
-            const data = await api<TOrder[]>(`/service/work-day/${date}`);
-            return data ?? [];
+            try {
+                const data = await api<TOrder[]>(`/service/work-day/${date}`);
+                return data ?? [];
+            } catch {
+                return [];
+            }
         },
     });
 }
@@ -54,8 +58,12 @@ export function useGetWorkDayRoute(date: string) {
     return useSuspenseQuery<TWorkDayRouteResponse | null>({
         queryKey: workDayKeys.route(date),
         queryFn: async () => {
-            const data = await api<TWorkDayRouteResponse>(`/service/work-day/${date}/route`);
-            return data ?? null;
+            try {
+                const data = await api<TWorkDayRouteResponse>(`/service/work-day/${date}/route`);
+                return data ?? null;
+            } catch {
+                return null;
+            }
         },
     });
 }
