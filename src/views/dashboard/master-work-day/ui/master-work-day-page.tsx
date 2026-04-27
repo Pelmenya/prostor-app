@@ -1,13 +1,12 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeftIcon, MapPinIcon, ClockIcon } from '@heroicons/react/24/outline';
+import { MapPinIcon, ClockIcon } from '@heroicons/react/24/outline';
 import { useAccountService } from '@/entities/account-service';
 import { RouteMap, useGetWorkDayRoute, useGetOrdersByDate } from '@/features/master-work-days';
-import { PageContainer, PageTitle, PageSpinner, QueryBoundary } from '@/shared/ui';
+import { PageContainer, PageSpinner, QueryBoundary, DashboardBackHeader } from '@/shared/ui';
 import { useAuth } from '@/shared/lib/platform';
-import { formatDateRu } from '@/shared/lib';
+import { formatDateRu, formatDuration } from '@/shared/lib';
 
 type TProps = { date: string };
 
@@ -21,20 +20,12 @@ export function MasterWorkDayPage({ date }: TProps) {
     );
 }
 
-function formatDuration(seconds: number): string {
-    const h = Math.floor(seconds / 3600);
-    const m = Math.floor((seconds % 3600) / 60);
-    if (h > 0) return `${h} ч ${m} мин`;
-    return `${m} мин`;
-}
-
 function MasterWorkDayContent({ date }: TProps) {
-    const router = useRouter();
     const { data: accountService } = useAccountService();
     const { data: routeData } = useGetWorkDayRoute(date);
     const { data: orders } = useGetOrdersByDate(date);
 
-    const route = routeData?.route.routes[0] ?? null;
+    const route = routeData?.route?.routes?.[0] ?? null;
     const sortOrders = routeData?.sortOrders ?? orders;
 
     const homeCoords = accountService?.coordinates?.coordinates as [number, number] | undefined;
@@ -59,16 +50,7 @@ function MasterWorkDayContent({ date }: TProps) {
 
     return (
         <PageContainer bg="bg-base-200">
-            <div className="flex items-center gap-3">
-                <button
-                    onClick={() => router.back()}
-                    className="btn btn-ghost btn-sm btn-circle"
-                    aria-label="Назад"
-                >
-                    <ArrowLeftIcon className="size-5" />
-                </button>
-                <PageTitle>{formatDateRu(date)}</PageTitle>
-            </div>
+            <DashboardBackHeader title={formatDateRu(date)} />
 
             <div className="flex flex-col gap-4 max-w-lg mx-auto py-4">
                 {/* Статистика */}

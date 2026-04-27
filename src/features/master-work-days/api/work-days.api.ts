@@ -1,11 +1,8 @@
-import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
+import { useSuspenseQuery } from '@tanstack/react-query';
 import { useApi } from '@/shared/api';
-import type { TWorkDay } from '@/shared/model';
 import type { TOrder } from '@/entities/order';
 
-// Общий ключ с features/master-schedule — кеш shared через TanStack Query
 export const workDayKeys = {
-    list: () => ['schedule', 'work-days'] as const,
     orders: (date: string) => ['schedule', 'work-day', date, 'orders'] as const,
     route: (date: string) => ['schedule', 'work-day', date, 'route'] as const,
 };
@@ -26,17 +23,6 @@ export type TWorkDayRouteResponse = {
     route: { routes: TOsrmRoute[] };
     sortOrders: TOrder[];
 };
-
-export function useGetWorkDaysForCalendar() {
-    const api = useApi();
-    return useQuery<TWorkDay[]>({
-        queryKey: workDayKeys.list(),
-        queryFn: async () => {
-            const data = await api<TWorkDay[]>('/service/work-days');
-            return data ?? [];
-        },
-    });
-}
 
 export function useGetOrdersByDate(date: string) {
     const api = useApi();

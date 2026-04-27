@@ -1,7 +1,7 @@
 import { selectSelectedItems } from '@/entities/cart';
 import type { TCartItem } from '@/entities/cart';
 import { EDeliveryType } from '@/entities/order';
-import type { TWorkDay } from '@/entities/order';
+import type { TWorkDay } from '@/shared/model';
 import type { TClientVisitPriceItem } from '@/entities/delivery';
 import type { TRetailStoreWithRouteInfo } from '@/shared/model';
 import { isEmailValid } from './use-checkout-submit';

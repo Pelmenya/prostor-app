@@ -3,6 +3,7 @@
 import { useCurrentUser } from '@/entities/user';
 import { useAccountService } from '@/entities/account-service';
 import { useMyZonesCount } from '@/entities/service-zone';
+import { useGetExecutorAverageRating } from '@/entities/order-feedback';
 import { QueryBoundary, PageSpinner } from '@/shared/ui';
 import { useAuth } from '@/shared/lib/platform';
 import {
@@ -30,6 +31,7 @@ function MasterAccountContent() {
     const { data: user } = useCurrentUser();
     const { data: accountService } = useAccountService();
     const { data: myZones } = useMyZonesCount();
+    const { data: ratingData } = useGetExecutorAverageRating(user?.id);
 
     const hasLocation = !!accountService?.address;
 
@@ -59,7 +61,7 @@ function MasterAccountContent() {
 
             <WorkCard />
 
-            <RatingCard userId={user?.id} />
+            <RatingCard avgRating={ratingData?.average} />
         </div>
     );
 }

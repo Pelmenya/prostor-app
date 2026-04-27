@@ -5,11 +5,10 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useRouter } from 'next/navigation';
-import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { changeEmail } from '@/features/auth';
 import { ApiError } from '@/shared/api';
 import { useAuth } from '@/shared/lib/platform';
-import { PageContainer, PageTitle, PageSpinner, FormCard, InputField } from '@/shared/ui';
+import { PageContainer, PageSpinner, FormCard, InputField, DashboardBackHeader } from '@/shared/ui';
 
 const schema = z.object({
     email: z.string().email('Неверный формат почты'),
@@ -55,16 +54,7 @@ function MasterChangeEmailContent() {
 
     return (
         <PageContainer bg="bg-base-200">
-            <div className="flex items-center gap-3">
-                <button
-                    onClick={() => router.back()}
-                    className="btn btn-ghost btn-sm btn-circle"
-                    aria-label="Назад"
-                >
-                    <ArrowLeftIcon className="size-5" />
-                </button>
-                <PageTitle>Изменить email</PageTitle>
-            </div>
+            <DashboardBackHeader title="Изменить email" />
             <div className="flex flex-col gap-6 max-w-lg mx-auto py-4">
                 {sentTo ? (
                     <div className="flex flex-col gap-4">

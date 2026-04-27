@@ -4,7 +4,7 @@ import { type FC } from 'react';
 import MapGL, { Marker, NavigationControl } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
-const MAP_STYLE = 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json';
+import { MAP_STYLE } from '@/shared/config';
 
 type TMapViewProps = {
     /** [latitude, longitude] — как в Яндекс Картах */

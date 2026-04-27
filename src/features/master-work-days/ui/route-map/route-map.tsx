@@ -1,11 +1,10 @@
 'use client';
 
-import { useMemo } from 'react';
 import MapGL, { Source, Layer, Marker } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import type { TOsrmRoute } from '../../api/work-days.api';
 
-const MAP_STYLE = 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json';
+import { MAP_STYLE } from '@/shared/config';
 
 type TStop = {
     id: number;
@@ -20,17 +19,14 @@ type TRouteMapProps = {
 };
 
 export function RouteMap({ route, stops, homeCoordinates }: TRouteMapProps) {
-    const routeGeoJson: GeoJSON.Feature = useMemo(
-        () => ({
-            type: 'Feature',
-            geometry: {
-                type: 'LineString',
-                coordinates: route.geometry.coordinates,
-            },
-            properties: {},
-        }),
-        [route],
-    );
+    const routeGeoJson: GeoJSON.Feature = {
+        type: 'Feature',
+        geometry: {
+            type: 'LineString',
+            coordinates: route.geometry.coordinates,
+        },
+        properties: {},
+    };
 
     const center = homeCoordinates ?? route.geometry.coordinates[0];
 

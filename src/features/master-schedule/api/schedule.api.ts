@@ -1,22 +1,7 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useApi } from '@/shared/api';
 import { accountServiceKeys } from '@/entities/account-service';
 import type { TWorkDay } from '@/shared/model';
-
-export const scheduleKeys = {
-    workDays: () => ['schedule', 'work-days'] as const,
-};
-
-export function useGetWorkDays() {
-    const api = useApi();
-    return useQuery<TWorkDay[]>({
-        queryKey: scheduleKeys.workDays(),
-        queryFn: async () => {
-            const data = await api<TWorkDay[]>('/service/work-days');
-            return data ?? [];
-        },
-    });
-}
 
 export function useFillCalendar() {
     const api = useApi();
@@ -24,7 +9,7 @@ export function useFillCalendar() {
     return useMutation({
         mutationFn: () => api<TWorkDay[]>('/service/fill-calendar', { method: 'POST' }),
         onSuccess: (data) => {
-            queryClient.setQueryData(scheduleKeys.workDays(), data ?? []);
+            queryClient.setQueryData(accountServiceKeys.workDays(), data ?? []);
         },
     });
 }
@@ -39,7 +24,7 @@ export function useUpdateCalendarWorkDay() {
                 body: { ...day, isDeleted: false },
             }),
         onSuccess: (data) => {
-            queryClient.setQueryData(scheduleKeys.workDays(), data ?? []);
+            queryClient.setQueryData(accountServiceKeys.workDays(), data ?? []);
         },
     });
 }
@@ -51,7 +36,7 @@ export function useDeleteCalendarWorkDay() {
         mutationFn: (day: TWorkDay) =>
             api<TWorkDay[]>('/service/calendar', { method: 'DELETE', body: day }),
         onSuccess: (data) => {
-            queryClient.setQueryData(scheduleKeys.workDays(), data ?? []);
+            queryClient.setQueryData(accountServiceKeys.workDays(), data ?? []);
             void queryClient.invalidateQueries({ queryKey: accountServiceKeys.my() });
         },
     });

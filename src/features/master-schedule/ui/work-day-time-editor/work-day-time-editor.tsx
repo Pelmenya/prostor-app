@@ -1,24 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { CompactModal } from '@/shared/ui';
 import { useMyZonesCount } from '@/entities/service-zone';
+import { toTimeStr, fromTimeStr } from '@/shared/lib';
 import type { TWorkDay } from '@/shared/model';
 
 const DAY_NAMES = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
-
-function pad(n: number) {
-    return String(n).padStart(2, '0');
-}
-
-function toTimeStr(h: number, m: number) {
-    return `${pad(h)}:${pad(m)}`;
-}
-
-function fromTimeStr(t: string): { h: number; m: number } {
-    const [h, m] = t.split(':').map(Number);
-    return { h: h ?? 0, m: m ?? 0 };
-}
 
 type TWorkDayTimeEditorProps = {
     workDay: TWorkDay;
@@ -33,12 +21,6 @@ export function WorkDayTimeEditor({ workDay, onSave, onRemove, onClose }: TWorkD
     const [zoneId, setZoneId] = useState<number | undefined>(workDay.zoneId);
 
     const { data: myZones = [] } = useMyZonesCount();
-
-    useEffect(() => {
-        setStartTime(toTimeStr(workDay.startHour, workDay.startMinute));
-        setEndTime(toTimeStr(workDay.endHour, workDay.endMinute));
-        setZoneId(workDay.zoneId);
-    }, [workDay]);
 
     const isExisting = !!workDay.id;
     const dayName =

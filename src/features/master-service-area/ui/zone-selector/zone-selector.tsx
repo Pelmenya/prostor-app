@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import {
     useGetZones,
     useGetMyZones,
@@ -24,18 +24,11 @@ export function ZoneSelector({ center, onSuccess }: TZoneSelectorProps) {
 
     const myZoneIds = myZones.map((z) => z.id);
 
-    const visibleZones = useMemo(
-        () => allZones.filter((z) => z.isActive || myZoneIds.includes(z.id)),
-        [allZones, myZoneIds],
-    );
+    const visibleZones = allZones.filter((z) => z.isActive || myZoneIds.includes(z.id));
 
-    const filteredZones = useMemo(
-        () =>
-            search.trim()
-                ? visibleZones.filter((z) => z.name.toLowerCase().includes(search.toLowerCase()))
-                : visibleZones,
-        [visibleZones, search],
-    );
+    const filteredZones = search.trim()
+        ? visibleZones.filter((z) => z.name.toLowerCase().includes(search.toLowerCase()))
+        : visibleZones;
 
     function handleToggle(zoneId: number) {
         setSelection((prev) =>

@@ -1,21 +1,21 @@
-import { EServiceCategory } from '../model/e-service-category';
+import { EMasterSpecialization } from '../model/e-master-specialization';
 import { EServiceGrade } from '../model/e-service-grade';
 
-export function getCategoriesByGrade(grade: EServiceGrade): EServiceCategory[] {
-    const map: Record<EServiceGrade, EServiceCategory[]> = {
+export function getCategoriesByGrade(grade: EServiceGrade): EMasterSpecialization[] {
+    const map: Record<EServiceGrade, EMasterSpecialization[]> = {
         [EServiceGrade.SENIOR_SPECIALIST]: [
-            EServiceCategory.HOUSEHOLD,
-            EServiceCategory.COTTAGE,
-            EServiceCategory.INDUSTRIAL,
-            EServiceCategory.DELIVERY,
+            EMasterSpecialization.HOUSEHOLD,
+            EMasterSpecialization.COTTAGE,
+            EMasterSpecialization.INDUSTRIAL,
+            EMasterSpecialization.DELIVERY,
         ],
         [EServiceGrade.SPECIALIST]: [
-            EServiceCategory.HOUSEHOLD,
-            EServiceCategory.COTTAGE,
-            EServiceCategory.DELIVERY,
+            EMasterSpecialization.HOUSEHOLD,
+            EMasterSpecialization.COTTAGE,
+            EMasterSpecialization.DELIVERY,
         ],
-        [EServiceGrade.MASTER]: [EServiceCategory.HOUSEHOLD, EServiceCategory.DELIVERY],
-        [EServiceGrade.COURIER]: [EServiceCategory.DELIVERY],
+        [EServiceGrade.MASTER]: [EMasterSpecialization.HOUSEHOLD, EMasterSpecialization.DELIVERY],
+        [EServiceGrade.COURIER]: [EMasterSpecialization.DELIVERY],
     };
     return map[grade];
 }

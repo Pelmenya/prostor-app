@@ -103,6 +103,7 @@ export function WeeklyScheduleForm() {
 
             {selectedDay && (
                 <WorkDayTimeEditor
+                    key={selectedDay.dayOfWeek ?? selectedDay.date}
                     workDay={selectedDay}
                     onSave={handleEditorSave}
                     onRemove={handleEditorRemove}

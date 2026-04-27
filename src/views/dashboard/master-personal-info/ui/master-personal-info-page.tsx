@@ -2,14 +2,14 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowLeftIcon, PencilSquareIcon } from '@heroicons/react/24/outline';
+import { PencilSquareIcon } from '@heroicons/react/24/outline';
 import {
     useCurrentUser,
     useUpdateProfile,
     ProfileForm,
     type TProfileFormData,
 } from '@/entities/user';
-import { PageContainer, PageTitle, PageSpinner, QueryBoundary } from '@/shared/ui';
+import { PageContainer, PageSpinner, QueryBoundary, DashboardBackHeader } from '@/shared/ui';
 import { useAuth } from '@/shared/lib/platform';
 
 export function MasterPersonalInfoPage() {
@@ -33,16 +33,7 @@ function MasterPersonalInfoContent() {
 
     return (
         <PageContainer bg="bg-base-200">
-            <div className="flex items-center gap-3">
-                <button
-                    onClick={() => router.back()}
-                    className="btn btn-ghost btn-sm btn-circle"
-                    aria-label="Назад"
-                >
-                    <ArrowLeftIcon className="size-5" />
-                </button>
-                <PageTitle>Личная информация</PageTitle>
-            </div>
+            <DashboardBackHeader title="Личная информация" />
             <div className="flex flex-col gap-6 max-w-lg mx-auto py-4">
                 {error && (
                     <div className="alert alert-error text-sm">

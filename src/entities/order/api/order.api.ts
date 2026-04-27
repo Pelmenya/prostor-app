@@ -9,7 +9,7 @@ import { useApi } from '@/shared/api';
 import { buildSearchParams } from '@/shared/lib';
 import type { EOrderStatus } from '../model/types/e-order-status';
 import type { EDeliveryType } from '../model/types/e-delivery-type';
-import type { TWorkDay } from '../model/types/t-work-day';
+import type { TWorkDay } from '@/shared/model';
 import type { TOrder } from '../model/types/t-order';
 
 // ---- Query Keys ----

@@ -1,6 +1,6 @@
 import { MapPinIcon } from '@heroicons/react/24/outline';
 import { MasterProfileCard } from './master-profile-card';
-import type { EDepartureBasis } from '@/entities/account-service';
+import { getDepartureBasisLabel, type EDepartureBasis } from '@/entities/account-service';
 
 type TLocationCardProps = {
     address?: string | null;
@@ -10,11 +10,6 @@ type TLocationCardProps = {
     outlined?: boolean;
 };
 
-const DEPARTURE_LABELS: Record<string, string> = {
-    OWN_ADDRESS: 'от адреса',
-    NEAREST_STORE: 'от ближайшего склада',
-};
-
 export function LocationCard({
     address,
     departureBasis,
@@ -22,7 +17,7 @@ export function LocationCard({
     readOnly = false,
     outlined = false,
 }: TLocationCardProps) {
-    const departureLabel = departureBasis ? DEPARTURE_LABELS[departureBasis] : null;
+    const departureLabel = departureBasis ? getDepartureBasisLabel(departureBasis) : null;
 
     return (
         <MasterProfileCard

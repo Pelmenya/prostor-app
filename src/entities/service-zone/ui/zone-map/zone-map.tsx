@@ -4,7 +4,7 @@ import MapGL, { Source, Layer } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import type { TServiceZone } from '../../model/t-service-zone';
 
-const MAP_STYLE = 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json';
+import { MAP_STYLE } from '@/shared/config';
 
 type TZoneMapProps = {
     zones: TServiceZone[];

@@ -3,7 +3,7 @@ import type { TCartItem } from '@/shared/model';
 import type { EDeliveryType } from './e-delivery-type';
 import type { EOrderStatus } from './e-order-status';
 import type { EPaymentStatus } from './e-payment-status';
-import type { TWorkDay } from './t-work-day';
+import type { TWorkDay } from '@/shared/model';
 
 /** Сохранённое состояние корзины в заказе (снэпшот на момент создания) */
 export type TOrderCartState = {

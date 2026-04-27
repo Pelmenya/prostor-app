@@ -1,10 +1,9 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { useAccountService } from '@/entities/account-service';
 import { ZoneSelector } from '@/features/master-service-area';
-import { PageContainer, PageTitle, PageSpinner, QueryBoundary } from '@/shared/ui';
+import { PageContainer, PageSpinner, QueryBoundary, DashboardBackHeader } from '@/shared/ui';
 import { useAuth } from '@/shared/lib/platform';
 
 export function MasterServiceAreaPage() {
@@ -30,16 +29,7 @@ function MasterServiceAreaContent() {
 
     return (
         <PageContainer bg="bg-base-200">
-            <div className="flex items-center gap-3">
-                <button
-                    onClick={() => router.back()}
-                    className="btn btn-ghost btn-sm btn-circle"
-                    aria-label="Назад"
-                >
-                    <ArrowLeftIcon className="size-5" />
-                </button>
-                <PageTitle>Зоны обслуживания</PageTitle>
-            </div>
+            <DashboardBackHeader title="Зоны обслуживания" />
             <div className="flex flex-col gap-6 max-w-lg mx-auto py-4">
                 <ZoneSelector center={center} onSuccess={() => router.back()} />
             </div>

@@ -1,10 +1,8 @@
 'use client';
 
-import { useMemo } from 'react';
 import DatePicker, { registerLocale } from 'react-datepicker';
 import { ru } from 'date-fns/locale';
-import { useAccountService } from '@/entities/account-service';
-import { useGetWorkDaysForCalendar } from '../../api/work-days.api';
+import { useAccountService, useGetWorkDays } from '@/entities/account-service';
 
 registerLocale('ru', ru);
 
@@ -18,15 +16,12 @@ type TWorkDaysCalendarProps = {
 
 export function WorkDaysCalendar({ onDayClick }: TWorkDaysCalendarProps) {
     const { data: accountService } = useAccountService();
-    const { data: workDays = [] } = useGetWorkDaysForCalendar();
+    const { data: workDays = [] } = useGetWorkDays();
 
     const calendarMonths = accountService?.calendarMonths ?? 2;
 
-    const today = useMemo(() => {
-        const d = new Date();
-        d.setHours(0, 0, 0, 0);
-        return d;
-    }, []);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
     const maxDate = new Date(
         today.getFullYear(),
@@ -34,20 +29,17 @@ export function WorkDaysCalendar({ onDayClick }: TWorkDaysCalendarProps) {
         today.getDate() - 1,
     );
 
-    const { futureWorkDays, pastWorkDays, activeDates } = useMemo(() => {
-        const future: Date[] = [];
-        const past: Date[] = [];
-        const active = new Set<string>();
-        for (const d of workDays) {
-            if (!d.date) continue;
-            const date = new Date(d.date);
-            date.setHours(0, 0, 0, 0);
-            active.add(toISODate(date));
-            if (date < today) past.push(date);
-            else future.push(date);
-        }
-        return { futureWorkDays: future, pastWorkDays: past, activeDates: active };
-    }, [workDays, today]);
+    const futureWorkDays: Date[] = [];
+    const pastWorkDays: Date[] = [];
+    const activeDates = new Set<string>();
+    for (const d of workDays) {
+        if (!d.date) continue;
+        const date = new Date(d.date);
+        date.setHours(0, 0, 0, 0);
+        activeDates.add(toISODate(date));
+        if (date < today) pastWorkDays.push(date);
+        else futureWorkDays.push(date);
+    }
 
     return (
         <DatePicker

@@ -1,11 +1,11 @@
-import { EServiceCategory } from '../model/e-service-category';
+import { EMasterSpecialization } from '../model/e-master-specialization';
 
-export function getCategoryLabel(category: EServiceCategory): string {
-    const labels: Record<EServiceCategory, string> = {
-        [EServiceCategory.HOUSEHOLD]: 'Бытовой',
-        [EServiceCategory.COTTAGE]: 'Коттеджный',
-        [EServiceCategory.INDUSTRIAL]: 'Промышленный',
-        [EServiceCategory.DELIVERY]: 'Доставка',
+export function getCategoryLabel(category: EMasterSpecialization): string {
+    const labels: Record<EMasterSpecialization, string> = {
+        [EMasterSpecialization.HOUSEHOLD]: 'Бытовой',
+        [EMasterSpecialization.COTTAGE]: 'Коттеджный',
+        [EMasterSpecialization.INDUSTRIAL]: 'Промышленный',
+        [EMasterSpecialization.DELIVERY]: 'Доставка',
     };
     return labels[category];
 }

@@ -1,11 +1,24 @@
-import { useMutation, useSuspenseQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useSuspenseQuery, useQueryClient, useQuery } from '@tanstack/react-query';
 import { useApi } from '@/shared/api';
 import type { TAccountService } from '../model/t-account-service';
 import type { TUpdateAccountService } from '../model/t-update-account-service';
+import type { TWorkDay } from '@/shared/model';
 
 export const accountServiceKeys = {
     my: () => ['account-service', 'my'] as const,
+    workDays: () => ['schedule', 'work-days'] as const,
 };
+
+export function useGetWorkDays() {
+    const api = useApi();
+    return useQuery<TWorkDay[]>({
+        queryKey: accountServiceKeys.workDays(),
+        queryFn: async () => {
+            const data = await api<TWorkDay[]>('/service/work-days');
+            return data ?? [];
+        },
+    });
+}
 
 export function useAccountService() {
     const api = useApi();

@@ -1,9 +1,7 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { WeeklyScheduleForm, WorkScheduleCalendar } from '@/features/master-schedule';
-import { PageContainer, PageTitle, PageSpinner, QueryBoundary } from '@/shared/ui';
+import { PageContainer, PageSpinner, QueryBoundary, DashboardBackHeader } from '@/shared/ui';
 import { useAuth } from '@/shared/lib/platform';
 
 export function MasterSchedulePage() {
@@ -17,20 +15,9 @@ export function MasterSchedulePage() {
 }
 
 function MasterScheduleContent() {
-    const router = useRouter();
-
     return (
         <PageContainer bg="bg-base-200">
-            <div className="flex items-center gap-3">
-                <button
-                    onClick={() => router.back()}
-                    className="btn btn-ghost btn-sm btn-circle"
-                    aria-label="Назад"
-                >
-                    <ArrowLeftIcon className="size-5" />
-                </button>
-                <PageTitle>График работы</PageTitle>
-            </div>
+            <DashboardBackHeader title="График работы" />
             <div className="flex flex-col gap-8 max-w-lg mx-auto py-4">
                 <div className="flex flex-col gap-3">
                     <p className="text-sm font-medium">Рабочие дни</p>

@@ -1,14 +1,10 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import DatePicker, { registerLocale } from 'react-datepicker';
 import { ru } from 'date-fns/locale';
-import { useAccountService } from '@/entities/account-service';
-import {
-    useGetWorkDays,
-    useUpdateCalendarWorkDay,
-    useDeleteCalendarWorkDay,
-} from '../../api/schedule.api';
+import { useAccountService, useGetWorkDays } from '@/entities/account-service';
+import { useUpdateCalendarWorkDay, useDeleteCalendarWorkDay } from '../../api/schedule.api';
 import { WorkDayTimeEditor } from '../work-day-time-editor/work-day-time-editor';
 import type { TWorkDay } from '@/shared/model';
 
@@ -28,11 +24,8 @@ export function WorkScheduleCalendar() {
 
     const calendarMonths = accountService?.calendarMonths ?? 2;
 
-    const today = useMemo(() => {
-        const d = new Date();
-        d.setHours(0, 0, 0, 0);
-        return d;
-    }, []);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
     const maxDate = new Date(
         today.getFullYear(),
@@ -40,20 +33,17 @@ export function WorkScheduleCalendar() {
         today.getDate() - 1,
     );
 
-    const { futureWorkDays, pastWorkDays, byISO } = useMemo(() => {
-        const future: Date[] = [];
-        const past: Date[] = [];
-        const map = new Map<string, TWorkDay>();
-        for (const d of workDays) {
-            if (!d.date) continue;
-            const date = new Date(d.date);
-            date.setHours(0, 0, 0, 0);
-            map.set(toISODate(date), d);
-            if (date < today) past.push(date);
-            else future.push(date);
-        }
-        return { futureWorkDays: future, pastWorkDays: past, byISO: map };
-    }, [workDays, today]);
+    const futureWorkDays: Date[] = [];
+    const pastWorkDays: Date[] = [];
+    const byISO = new Map<string, TWorkDay>();
+    for (const d of workDays) {
+        if (!d.date) continue;
+        const date = new Date(d.date);
+        date.setHours(0, 0, 0, 0);
+        byISO.set(toISODate(date), d);
+        if (date < today) pastWorkDays.push(date);
+        else futureWorkDays.push(date);
+    }
 
     function handleDayClick(date: Date) {
         const iso = toISODate(date);

@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { Combobox, ComboboxInput, ComboboxOption, ComboboxOptions } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { useGetStores } from '../../api/store.api';
@@ -16,17 +16,13 @@ export function StoreSearch({ value, onChange }: TStoreSearchProps) {
     const [query, setQuery] = useState('');
     const inputRef = useRef<HTMLInputElement>(null);
 
-    const activeStores = useMemo(() => stores.filter((s) => !s.archived), [stores]);
+    const activeStores = stores.filter((s) => !s.archived);
 
-    const selectedStore = useMemo(
-        () => activeStores.find((s) => s.id === value) ?? null,
-        [activeStores, value],
-    );
+    const selectedStore = activeStores.find((s) => s.id === value) ?? null;
 
-    const filteredStores = useMemo(() => {
-        if (!query.trim()) return activeStores;
-        return activeStores.filter((s) => s.name.toLowerCase().includes(query.toLowerCase()));
-    }, [activeStores, query]);
+    const filteredStores = query.trim()
+        ? activeStores.filter((s) => s.name.toLowerCase().includes(query.toLowerCase()))
+        : activeStores;
 
     function handleSelect(store: TStore | null) {
         onChange(store?.id ?? null);

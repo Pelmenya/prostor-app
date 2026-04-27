@@ -1,4 +1,3 @@
-export { MasterProfileCard } from './ui/master-profile-card';
 export { PersonalInfoCard } from './ui/personal-info-card';
 export { LocationCard } from './ui/location-card';
 export { VehicleCard } from './ui/vehicle-card';
