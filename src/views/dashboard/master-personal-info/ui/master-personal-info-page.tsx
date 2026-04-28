@@ -4,17 +4,14 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { PencilSquareIcon } from '@heroicons/react/24/outline';
 import {
-    useCurrentUser,
+    useCurrentUserSuspense,
     useUpdateProfile,
     ProfileForm,
     type TProfileFormData,
 } from '@/entities/user';
-import { PageContainer, PageSpinner, QueryBoundary, DashboardBackHeader } from '@/shared/ui';
-import { useAuth } from '@/shared/lib/platform';
+import { PageContainer, QueryBoundary, DashboardBackHeader } from '@/shared/ui';
 
 export function MasterPersonalInfoPage() {
-    const { isAuthenticated } = useAuth();
-    if (!isAuthenticated) return <PageSpinner />;
     return (
         <QueryBoundary errorMessage="Ошибка загрузки профиля">
             <MasterPersonalInfoContent />
@@ -24,7 +21,7 @@ export function MasterPersonalInfoPage() {
 
 function MasterPersonalInfoContent() {
     const router = useRouter();
-    const { data: user } = useCurrentUser();
+    const { data: user } = useCurrentUserSuspense();
     const { mutate, isPending, error } = useUpdateProfile();
 
     function handleSubmit(data: TProfileFormData) {
@@ -40,7 +37,7 @@ function MasterPersonalInfoContent() {
                         Не удалось сохранить. Попробуйте ещё раз.
                     </div>
                 )}
-                <ProfileForm user={user ?? null} onSubmit={handleSubmit} isLoading={isPending} />
+                <ProfileForm user={user} onSubmit={handleSubmit} isLoading={isPending} />
                 <div className="card bg-base-100 rounded-2xl p-4 max-w-md mx-auto w-full">
                     <div className="flex items-center justify-between gap-3">
                         <div className="flex flex-col gap-0.5 min-w-0">

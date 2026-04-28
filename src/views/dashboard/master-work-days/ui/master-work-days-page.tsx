@@ -2,12 +2,9 @@
 
 import { useRouter } from 'next/navigation';
 import { WorkDaysCalendar } from '@/features/master-work-days';
-import { PageContainer, PageSpinner, QueryBoundary, DashboardBackHeader } from '@/shared/ui';
-import { useAuth } from '@/shared/lib/platform';
+import { PageContainer, QueryBoundary, DashboardBackHeader } from '@/shared/ui';
 
 export function MasterWorkDaysPage() {
-    const { isAuthenticated } = useAuth();
-    if (!isAuthenticated) return <PageSpinner />;
     return (
         <QueryBoundary errorMessage="Ошибка загрузки рабочих дней">
             <MasterWorkDaysContent />

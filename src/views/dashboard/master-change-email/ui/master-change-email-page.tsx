@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 import { changeEmail } from '@/features/auth';
 import { ApiError } from '@/shared/api';
 import { useAuth } from '@/shared/lib/platform';
-import { PageContainer, PageSpinner, FormCard, InputField, DashboardBackHeader } from '@/shared/ui';
+import { PageContainer, FormCard, InputField, DashboardBackHeader } from '@/shared/ui';
 
 const schema = z.object({
     email: z.string().email('Неверный формат почты'),
@@ -17,8 +17,6 @@ const schema = z.object({
 type TChangeEmailForm = z.infer<typeof schema>;
 
 export function MasterChangeEmailPage() {
-    const { isAuthenticated } = useAuth();
-    if (!isAuthenticated) return <PageSpinner />;
     return <MasterChangeEmailContent />;
 }
 

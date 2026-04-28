@@ -1,11 +1,10 @@
 'use client';
 
-import { useCurrentUser } from '@/entities/user';
+import { useCurrentUserSuspense } from '@/entities/user';
 import { useAccountService } from '@/entities/account-service';
-import { useMyZonesCount } from '@/entities/service-zone';
+import { useGetMyZones } from '@/entities/service-zone';
 import { useGetExecutorAverageRating } from '@/entities/order-feedback';
-import { QueryBoundary, PageSpinner } from '@/shared/ui';
-import { useAuth } from '@/shared/lib/platform';
+import { QueryBoundary } from '@/shared/ui';
 import {
     PersonalInfoCard,
     LocationCard,
@@ -18,8 +17,6 @@ import {
 } from '@/widgets/master-profile';
 
 export function MasterAccountPage() {
-    const { isAuthenticated } = useAuth();
-    if (!isAuthenticated) return <PageSpinner />;
     return (
         <QueryBoundary errorMessage="Ошибка загрузки профиля">
             <MasterAccountContent />
@@ -28,16 +25,16 @@ export function MasterAccountPage() {
 }
 
 function MasterAccountContent() {
-    const { data: user } = useCurrentUser();
+    const { data: user } = useCurrentUserSuspense();
     const { data: accountService } = useAccountService();
-    const { data: myZones } = useMyZonesCount();
-    const { data: ratingData } = useGetExecutorAverageRating(user?.id);
+    const { data: myZones } = useGetMyZones();
+    const { data: ratingData } = useGetExecutorAverageRating(user.id);
 
     const hasLocation = !!accountService?.address;
 
     return (
         <div className="flex flex-col gap-4 p-4">
-            {user && <PersonalInfoCard user={user} />}
+            <PersonalInfoCard user={user} />
 
             <LocationCard
                 address={accountService?.address}
@@ -55,7 +52,7 @@ function MasterAccountContent() {
 
             <QualificationCard grade={accountService?.grade} />
 
-            {hasLocation && <ServiceAreaCard zoneCount={myZones?.length} />}
+            {hasLocation && <ServiceAreaCard zoneCount={myZones.length} />}
 
             <ScheduleCard />
 

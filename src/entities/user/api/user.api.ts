@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useSuspenseQuery, useQueryClient } from '@tanstack/react-query';
 import { useApi } from '@/shared/api';
 import type { TUser } from '@/shared/model';
 
@@ -6,6 +6,15 @@ export function useCurrentUser() {
     const api = useApi();
 
     return useQuery({
+        queryKey: ['user', 'me'],
+        queryFn: () => api<TUser>('/auth/me'),
+    });
+}
+
+export function useCurrentUserSuspense() {
+    const api = useApi();
+
+    return useSuspenseQuery({
         queryKey: ['user', 'me'],
         queryFn: () => api<TUser>('/auth/me'),
     });

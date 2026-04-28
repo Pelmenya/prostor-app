@@ -1,5 +1,5 @@
 import { useSuspenseQuery } from '@tanstack/react-query';
-import { useApi } from '@/shared/api';
+import { useApi, ApiError } from '@/shared/api';
 import type { TOrder } from '@/entities/order';
 
 export const workDayKeys = {
@@ -32,8 +32,9 @@ export function useGetOrdersByDate(date: string) {
             try {
                 const data = await api<TOrder[]>(`/service/work-day/${date}`);
                 return data ?? [];
-            } catch {
-                return [];
+            } catch (err) {
+                if (err instanceof ApiError && err.status === 404) return [];
+                throw err;
             }
         },
     });
@@ -47,8 +48,9 @@ export function useGetWorkDayRoute(date: string) {
             try {
                 const data = await api<TWorkDayRouteResponse>(`/service/work-day/${date}/route`);
                 return data ?? null;
-            } catch {
-                return null;
+            } catch (err) {
+                if (err instanceof ApiError && err.status === 404) return null;
+                throw err;
             }
         },
     });

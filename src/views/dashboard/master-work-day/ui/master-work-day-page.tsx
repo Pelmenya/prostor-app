@@ -4,15 +4,12 @@ import Link from 'next/link';
 import { MapPinIcon, ClockIcon } from '@heroicons/react/24/outline';
 import { useAccountService } from '@/entities/account-service';
 import { RouteMap, useGetWorkDayRoute, useGetOrdersByDate } from '@/features/master-work-days';
-import { PageContainer, PageSpinner, QueryBoundary, DashboardBackHeader } from '@/shared/ui';
-import { useAuth } from '@/shared/lib/platform';
+import { PageContainer, QueryBoundary, DashboardBackHeader } from '@/shared/ui';
 import { formatDateRu, formatDuration } from '@/shared/lib';
 
 type TProps = { date: string };
 
 export function MasterWorkDayPage({ date }: TProps) {
-    const { isAuthenticated } = useAuth();
-    if (!isAuthenticated) return <PageSpinner />;
     return (
         <QueryBoundary errorMessage="Ошибка загрузки рабочего дня">
             <MasterWorkDayContent date={date} />

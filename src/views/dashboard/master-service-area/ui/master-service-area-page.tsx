@@ -3,12 +3,9 @@
 import { useRouter } from 'next/navigation';
 import { useAccountService } from '@/entities/account-service';
 import { ZoneSelector } from '@/features/master-service-area';
-import { PageContainer, PageSpinner, QueryBoundary, DashboardBackHeader } from '@/shared/ui';
-import { useAuth } from '@/shared/lib/platform';
+import { PageContainer, QueryBoundary, DashboardBackHeader } from '@/shared/ui';
 
 export function MasterServiceAreaPage() {
-    const { isAuthenticated } = useAuth();
-    if (!isAuthenticated) return <PageSpinner />;
     return (
         <QueryBoundary errorMessage="Ошибка загрузки зон обслуживания">
             <MasterServiceAreaContent />

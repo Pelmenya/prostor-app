@@ -6,12 +6,9 @@ import { useAccountService } from '@/entities/account-service';
 import { LocationForm } from '@/features/master-location';
 import { AddressSearchWithMap } from '@/features/address-search';
 import type { TSuggestion, TFullGeoDataResponse, TCoordinates } from '@/features/address-search';
-import { PageContainer, PageSpinner, QueryBoundary, DashboardBackHeader } from '@/shared/ui';
-import { useAuth } from '@/shared/lib/platform';
+import { PageContainer, QueryBoundary, DashboardBackHeader } from '@/shared/ui';
 
 export function MasterLocationPage() {
-    const { isAuthenticated } = useAuth();
-    if (!isAuthenticated) return <PageSpinner />;
     return (
         <QueryBoundary errorMessage="Ошибка загрузки локации">
             <MasterLocationContent />

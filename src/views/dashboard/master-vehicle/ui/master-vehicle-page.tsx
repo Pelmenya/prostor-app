@@ -2,12 +2,9 @@
 
 import { useAccountService } from '@/entities/account-service';
 import { VehicleForm } from '@/features/master-vehicle';
-import { PageContainer, PageSpinner, QueryBoundary, DashboardBackHeader } from '@/shared/ui';
-import { useAuth } from '@/shared/lib/platform';
+import { PageContainer, QueryBoundary, DashboardBackHeader } from '@/shared/ui';
 
 export function MasterVehiclePage() {
-    const { isAuthenticated } = useAuth();
-    if (!isAuthenticated) return <PageSpinner />;
     return (
         <QueryBoundary errorMessage="Ошибка загрузки данных автомобиля">
             <MasterVehicleContent />

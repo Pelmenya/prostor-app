@@ -2,12 +2,9 @@
 
 import { useAccountService } from '@/entities/account-service';
 import { QualificationForm } from '@/features/master-qualification';
-import { PageContainer, PageSpinner, QueryBoundary, DashboardBackHeader } from '@/shared/ui';
-import { useAuth } from '@/shared/lib/platform';
+import { PageContainer, QueryBoundary, DashboardBackHeader } from '@/shared/ui';
 
 export function MasterQualificationPage() {
-    const { isAuthenticated } = useAuth();
-    if (!isAuthenticated) return <PageSpinner />;
     return (
         <QueryBoundary errorMessage="Ошибка загрузки квалификации">
             <MasterQualificationContent />

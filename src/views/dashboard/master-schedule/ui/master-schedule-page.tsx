@@ -1,12 +1,9 @@
 'use client';
 
 import { WeeklyScheduleForm, WorkScheduleCalendar } from '@/features/master-schedule';
-import { PageContainer, PageSpinner, QueryBoundary, DashboardBackHeader } from '@/shared/ui';
-import { useAuth } from '@/shared/lib/platform';
+import { PageContainer, QueryBoundary, DashboardBackHeader } from '@/shared/ui';
 
 export function MasterSchedulePage() {
-    const { isAuthenticated } = useAuth();
-    if (!isAuthenticated) return <PageSpinner />;
     return (
         <QueryBoundary errorMessage="Ошибка загрузки расписания">
             <MasterScheduleContent />
