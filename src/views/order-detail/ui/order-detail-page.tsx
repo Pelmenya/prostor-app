@@ -64,8 +64,8 @@ function OrderDetailContent({ orderId }: TOrderDetailPageProps) {
                 {/* Итого */}
                 {order.totalAmount != null && (
                     <div className="relative flex justify-between gap-4 p-4 bg-base-100 border border-base-300 rounded-2xl w-full">
-                        <span className="font-medium text-sm leading-110">Итого</span>
-                        <span className="text-primary font-semibold text-sm leading-110">
+                        <span className="font-medium text-sm leading-[110%]">Итого</span>
+                        <span className="text-primary font-semibold text-sm leading-[110%]">
                             {formatPrice(order.totalAmount)}
                         </span>
                     </div>
@@ -74,17 +74,17 @@ function OrderDetailContent({ orderId }: TOrderDetailPageProps) {
                 {/* Доставка */}
                 {!isCancelled && (
                     <div className="relative flex justify-between gap-4 p-4 bg-base-100 border border-base-300 rounded-2xl w-full">
-                        <span className="font-medium text-sm leading-110">Доставка</span>
+                        <span className="font-medium text-sm leading-[110%]">Доставка</span>
                         {order.deliveryCost != null && order.deliveryCost > 0 ? (
-                            <span className="text-primary font-semibold text-sm leading-110">
+                            <span className="text-primary font-semibold text-sm leading-[110%]">
                                 {formatPrice(order.deliveryCost)}
                             </span>
                         ) : order.deliveryCost === 0 ? (
-                            <span className="text-primary font-semibold text-sm leading-110">
+                            <span className="text-primary font-semibold text-sm leading-[110%]">
                                 Бесплатно
                             </span>
                         ) : (
-                            <span className="text-sm leading-110">Уточняется</span>
+                            <span className="text-sm leading-[110%]">Уточняется</span>
                         )}
                     </div>
                 )}
@@ -105,10 +105,10 @@ function OrderDetailContent({ orderId }: TOrderDetailPageProps) {
                             <div className="relative flex items-center gap-2 p-4 bg-base-100 border border-base-300 rounded-2xl w-full">
                                 <MapPinIcon className="size-6" />
                                 <div className="flex flex-col gap-1">
-                                    <span className="font-semibold text-sm leading-110">
+                                    <span className="font-semibold text-sm leading-[110%]">
                                         Адрес самовывоза
                                     </span>
-                                    <span className="text-sm leading-110">
+                                    <span className="text-sm leading-[110%]">
                                         {order.pickupStore.address}
                                         {order.pickupStore.phone && (
                                             <span className="block">
@@ -124,8 +124,8 @@ function OrderDetailContent({ orderId }: TOrderDetailPageProps) {
                         <div className="relative flex items-center gap-2 p-4 bg-base-100 border border-base-300 rounded-2xl w-full">
                             <HomeIcon className="size-6" />
                             <div className="flex flex-col gap-1">
-                                <span className="font-semibold text-sm leading-110">Адрес</span>
-                                <span className="text-sm leading-110">
+                                <span className="font-semibold text-sm leading-[110%]">Адрес</span>
+                                <span className="text-sm leading-[110%]">
                                     {order.realEstate?.address}
                                 </span>
                             </div>

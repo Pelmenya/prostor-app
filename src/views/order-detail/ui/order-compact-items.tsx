@@ -107,10 +107,10 @@ export function OrderCompactItems({ items, imageUrls, loadingIds }: TOrderCompac
                                         alt={cartItem.product.name}
                                     />
                                     <div className="flex flex-col gap-1 min-w-0">
-                                        <p className="text-sm line-clamp-2 leading-110">
+                                        <p className="text-sm line-clamp-2 leading-[110%]">
                                             {cartItem.product.name}
                                         </p>
-                                        <p className="text-sm font-semibold text-primary leading-110">
+                                        <p className="text-sm font-semibold text-primary leading-[110%]">
                                             {formatPrice(cartItem.price)}
                                         </p>
                                     </div>
@@ -138,10 +138,10 @@ export function OrderCompactItems({ items, imageUrls, loadingIds }: TOrderCompac
                                                 </div>
                                             </div>
                                             <div className="flex flex-col gap-1 min-w-0">
-                                                <p className="text-sm line-clamp-2 leading-110">
+                                                <p className="text-sm line-clamp-2 leading-[110%]">
                                                     {info?.name}
                                                 </p>
-                                                <p className="text-sm font-semibold text-primary leading-110">
+                                                <p className="text-sm font-semibold text-primary leading-[110%]">
                                                     {formatPrice(svc.price * svc.count)}
                                                 </p>
                                             </div>

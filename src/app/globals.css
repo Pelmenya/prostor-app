@@ -122,10 +122,6 @@
     border-radius: 0.375rem;
 }
 
-@utility leading-110 {
-    line-height: 110%;
-}
-
 @utility text-trim {
     text-box-trim: both;
     text-box-edge: cap alphabetic;

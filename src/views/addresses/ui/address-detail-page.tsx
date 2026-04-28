@@ -87,7 +87,7 @@ function AddressDetailContent({ id }: TAddressDetailPageProps) {
                     <div className="divider divider-horizontal m-0 shrink-0 self-stretch" />
                     <div className="flex flex-col gap-1 min-w-0 flex-1">
                         <div className="flex items-center justify-between">
-                            <p className="text-sm font-semibold leading-110">
+                            <p className="text-sm font-semibold leading-[110%]">
                                 {realEstate.address || 'Адрес не указан'}
                             </p>
                             <div className="flex items-center gap-1">

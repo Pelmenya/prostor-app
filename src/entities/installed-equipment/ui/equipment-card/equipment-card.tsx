@@ -38,7 +38,7 @@ export function EquipmentCard({
                     alt={equipment.productName}
                 />
                 <div className="flex flex-col gap-0.5 min-w-0 flex-1">
-                    <span className="font-semibold text-sm line-clamp-2 leading-110">
+                    <span className="font-semibold text-sm line-clamp-2 leading-[110%]">
                         {equipment.productName}
                     </span>
                     <span className="text-xs text-base-content/50">
