@@ -2,11 +2,15 @@ import { useMutation, useQuery, useSuspenseQuery, useQueryClient } from '@tansta
 import { useApi } from '@/shared/api';
 import type { TUser } from '@/shared/model';
 
+export const userKeys = {
+    me: () => ['user', 'me'] as const,
+};
+
 export function useCurrentUser() {
     const api = useApi();
 
     return useQuery({
-        queryKey: ['user', 'me'],
+        queryKey: userKeys.me(),
         queryFn: () => api<TUser>('/auth/me'),
     });
 }
@@ -15,7 +19,7 @@ export function useCurrentUserSuspense() {
     const api = useApi();
 
     return useSuspenseQuery({
-        queryKey: ['user', 'me'],
+        queryKey: userKeys.me(),
         queryFn: () => api<TUser>('/auth/me'),
     });
 }

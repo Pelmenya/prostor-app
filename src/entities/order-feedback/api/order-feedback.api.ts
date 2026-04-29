@@ -4,6 +4,7 @@ import type {
     TOrderFeedback,
     TOrderFeedbackParameters,
     TExecutorAverageRating,
+    TDetailedRating,
 } from '@/shared/model';
 
 export const orderFeedbackKeys = {
@@ -60,6 +61,14 @@ export function useGetExecutorAverageRating(userId?: number) {
         queryKey: orderFeedbackKeys.executorAverage(userId),
         queryFn: () => api<TExecutorAverageRating>(`/order-feedback/executor/${userId}/average`),
         enabled: !!userId,
+    });
+}
+
+export function useGetExecutorDetailedRating(executorId: number) {
+    const api = useApi();
+    return useSuspenseQuery<TDetailedRating>({
+        queryKey: orderFeedbackKeys.executorDetailed(executorId),
+        queryFn: () => api<TDetailedRating>(`/order-feedback/executor/${executorId}/detailed`),
     });
 }
 
