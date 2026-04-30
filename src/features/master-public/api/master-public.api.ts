@@ -16,6 +16,6 @@ export function useGetMasterById(masterId: number) {
     const api = useApi();
     return useSuspenseQuery<TMasterPublicProfile>({
         queryKey: masterPublicKeys.byId(masterId),
-        queryFn: () => api<TMasterPublicProfile>(`/users/${masterId}/service`),
+        queryFn: () => api<TMasterPublicProfile>(`/curator/users/${masterId}/service`),
     });
 }

@@ -2,16 +2,15 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
-import { ArrowLeftIcon, StarIcon } from '@heroicons/react/20/solid';
+import { StarIcon, ArrowLeftIcon } from '@heroicons/react/20/solid';
 import {
     useGetExecutorDetailedRating,
     ReviewCard,
     CategoryCollapse,
     FEEDBACK_STRUCTURE,
 } from '@/entities/order-feedback';
-import { useGetMasterById } from '@/features/master-public';
-import { QueryBoundary } from '@/shared/ui';
+import { PageContainer, PageTitle, PageSpinner, QueryBoundary } from '@/shared/ui';
+import { useAuth } from '@/shared/lib/platform';
 import type { TReviewItem } from '@/shared/model';
 
 type TSortOption = 'new' | 'old' | 'high' | 'low';
@@ -21,6 +20,8 @@ type TMasterRatingPageProps = {
 };
 
 export function MasterRatingPage({ masterId }: TMasterRatingPageProps) {
+    const { isAuthenticated } = useAuth();
+    if (!isAuthenticated) return <PageSpinner />;
     return (
         <QueryBoundary errorMessage="Не удалось загрузить рейтинг мастера">
             <MasterRatingContent masterId={masterId} />
@@ -55,7 +56,6 @@ function sortReviews(reviews: TReviewItem[], sort: TSortOption): TReviewItem[] {
 
 function MasterRatingContent({ masterId }: { masterId: number }) {
     const [sort, setSort] = useState<TSortOption>('new');
-    const { data: master } = useGetMasterById(masterId);
     const { data: rating } = useGetExecutorDetailedRating(masterId);
 
     const sortedReviews = sortReviews(rating.reviews, sort);
@@ -67,41 +67,21 @@ function MasterRatingContent({ masterId }: { masterId: number }) {
     }));
 
     return (
-        <div className="flex flex-col">
-            <div className="bg-base-100 border-b border-base-200 p-4 flex items-center gap-3">
-                <Link href={`/master/${masterId}`} className="btn btn-ghost btn-sm btn-circle">
+        <PageContainer>
+            <div className="flex items-center gap-2 mb-4">
+                <Link
+                    href={`/master/${masterId}`}
+                    className="btn btn-ghost btn-sm btn-circle -ml-2"
+                >
                     <ArrowLeftIcon className="size-4" />
                 </Link>
-                <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <div className="avatar">
-                        <div className="size-10 rounded-full">
-                            {master.photo_url ? (
-                                <Image
-                                    src={master.photo_url}
-                                    alt={master.first_name}
-                                    width={40}
-                                    height={40}
-                                    className="rounded-full object-cover"
-                                />
-                            ) : (
-                                <div className="bg-primary/10 size-10 rounded-full flex items-center justify-center font-semibold">
-                                    {master.first_name[0]}
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                    <div className="min-w-0">
-                        <p className="font-semibold text-sm truncate">
-                            {master.first_name} {master.last_name}
-                        </p>
-                        <p className="text-xs text-base-content/50">Рейтинг мастера</p>
-                    </div>
-                </div>
+                <PageTitle>Отзывы</PageTitle>
             </div>
 
-            <div className="p-4 flex flex-col gap-5">
-                <div className="flex items-center gap-4">
-                    <div className="flex flex-col items-center">
+            <div className="flex flex-col gap-4 pb-4 max-w-lg mx-auto w-full">
+                {/* Общая оценка */}
+                <div className="flex items-center gap-4 p-4 bg-base-100 border border-base-300 rounded-2xl">
+                    <div className="flex flex-col items-center shrink-0">
                         <span className="text-4xl font-bold text-warning">
                             {overall.toLocaleString('ru-RU', {
                                 minimumFractionDigits: 1,
@@ -116,22 +96,27 @@ function MasterRatingContent({ masterId }: { masterId: number }) {
                                 />
                             ))}
                         </div>
-                        <span className="text-xs text-base-content/50 mt-1">
-                            {rating.totalFeedbacks} отзыв
+                    </div>
+                    <div className="divider divider-horizontal m-0 self-stretch" />
+                    <div className="flex flex-col gap-0.5">
+                        <span className="font-semibold leading-[110%]">
+                            {rating.totalFeedbacks}{' '}
                             {rating.totalFeedbacks % 10 === 1 && rating.totalFeedbacks % 100 !== 11
-                                ? ''
+                                ? 'отзыв'
                                 : rating.totalFeedbacks % 10 >= 2 &&
                                     rating.totalFeedbacks % 10 <= 4 &&
                                     !(
                                         rating.totalFeedbacks % 100 >= 12 &&
                                         rating.totalFeedbacks % 100 <= 14
                                     )
-                                  ? 'а'
-                                  : 'ов'}
+                                  ? 'отзыва'
+                                  : 'отзывов'}
                         </span>
+                        <span className="text-sm text-base-content/50">Общий рейтинг</span>
                     </div>
                 </div>
 
+                {/* По категориям */}
                 {categoriesWithLabels.length > 0 && (
                     <div className="flex flex-col gap-2">
                         <h2 className="font-semibold text-sm text-base-content/70 uppercase tracking-wide">
@@ -147,6 +132,7 @@ function MasterRatingContent({ masterId }: { masterId: number }) {
                     </div>
                 )}
 
+                {/* Отзывы */}
                 {sortedReviews.length > 0 && (
                     <div className="flex flex-col gap-3">
                         <div className="flex items-center justify-between">
@@ -171,12 +157,12 @@ function MasterRatingContent({ masterId }: { masterId: number }) {
                 )}
 
                 {rating.totalFeedbacks === 0 && (
-                    <div className="text-center py-8 text-base-content/40">
+                    <div className="p-8 bg-base-100 border border-base-300 rounded-2xl text-center">
                         <StarIcon className="size-10 mx-auto mb-2 text-base-content/20" />
-                        <p>Отзывов пока нет</p>
+                        <p className="text-base-content/40 text-sm">Отзывов пока нет</p>
                     </div>
                 )}
             </div>
-        </div>
+        </PageContainer>
     );
 }

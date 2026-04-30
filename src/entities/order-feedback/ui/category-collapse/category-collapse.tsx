@@ -46,7 +46,7 @@ export function CategoryCollapse({ category, criterionLabels }: TCategoryCollaps
                         return (
                             <div
                                 key={criterion.key}
-                                className="flex items-center justify-between px-4 py-2.5 bg-base-50"
+                                className="flex items-center justify-between px-4 py-2.5 bg-base-100"
                             >
                                 <span className="text-sm text-base-content/70">
                                     {criterionLabels[criterion.key] ?? criterion.key}
