@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useGetOrderById, useUpdateOrderStatus, EOrderStatus } from '@/entities/order';
+import Link from 'next/link';
 import { CartReadonlyView } from '@/features/cart';
 import { useSingleOrderThumbnails } from '@/features/orders';
 import Image from 'next/image';
@@ -133,7 +134,10 @@ function OrderDetailContent({ orderId }: TOrderDetailPageProps) {
 
                         {/* Исполнитель */}
                         {order.executor && (
-                            <div className="relative flex items-center gap-3 p-4 bg-base-100 border border-base-300 rounded-2xl w-full">
+                            <Link
+                                href={`/master/${order.executor.id}?from=/orders/${orderId}`}
+                                className="relative flex items-center gap-3 p-4 bg-base-100 border border-base-300 rounded-2xl w-full hover:border-primary/50 transition-colors"
+                            >
                                 {order.executor.photo_url ? (
                                     <Image
                                         src={order.executor.photo_url}
@@ -155,12 +159,14 @@ function OrderDetailContent({ orderId }: TOrderDetailPageProps) {
                                     </div>
                                 )}
                                 <div className="flex flex-col gap-0.5">
-                                    <span className="text-xs leading-tight">Исполнитель</span>
+                                    <span className="text-xs leading-tight text-base-content/50">
+                                        Исполнитель
+                                    </span>
                                     <span className="font-medium text-sm leading-tight">
                                         {order.executor.first_name} {order.executor.last_name}
                                     </span>
                                 </div>
-                            </div>
+                            </Link>
                         )}
                     </>
                 )}

@@ -2,14 +2,16 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { usePathname } from 'next/navigation';
+import { useSyncExternalStore } from 'react';
+import { usePathname, useSearchParams } from 'next/navigation';
+import { ArrowLeftIcon } from '@heroicons/react/20/solid';
 import { StarIcon } from '@heroicons/react/20/solid';
 import { EUserRole } from '@/shared/model';
 import { useGetExecutorAverageRating } from '@/entities/order-feedback';
 import { useGetMasterById } from '@/features/master-public';
 import { QualificationCard, LocationCard, VehicleCard } from '@/widgets/master-profile';
 import { UserIcon } from '@heroicons/react/24/outline';
-import { PageContainer, PageTitle, QueryBoundary } from '@/shared/ui';
+import { PageContainer, PageTitle, PageSpinner, QueryBoundary } from '@/shared/ui';
 import { useAuth } from '@/shared/lib/platform';
 
 type TMasterPublicPageProps = {
@@ -17,7 +19,14 @@ type TMasterPublicPageProps = {
 };
 
 export function MasterPublicPage({ masterId }: TMasterPublicPageProps) {
+    const isClient = useSyncExternalStore(
+        () => () => {},
+        () => true,
+        () => false,
+    );
     const { isAuthenticated } = useAuth();
+
+    if (!isClient) return <PageSpinner />;
     if (!isAuthenticated) return <MasterAuthWall />;
     return (
         <QueryBoundary errorMessage="Не удалось загрузить профиль мастера">
@@ -52,6 +61,8 @@ function MasterAuthWall() {
 function MasterPublicContent({ masterId }: TMasterPublicPageProps) {
     const { data: master } = useGetMasterById(masterId);
     const { data: ratingData } = useGetExecutorAverageRating(masterId);
+    const searchParams = useSearchParams();
+    const from = searchParams.get('from');
 
     const accountService = master.accountService;
     const isActive = master.role === EUserRole.SERVICE;
@@ -59,7 +70,16 @@ function MasterPublicContent({ masterId }: TMasterPublicPageProps) {
 
     return (
         <PageContainer>
-            <PageTitle className="mb-4">Страница мастера</PageTitle>
+            {from ? (
+                <div className="flex items-center gap-2 mb-4">
+                    <Link href={from} className="btn btn-ghost btn-sm btn-circle -ml-2">
+                        <ArrowLeftIcon className="size-4" />
+                    </Link>
+                    <PageTitle>Страница мастера</PageTitle>
+                </div>
+            ) : (
+                <PageTitle className="mb-4">Страница мастера</PageTitle>
+            )}
 
             <div className="flex flex-col gap-4 pb-4 max-w-lg mx-auto w-full">
                 <div className="flex items-center gap-4 p-4 bg-base-100 border border-base-300 rounded-2xl">

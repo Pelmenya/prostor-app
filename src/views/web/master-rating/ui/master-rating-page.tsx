@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useSyncExternalStore } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { StarIcon, ArrowLeftIcon } from '@heroicons/react/20/solid';
@@ -11,7 +11,7 @@ import {
     FEEDBACK_STRUCTURE,
 } from '@/entities/order-feedback';
 import { UserIcon } from '@heroicons/react/24/outline';
-import { PageContainer, PageTitle, QueryBoundary } from '@/shared/ui';
+import { PageContainer, PageTitle, PageSpinner, QueryBoundary } from '@/shared/ui';
 import { useAuth } from '@/shared/lib/platform';
 import type { TReviewItem } from '@/shared/model';
 
@@ -22,7 +22,14 @@ type TMasterRatingPageProps = {
 };
 
 export function MasterRatingPage({ masterId }: TMasterRatingPageProps) {
+    const isClient = useSyncExternalStore(
+        () => () => {},
+        () => true,
+        () => false,
+    );
     const { isAuthenticated } = useAuth();
+
+    if (!isClient) return <PageSpinner />;
     if (!isAuthenticated) return <RatingAuthWall masterId={masterId} />;
     return (
         <QueryBoundary errorMessage="Не удалось загрузить рейтинг мастера">
