@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { StarIcon, ArrowLeftIcon } from '@heroicons/react/20/solid';
 import {
     useGetExecutorDetailedRating,
@@ -9,7 +10,8 @@ import {
     CategoryCollapse,
     FEEDBACK_STRUCTURE,
 } from '@/entities/order-feedback';
-import { PageContainer, PageTitle, PageSpinner, QueryBoundary } from '@/shared/ui';
+import { UserIcon } from '@heroicons/react/24/outline';
+import { PageContainer, PageTitle, QueryBoundary } from '@/shared/ui';
 import { useAuth } from '@/shared/lib/platform';
 import type { TReviewItem } from '@/shared/model';
 
@@ -21,11 +23,42 @@ type TMasterRatingPageProps = {
 
 export function MasterRatingPage({ masterId }: TMasterRatingPageProps) {
     const { isAuthenticated } = useAuth();
-    if (!isAuthenticated) return <PageSpinner />;
+    if (!isAuthenticated) return <RatingAuthWall masterId={masterId} />;
     return (
         <QueryBoundary errorMessage="Не удалось загрузить рейтинг мастера">
             <MasterRatingContent masterId={masterId} />
         </QueryBoundary>
+    );
+}
+
+function RatingAuthWall({ masterId }: TMasterRatingPageProps) {
+    const pathname = usePathname();
+    return (
+        <PageContainer>
+            <div className="flex items-center gap-2 mb-4">
+                <Link
+                    href={`/master/${masterId}`}
+                    className="btn btn-ghost btn-sm btn-circle -ml-2"
+                >
+                    <ArrowLeftIcon className="size-4" />
+                </Link>
+                <PageTitle>Отзывы</PageTitle>
+            </div>
+            <div className="max-w-lg mx-auto w-full">
+                <div className="flex flex-col items-center gap-4 p-8 bg-base-100 border border-base-300 rounded-2xl text-center">
+                    <UserIcon className="size-12 text-base-content/20" />
+                    <div className="flex flex-col gap-1">
+                        <p className="font-semibold">Войдите в аккаунт</p>
+                        <p className="text-sm text-base-content/50">
+                            Чтобы просмотреть отзывы, необходимо авторизоваться
+                        </p>
+                    </div>
+                    <Link href={`/login?from=${pathname}`} className="btn btn-primary btn-sm">
+                        Войти
+                    </Link>
+                </div>
+            </div>
+        </PageContainer>
     );
 }
 

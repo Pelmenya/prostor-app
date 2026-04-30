@@ -2,12 +2,14 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
+import { usePathname } from 'next/navigation';
 import { StarIcon } from '@heroicons/react/20/solid';
 import { EUserRole } from '@/shared/model';
 import { useGetExecutorAverageRating } from '@/entities/order-feedback';
 import { useGetMasterById } from '@/features/master-public';
 import { QualificationCard, LocationCard, VehicleCard } from '@/widgets/master-profile';
-import { PageContainer, PageTitle, PageSpinner, QueryBoundary } from '@/shared/ui';
+import { UserIcon } from '@heroicons/react/24/outline';
+import { PageContainer, PageTitle, QueryBoundary } from '@/shared/ui';
 import { useAuth } from '@/shared/lib/platform';
 
 type TMasterPublicPageProps = {
@@ -16,11 +18,34 @@ type TMasterPublicPageProps = {
 
 export function MasterPublicPage({ masterId }: TMasterPublicPageProps) {
     const { isAuthenticated } = useAuth();
-    if (!isAuthenticated) return <PageSpinner />;
+    if (!isAuthenticated) return <MasterAuthWall />;
     return (
         <QueryBoundary errorMessage="Не удалось загрузить профиль мастера">
             <MasterPublicContent masterId={masterId} />
         </QueryBoundary>
+    );
+}
+
+function MasterAuthWall() {
+    const pathname = usePathname();
+    return (
+        <PageContainer>
+            <PageTitle className="mb-4">Страница мастера</PageTitle>
+            <div className="max-w-lg mx-auto w-full">
+                <div className="flex flex-col items-center gap-4 p-8 bg-base-100 border border-base-300 rounded-2xl text-center">
+                    <UserIcon className="size-12 text-base-content/20" />
+                    <div className="flex flex-col gap-1">
+                        <p className="font-semibold">Войдите в аккаунт</p>
+                        <p className="text-sm text-base-content/50">
+                            Чтобы просмотреть профиль мастера, необходимо авторизоваться
+                        </p>
+                    </div>
+                    <Link href={`/login?from=${pathname}`} className="btn btn-primary btn-sm">
+                        Войти
+                    </Link>
+                </div>
+            </div>
+        </PageContainer>
     );
 }
 
