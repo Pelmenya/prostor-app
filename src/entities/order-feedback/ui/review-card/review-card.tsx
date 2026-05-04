@@ -30,7 +30,7 @@ export function ReviewCard({ review }: TReviewCardProps) {
                             />
                         ) : (
                             <div className="bg-primary/10 size-10 rounded-full flex items-center justify-center font-semibold">
-                                {review.author.first_name[0]}
+                                {review.author.first_name?.[0] ?? '?'}
                             </div>
                         )}
                     </div>

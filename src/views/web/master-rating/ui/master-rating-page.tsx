@@ -60,7 +60,10 @@ function RatingAuthWall({ masterId }: TMasterRatingPageProps) {
                             Чтобы просмотреть отзывы, необходимо авторизоваться
                         </p>
                     </div>
-                    <Link href={`/login?from=${pathname}`} className="btn btn-primary btn-sm">
+                    <Link
+                        href={`/login?from=${encodeURIComponent(pathname)}`}
+                        className="btn btn-primary btn-sm"
+                    >
                         Войти
                     </Link>
                 </div>

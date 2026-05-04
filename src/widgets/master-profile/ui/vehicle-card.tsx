@@ -24,7 +24,11 @@ export function VehicleCard({
     readOnly = false,
     outlined = false,
 }: TVehicleCardProps) {
-    const hasCargo = maxCargoLength || maxCargoWidth || maxCargoHeight || maxCargoWeight;
+    const hasCargo =
+        maxCargoLength != null ||
+        maxCargoWidth != null ||
+        maxCargoHeight != null ||
+        maxCargoWeight != null;
 
     return (
         <MasterProfileCard
@@ -45,10 +49,10 @@ export function VehicleCard({
                         <>
                             <div className="divider m-0" />
                             <p className="text-sm text-base-content/70">
-                                {maxCargoLength && `Длина, см: ${maxCargoLength}`}
-                                {maxCargoWidth && `, Ширина, см: ${maxCargoWidth}`}
-                                {maxCargoHeight && `, Высота, см: ${maxCargoHeight}`}
-                                {maxCargoWeight && `, Макс. вес, кг: ${maxCargoWeight}`}
+                                {maxCargoLength != null && `Длина, см: ${maxCargoLength}`}
+                                {maxCargoWidth != null && `, Ширина, см: ${maxCargoWidth}`}
+                                {maxCargoHeight != null && `, Высота, см: ${maxCargoHeight}`}
+                                {maxCargoWeight != null && `, Макс. вес, кг: ${maxCargoWeight}`}
                             </p>
                         </>
                     )}

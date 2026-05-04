@@ -13,6 +13,7 @@ import { QualificationCard, LocationCard, VehicleCard } from '@/widgets/master-p
 import { UserIcon } from '@heroicons/react/24/outline';
 import { PageContainer, PageTitle, PageSpinner, QueryBoundary } from '@/shared/ui';
 import { useAuth } from '@/shared/lib/platform';
+import { getSafeRedirect } from '@/shared/lib';
 
 type TMasterPublicPageProps = {
     masterId: number;
@@ -49,7 +50,10 @@ function MasterAuthWall() {
                             Чтобы просмотреть профиль мастера, необходимо авторизоваться
                         </p>
                     </div>
-                    <Link href={`/login?from=${pathname}`} className="btn btn-primary btn-sm">
+                    <Link
+                        href={`/login?from=${encodeURIComponent(pathname)}`}
+                        className="btn btn-primary btn-sm"
+                    >
                         Войти
                     </Link>
                 </div>
@@ -72,13 +76,16 @@ function MasterPublicContent({ masterId }: TMasterPublicPageProps) {
         <PageContainer>
             {from ? (
                 <div className="flex items-center gap-2 mb-4">
-                    <Link href={from} className="btn btn-ghost btn-sm btn-circle -ml-2">
+                    <Link
+                        href={getSafeRedirect(from)}
+                        className="btn btn-ghost btn-sm btn-circle -ml-2"
+                    >
                         <ArrowLeftIcon className="size-4" />
                     </Link>
-                    <PageTitle>Страница мастера</PageTitle>
+                    <PageTitle>Профиль мастера</PageTitle>
                 </div>
             ) : (
-                <PageTitle className="mb-4">Страница мастера</PageTitle>
+                <PageTitle className="mb-4">Профиль мастера</PageTitle>
             )}
 
             <div className="flex flex-col gap-4 pb-4 max-w-lg mx-auto w-full">
@@ -95,7 +102,7 @@ function MasterPublicContent({ masterId }: TMasterPublicPageProps) {
                                 />
                             ) : (
                                 <div className="bg-primary/10 size-16 rounded-full flex items-center justify-center text-xl font-semibold">
-                                    {master.first_name[0]}
+                                    {master.first_name?.[0] ?? '?'}
                                 </div>
                             )}
                         </div>
