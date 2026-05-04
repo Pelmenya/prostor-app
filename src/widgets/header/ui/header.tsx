@@ -7,7 +7,7 @@ import { ArrowLeftIcon, Bars3Icon } from '@heroicons/react/24/outline';
 import { useAuth } from '@/shared/lib/platform';
 import { useLogout } from '@/features/auth';
 import { flushCartSync } from '@/features/cart';
-import { formatUserInitials } from '@/shared/lib';
+import { formatUserInitials, useAuthStore } from '@/shared/lib';
 import { IconButton } from '@/shared/ui';
 import { SearchButton, isCatalogRoute } from '@/features/product-search';
 import { BurgerMenu } from './burger-menu';
@@ -27,6 +27,7 @@ export function Header({ back: backProp, backTo: backToProp }: THeaderProps) {
     const back = backProp ?? autoBackTo !== null;
     const backTo = backToProp ?? autoBackTo ?? undefined;
     const { isAuthenticated, user } = useAuth();
+    const role = useAuthStore((s) => s.user?.role);
     const logout = useLogout();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const burgerRef = useRef<HTMLButtonElement>(null);
@@ -91,6 +92,7 @@ export function Header({ back: backProp, backTo: backToProp }: THeaderProps) {
                 isOpen={isMenuOpen}
                 isAuthenticated={!!showAuth}
                 user={user ?? null}
+                role={mounted ? role : null}
                 onClose={() => setIsMenuOpen(false)}
                 onLogout={() => logout(flushCartSync)}
                 triggerRef={burgerRef}

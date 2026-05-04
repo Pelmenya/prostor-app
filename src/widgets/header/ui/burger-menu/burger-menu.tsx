@@ -12,11 +12,13 @@ import {
     HomeModernIcon,
     ArrowRightOnRectangleIcon,
     UserPlusIcon,
+    WrenchScrewdriverIcon,
 } from '@heroicons/react/24/outline';
 import { ThemeToggle } from '@/shared/ui';
 import { usePushNotifications } from '@/features/push-notifications';
 import { formatUserInitials, useClickOutside } from '@/shared/lib';
 import type { TPlatformUser } from '@/shared/lib/platform';
+import { EUserRole } from '@/shared/model';
 import { MenuLink } from './menu-link';
 
 type TBurgerMenuUser = Pick<TPlatformUser, 'firstName' | 'lastName' | 'email'>;
@@ -25,6 +27,7 @@ type TBurgerMenuProps = {
     isOpen: boolean;
     isAuthenticated: boolean;
     user: TBurgerMenuUser | null;
+    role?: EUserRole | null;
     onClose: () => void;
     onLogout: () => void;
     triggerRef: React.RefObject<HTMLButtonElement | null>;
@@ -34,6 +37,7 @@ export function BurgerMenu({
     isOpen,
     isAuthenticated,
     user,
+    role,
     onClose,
     onLogout,
     triggerRef,
@@ -96,6 +100,17 @@ export function BurgerMenu({
                             label="Мои адреса"
                             onClick={onClose}
                         />
+                        {role === EUserRole.SERVICE && (
+                            <>
+                                <hr className="border-base-content/10" />
+                                <MenuLink
+                                    href="/master"
+                                    icon={WrenchScrewdriverIcon}
+                                    label="Кабинет мастера"
+                                    onClick={onClose}
+                                />
+                            </>
+                        )}
                         <hr className="border-base-content/10" />
                     </>
                 ) : null}
