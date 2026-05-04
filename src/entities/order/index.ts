@@ -26,8 +26,6 @@ export type {
     TPickupStoreInfo,
     TScheduledDate,
 } from './model/types/t-order';
-export type { TWorkDay } from './model/types/t-work-day';
-
 // Lib
 export { STATUS_STEP, STATUS_LABEL } from './lib/status-config';
 export { SERVICE_GROUPS } from './lib/service-groups';

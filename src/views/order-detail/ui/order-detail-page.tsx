@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useGetOrderById, useUpdateOrderStatus, EOrderStatus } from '@/entities/order';
+import Link from 'next/link';
 import { CartReadonlyView } from '@/features/cart';
 import { useSingleOrderThumbnails } from '@/features/orders';
 import Image from 'next/image';
@@ -64,8 +65,8 @@ function OrderDetailContent({ orderId }: TOrderDetailPageProps) {
                 {/* Итого */}
                 {order.totalAmount != null && (
                     <div className="relative flex justify-between gap-4 p-4 bg-base-100 border border-base-300 rounded-2xl w-full">
-                        <span className="font-medium text-sm leading-110">Итого</span>
-                        <span className="text-primary font-semibold text-sm leading-110">
+                        <span className="font-medium text-sm leading-[110%]">Итого</span>
+                        <span className="text-primary font-semibold text-sm leading-[110%]">
                             {formatPrice(order.totalAmount)}
                         </span>
                     </div>
@@ -74,17 +75,17 @@ function OrderDetailContent({ orderId }: TOrderDetailPageProps) {
                 {/* Доставка */}
                 {!isCancelled && (
                     <div className="relative flex justify-between gap-4 p-4 bg-base-100 border border-base-300 rounded-2xl w-full">
-                        <span className="font-medium text-sm leading-110">Доставка</span>
+                        <span className="font-medium text-sm leading-[110%]">Доставка</span>
                         {order.deliveryCost != null && order.deliveryCost > 0 ? (
-                            <span className="text-primary font-semibold text-sm leading-110">
+                            <span className="text-primary font-semibold text-sm leading-[110%]">
                                 {formatPrice(order.deliveryCost)}
                             </span>
                         ) : order.deliveryCost === 0 ? (
-                            <span className="text-primary font-semibold text-sm leading-110">
+                            <span className="text-primary font-semibold text-sm leading-[110%]">
                                 Бесплатно
                             </span>
                         ) : (
-                            <span className="text-sm leading-110">Уточняется</span>
+                            <span className="text-sm leading-[110%]">Уточняется</span>
                         )}
                     </div>
                 )}
@@ -105,10 +106,10 @@ function OrderDetailContent({ orderId }: TOrderDetailPageProps) {
                             <div className="relative flex items-center gap-2 p-4 bg-base-100 border border-base-300 rounded-2xl w-full">
                                 <MapPinIcon className="size-6" />
                                 <div className="flex flex-col gap-1">
-                                    <span className="font-semibold text-sm leading-110">
+                                    <span className="font-semibold text-sm leading-[110%]">
                                         Адрес самовывоза
                                     </span>
-                                    <span className="text-sm leading-110">
+                                    <span className="text-sm leading-[110%]">
                                         {order.pickupStore.address}
                                         {order.pickupStore.phone && (
                                             <span className="block">
@@ -124,8 +125,8 @@ function OrderDetailContent({ orderId }: TOrderDetailPageProps) {
                         <div className="relative flex items-center gap-2 p-4 bg-base-100 border border-base-300 rounded-2xl w-full">
                             <HomeIcon className="size-6" />
                             <div className="flex flex-col gap-1">
-                                <span className="font-semibold text-sm leading-110">Адрес</span>
-                                <span className="text-sm leading-110">
+                                <span className="font-semibold text-sm leading-[110%]">Адрес</span>
+                                <span className="text-sm leading-[110%]">
                                     {order.realEstate?.address}
                                 </span>
                             </div>
@@ -133,7 +134,10 @@ function OrderDetailContent({ orderId }: TOrderDetailPageProps) {
 
                         {/* Исполнитель */}
                         {order.executor && (
-                            <div className="relative flex items-center gap-3 p-4 bg-base-100 border border-base-300 rounded-2xl w-full">
+                            <Link
+                                href={`/master/${order.executor.id}?from=/orders/${orderId}`}
+                                className="relative flex items-center gap-3 p-4 bg-base-100 border border-base-300 rounded-2xl w-full hover:border-primary/50 transition-colors"
+                            >
                                 {order.executor.photo_url ? (
                                     <Image
                                         src={order.executor.photo_url}
@@ -155,12 +159,14 @@ function OrderDetailContent({ orderId }: TOrderDetailPageProps) {
                                     </div>
                                 )}
                                 <div className="flex flex-col gap-0.5">
-                                    <span className="text-xs leading-tight">Исполнитель</span>
+                                    <span className="text-xs leading-tight text-base-content/50">
+                                        Исполнитель
+                                    </span>
                                     <span className="font-medium text-sm leading-tight">
                                         {order.executor.first_name} {order.executor.last_name}
                                     </span>
                                 </div>
-                            </div>
+                            </Link>
                         )}
                     </>
                 )}

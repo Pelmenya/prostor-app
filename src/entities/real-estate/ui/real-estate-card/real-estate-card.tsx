@@ -51,7 +51,7 @@ export function RealEstateCard({
                 <Icon className="size-10 text-primary shrink-0" />
                 <div className="divider divider-horizontal m-0 shrink-0 self-stretch" />
                 <div className="flex flex-col gap-1 min-w-0 flex-1">
-                    <p className="text-sm font-semibold leading-110 line-clamp-2 wrap-break-word">
+                    <p className="text-sm font-semibold leading-[110%] line-clamp-2 wrap-break-word">
                         {realEstate.address || 'Адрес не указан'}
                     </p>
                     <div className="flex gap-2 text-xs text-base-content/50">

@@ -15,6 +15,7 @@ export { EServiceCategory } from './t-product';
 export type { TSystemBundle, TGroup, TGroupPath } from './t-group';
 
 export type { TUser } from './t-user';
+export { EUserRole } from './t-user';
 
 export type { TLegalDocument } from './t-legal-document';
 
@@ -49,3 +50,4 @@ export type {
     TDetailedRating,
 } from './t-detailed-rating';
 export type { TExecutorAverageRating } from './t-executor-average-rating';
+export type { TWorkDay } from './t-work-day';

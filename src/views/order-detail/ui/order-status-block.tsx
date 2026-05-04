@@ -27,8 +27,8 @@ export function OrderStatusBlock({
             {!isCompact && (
                 <>
                     <div className="flex gap-2">
-                        <span className="font-semibold text-sm leading-110">Дата доставки</span>
-                        <span className="text-sm leading-110">
+                        <span className="font-semibold text-sm leading-[110%]">Дата доставки</span>
+                        <span className="text-sm leading-[110%]">
                             {scheduledDate?.date
                                 ? `${formatDateRu(scheduledDate.date)}`
                                 : 'Уточняется'}
@@ -61,10 +61,12 @@ export function OrderStatusBlock({
             )}
 
             <div className="flex justify-between">
-                <span className={`text-sm leading-110 ${STATUS_LABEL[status].className}`}>
+                <span className={`text-sm leading-[110%] ${STATUS_LABEL[status].className}`}>
                     {STATUS_LABEL[status].text}
                 </span>
-                <span className="font-medium text-sm leading-110 opacity-60">{dateForStatus}</span>
+                <span className="font-medium text-sm leading-[110%] opacity-60">
+                    {dateForStatus}
+                </span>
             </div>
         </div>
     );

@@ -10,7 +10,7 @@ import { useAuth } from '@/shared/lib/platform';
 import { retryAsync } from '@/shared/lib';
 import { useCheckoutStore } from '../model/checkout.store';
 import type { TUserWithWorkDays } from '../model/types/t-user-with-work-days';
-import type { TWorkDay } from '@/entities/order';
+import type { TWorkDay } from '@/shared/model';
 
 const emailSchema = z.string().email();
 

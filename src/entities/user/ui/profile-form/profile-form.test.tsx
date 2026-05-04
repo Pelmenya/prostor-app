@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi } from 'vitest';
 import { ProfileForm } from './profile-form';
 import type { TUser } from '@/shared/model';
+import { EUserRole } from '@/shared/model';
 
 const mockUser: TUser = {
     id: 1,
@@ -11,7 +12,7 @@ const mockUser: TUser = {
     last_name: 'Иванов',
     phone: '+79991234567',
     email: 'ivan@mail.ru',
-    role: 'client',
+    role: EUserRole.CLIENT,
     is_auth: true,
 };
 

@@ -3,7 +3,7 @@
 import { CompactModal } from '@/shared/ui';
 import { formatDateRu, formatPrice } from '@/shared/lib';
 import type { TUserWithWorkDays } from '../../model/types/t-user-with-work-days';
-import type { TWorkDay } from '@/entities/order';
+import type { TWorkDay } from '@/shared/model';
 import type { TClientVisitPriceItem } from '@/entities/delivery';
 
 type TOrderScheduleDialogProps = {

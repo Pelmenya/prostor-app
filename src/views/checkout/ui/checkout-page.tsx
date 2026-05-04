@@ -19,7 +19,7 @@ import {
     ExecutorPreview,
 } from '@/features/checkout';
 import type { TUserWithWorkDays, TDeliveryTab } from '@/features/checkout';
-import type { TWorkDay } from '@/entities/order';
+import type { TWorkDay } from '@/shared/model';
 import { CartReadonlyView } from '@/features/cart';
 import { useProductThumbnails } from '@/entities/product';
 import { PageContainer, PageTitle } from '@/shared/ui';

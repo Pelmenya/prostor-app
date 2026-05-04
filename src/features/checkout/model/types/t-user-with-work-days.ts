@@ -1,5 +1,4 @@
-import type { TUser } from '@/shared/model';
-import type { TWorkDay } from '@/entities/order';
+import type { TUser, TWorkDay } from '@/shared/model';
 
 export type TUserWithWorkDays = {
     user: TUser;

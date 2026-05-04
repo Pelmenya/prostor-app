@@ -1,6 +1,11 @@
-import { useMutation, useSuspenseQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useSuspenseQuery, useQueryClient } from '@tanstack/react-query';
 import { useApi } from '@/shared/api';
-import type { TOrderFeedback, TOrderFeedbackParameters } from '@/shared/model';
+import type {
+    TOrderFeedback,
+    TOrderFeedbackParameters,
+    TExecutorAverageRating,
+    TDetailedRating,
+} from '@/shared/model';
 
 export const orderFeedbackKeys = {
     myFeedback: (orderId: number) => ['order-feedback', 'my', orderId] as const,
@@ -47,6 +52,23 @@ export function useCreateOrderFeedback() {
                 queryKey: orderFeedbackKeys.executorDetailed(executorId),
             });
         },
+    });
+}
+
+export function useGetExecutorAverageRating(userId?: number) {
+    const api = useApi();
+    return useQuery<TExecutorAverageRating>({
+        queryKey: orderFeedbackKeys.executorAverage(userId),
+        queryFn: () => api<TExecutorAverageRating>(`/order-feedback/executor/${userId}/average`),
+        enabled: !!userId,
+    });
+}
+
+export function useGetExecutorDetailedRating(executorId: number) {
+    const api = useApi();
+    return useSuspenseQuery<TDetailedRating>({
+        queryKey: orderFeedbackKeys.executorDetailed(executorId),
+        queryFn: () => api<TDetailedRating>(`/order-feedback/executor/${executorId}/detailed`),
     });
 }
 

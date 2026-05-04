@@ -206,6 +206,7 @@ FSD 2.1 — **строгое архитектурное требование**. 
 - **Бизнес-типы в `shared/model/`.** TProduct, TUser, TGroup — единый источник правды. Entities реэкспортируют, не дублируют
 - **Не дублировать логику.** Общие паттерны (хлебные крошки, форматирование цен) — выносить в хуки/утилиты в features или shared
 - **`h-dvh` вместо `h-screen`** на корневом контейнере — учитывает dynamic viewport на мобилках (адресная строка браузера)
+- **Название приложения — через константу.** Не хардкодить строку `'PROSTOR'` в коде. Использовать `APP_NAME` из `@/shared/config`. Это позволяет быстро переименовать приложение в одном месте. Пример использования в metadata: `title: \`Зоны обслуживания — ${APP_NAME}\``
 
 ### Нейминг файлов и папок
 
@@ -357,6 +358,53 @@ FSD 2.1 — **строгое архитектурное требование**. 
 - **Этап 3:** Полный Web — desktop UI для мастеров/кураторов, карта, чат, PWA, SEO
 
 Детали, чеклисты и TODO — [`docs/strategy/ROADMAP.md`](docs/strategy/ROADMAP.md).
+
+## MCP-серверы (Claude Code)
+
+### Playwright MCP — **must-have для фронт-разработки**
+
+Без Playwright MCP я работаю с фронтом «вслепую» — пишу код, прошу скриншот у разработчика, жду, итерируюсь. С Playwright MCP я сам открываю dev-сервер (`http://localhost:3000`) или прод (https://aquaphor-pro.store/), вижу страницу, кликаю, заполняю формы, читаю консоль и network — петля обратной связи в секундах, не минутах.
+
+**Почему именно Playwright MCP, а не BrowserMCP:**
+
+- Изолированный browser instance — не имеет доступа к твоим живым сессиям (Gmail, банк, Slack), что критично для чужих машин и code review.
+- Headless режим — работает в CI и фоне, не мешает твоим вкладкам.
+- Поддержка `storageState.json` для persistent auth (логиниться раз — переиспользовать сессию).
+- Тот же engine что в `e2e/` тестах (`@playwright/test`) — единая ментальная модель.
+
+**Установка** (один раз, scope=user — глобально для Claude Code):
+
+```powershell
+# 1. Скачать chromium binary (~170MB, в C:\Users\Diamond\AppData\Local\ms-playwright\)
+npx playwright install chromium
+
+# 2. Зарегистрировать MCP-сервер глобально
+claude mcp add playwright --scope user -- npx -y @playwright/mcp@latest
+
+# 3. Проверить что connected
+claude mcp list
+# → playwright: npx -y @playwright/mcp@latest - ✓ Connected
+
+# 4. Перезапустить Claude Code
+```
+
+После рестарта появятся tools `mcp__playwright__browser_navigate`, `..._click`, `..._screenshot`, `..._evaluate`, `..._console_messages` и т.д.
+
+**Whitelist permissions** (опц., чтобы не нажимать allow на каждый browser_click) — добавить в `~/.claude/settings.json`:
+
+```json
+{
+    "permissions": {
+        "allow": ["mcp__playwright__*"]
+    }
+}
+```
+
+**Когда обновлять:** MCP-сервер сам подтягивается через `@latest` при старте Claude Code. Browser binary — раз в 2-3 месяца или при логе «browser not found»: `npx playwright install chromium` ещё раз.
+
+### Что ещё в `.mcp.json` (project-scope)
+
+Здесь лежат сервера специфичные для prostor-app — например, MCP к локальному dev-серверу backend'а или YouGile. Глобальные (`playwright`, `flowise-slovo`, `pencil`) живут в `~/.claude.json` и не дублируются здесь.
 
 ## Субагенты (Code Review)
 
