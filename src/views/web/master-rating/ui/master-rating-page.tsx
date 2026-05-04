@@ -13,6 +13,7 @@ import {
 import { UserIcon } from '@heroicons/react/24/outline';
 import { PageContainer, PageTitle, PageSpinner, QueryBoundary } from '@/shared/ui';
 import { useAuth } from '@/shared/lib/platform';
+import { clamp, pluralizeRu } from '@/shared/lib';
 import type { TReviewItem } from '@/shared/model';
 
 type TSortOption = 'new' | 'old' | 'high' | 'low';
@@ -102,7 +103,7 @@ function MasterRatingContent({ masterId }: { masterId: number }) {
     const { data: rating } = useGetExecutorDetailedRating(masterId);
 
     const sortedReviews = sortReviews(rating.reviews, sort);
-    const overall = Math.min(Math.max(rating.overall, 0), 5);
+    const overall = clamp(rating.overall, 0, 5);
 
     const categoriesWithLabels = rating.categories.map((cat) => ({
         ...cat,
@@ -144,16 +145,7 @@ function MasterRatingContent({ masterId }: { masterId: number }) {
                     <div className="flex flex-col gap-0.5">
                         <span className="font-semibold leading-[110%]">
                             {rating.totalFeedbacks}{' '}
-                            {rating.totalFeedbacks % 10 === 1 && rating.totalFeedbacks % 100 !== 11
-                                ? 'отзыв'
-                                : rating.totalFeedbacks % 10 >= 2 &&
-                                    rating.totalFeedbacks % 10 <= 4 &&
-                                    !(
-                                        rating.totalFeedbacks % 100 >= 12 &&
-                                        rating.totalFeedbacks % 100 <= 14
-                                    )
-                                  ? 'отзыва'
-                                  : 'отзывов'}
+                            {pluralizeRu(rating.totalFeedbacks, ['отзыв', 'отзыва', 'отзывов'])}
                         </span>
                         <span className="text-sm text-base-content/50">Общий рейтинг</span>
                     </div>

@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Montserrat } from 'next/font/google';
+import { QueryProvider } from '@/shared/api';
+import { APP_NAME } from '@/shared/config';
 import './globals.css';
 
 const montserrat = Montserrat({
@@ -8,13 +10,13 @@ const montserrat = Montserrat({
 });
 
 export const metadata: Metadata = {
-    title: 'PROSTOR — водоочистка и обслуживание',
+    title: `${APP_NAME} — водоочистка и обслуживание`,
     description: 'Монтаж и обслуживание систем водоочистки, продажа оборудования',
     manifest: '/manifest.json',
     appleWebApp: {
         capable: true,
         statusBarStyle: 'default',
-        title: 'PROSTOR',
+        title: APP_NAME,
     },
     icons: {
         icon: '/icon-192.png',
@@ -44,7 +46,9 @@ export default function RootLayout({
                     }}
                 />
             </head>
-            <body className={`${montserrat.className} antialiased`}>{children}</body>
+            <body className={`${montserrat.className} antialiased`}>
+                <QueryProvider>{children}</QueryProvider>
+            </body>
         </html>
     );
 }

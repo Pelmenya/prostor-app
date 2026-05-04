@@ -4,14 +4,16 @@ import { StarRating } from '@/shared/ui';
 
 type TRatingCardProps = {
     avgRating?: number;
+    linkTo?: string;
 };
 
-export function RatingCard({ avgRating }: TRatingCardProps) {
+export function RatingCard({ avgRating, linkTo }: TRatingCardProps) {
     return (
         <MasterProfileCard
             title="Рейтинг"
             icon={<StarIcon className="size-6" />}
-            showEditIcon={false}
+            linkTo={linkTo}
+            showEditIcon={!!linkTo}
         >
             <StarRating avgRating={avgRating} />
         </MasterProfileCard>

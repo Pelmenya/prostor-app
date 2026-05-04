@@ -99,6 +99,9 @@ function MasterPublicContent({ masterId }: TMasterPublicPageProps) {
                                     width={64}
                                     height={64}
                                     className="rounded-full object-cover"
+                                    onError={(e) => {
+                                        (e.target as HTMLImageElement).style.display = 'none';
+                                    }}
                                 />
                             ) : (
                                 <div className="bg-primary/10 size-16 rounded-full flex items-center justify-center text-xl font-semibold">

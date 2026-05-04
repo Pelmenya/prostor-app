@@ -1,4 +1,3 @@
-import { QueryProvider } from '@/shared/api';
 import { Header } from '@/widgets/header';
 import { Footer } from '@/widgets/footer';
 import { RegisterSW } from '@/features/push-notifications';
@@ -7,7 +6,7 @@ import { SearchModalMount } from '@/features/product-search';
 
 export default function WebLayout({ children }: { children: React.ReactNode }) {
     return (
-        <QueryProvider>
+        <>
             <RegisterSW />
             <CartSyncProvider />
             <div className="flex flex-col w-full h-dvh border border-base-content/10 bg-base-100">
@@ -16,6 +15,6 @@ export default function WebLayout({ children }: { children: React.ReactNode }) {
                 <Footer />
             </div>
             <SearchModalMount />
-        </QueryProvider>
+        </>
     );
 }

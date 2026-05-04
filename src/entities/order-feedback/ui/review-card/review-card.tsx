@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import { StarIcon } from '@heroicons/react/20/solid';
 import { ChatBubbleLeftEllipsisIcon } from '@heroicons/react/24/outline';
+import { clamp } from '@/shared/lib';
 import type { TReviewItem } from '@/shared/model';
 
 type TReviewCardProps = {
@@ -8,7 +9,7 @@ type TReviewCardProps = {
 };
 
 export function ReviewCard({ review }: TReviewCardProps) {
-    const rating = Math.min(Math.max(review.avg, 0), 5);
+    const rating = clamp(review.avg, 0, 5);
     const date = new Date(review.createdAt).toLocaleDateString('ru-RU', {
         day: 'numeric',
         month: 'long',
@@ -27,6 +28,9 @@ export function ReviewCard({ review }: TReviewCardProps) {
                                 width={40}
                                 height={40}
                                 className="rounded-full object-cover"
+                                onError={(e) => {
+                                    (e.target as HTMLImageElement).style.display = 'none';
+                                }}
                             />
                         ) : (
                             <div className="bg-primary/10 size-10 rounded-full flex items-center justify-center font-semibold">

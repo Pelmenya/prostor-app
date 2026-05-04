@@ -58,7 +58,7 @@ function MasterAccountContent() {
 
             <WorkCard />
 
-            <RatingCard avgRating={ratingData?.average} />
+            <RatingCard avgRating={ratingData?.average} linkTo={`/master/${user.id}/rating`} />
         </div>
     );
 }
