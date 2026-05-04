@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useSafeBack } from '@/shared/lib';
 import { useAccountService } from '@/entities/account-service';
 import { LocationForm } from '@/features/master-location';
 import { AddressSearchWithMap } from '@/features/address-search';
@@ -17,7 +17,7 @@ export function MasterLocationPage() {
 }
 
 function MasterLocationContent() {
-    const router = useRouter();
+    const safeBack = useSafeBack('/master');
     const { data: accountService } = useAccountService();
 
     const [address, setAddress] = useState(accountService?.address ?? '');
@@ -60,7 +60,7 @@ function MasterLocationContent() {
                     geoData={fullGeoData as Record<string, unknown> | null}
                     initialDepartureBasis={accountService?.departureBasis}
                     initialStoreId={accountService?.storeId}
-                    onSuccess={() => router.back()}
+                    onSuccess={safeBack}
                 />
             </div>
         </PageContainer>

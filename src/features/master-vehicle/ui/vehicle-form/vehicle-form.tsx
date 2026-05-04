@@ -1,6 +1,6 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { useSafeBack } from '@/shared/lib';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -36,7 +36,7 @@ function toOptionalInt(val: string): number | undefined {
 }
 
 export function VehicleForm({ initialData }: TVehicleFormProps) {
-    const router = useRouter();
+    const safeBack = useSafeBack('/master');
     const { mutate, isPending, error } = useUpdateAccountService();
 
     const {
@@ -65,7 +65,7 @@ export function VehicleForm({ initialData }: TVehicleFormProps) {
                 maxCargoHeight: toOptionalInt(form.maxCargoHeight),
                 maxCargoWeight: toOptionalInt(form.maxCargoWeight),
             },
-            { onSuccess: () => router.back() },
+            { onSuccess: safeBack },
         );
     }
 

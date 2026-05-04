@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSafeBack } from '@/shared/lib';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCreateRealEstate, useUpdateRealEstate } from '@/entities/real-estate';
 import { installedEquipmentKeys } from '@/entities/installed-equipment';
@@ -30,6 +31,7 @@ type TIntakeKey = (typeof INTAKE_POINTS)[number]['key'];
 
 export function StepThree({ onPrev, editMode, id, onSuccess }: TWizardStepProps) {
     const router = useRouter();
+    const safeBack = useSafeBack('/real-estate');
 
     const address = useRealEstateWizardStore((s) => s.address);
     const coordinates = useRealEstateWizardStore((s) => s.coordinates);
@@ -80,7 +82,7 @@ export function StepThree({ onPrev, editMode, id, onSuccess }: TWizardStepProps)
                     queryKey: installedEquipmentKeys.byRealEstate(Number(id)),
                 });
                 reset();
-                router.back();
+                safeBack();
             } else {
                 const created = await createRealEstate.mutateAsync(data);
                 reset();

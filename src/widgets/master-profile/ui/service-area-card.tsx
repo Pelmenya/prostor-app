@@ -9,7 +9,7 @@ type TServiceAreaCardProps = {
 
 export function ServiceAreaCard({
     zoneCount,
-    linkTo = '/dashboard/master/area',
+    linkTo = '/master/area',
     readOnly = false,
 }: TServiceAreaCardProps) {
     return (

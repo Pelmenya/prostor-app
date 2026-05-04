@@ -5,7 +5,7 @@ type TWorkCardProps = {
     linkTo?: string;
 };
 
-export function WorkCard({ linkTo = '/dashboard/master/work-days' }: TWorkCardProps) {
+export function WorkCard({ linkTo = '/master/work-days' }: TWorkCardProps) {
     return (
         <MasterProfileCard
             title="Работа"

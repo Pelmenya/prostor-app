@@ -13,7 +13,7 @@ type TPersonalInfoCardProps = {
 
 export function PersonalInfoCard({
     user,
-    linkTo = '/dashboard/master/profile',
+    linkTo = '/master/profile',
     readOnly = false,
 }: TPersonalInfoCardProps) {
     const content = (

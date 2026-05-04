@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useSafeBack } from '@/shared/lib';
 import { PencilSquareIcon } from '@heroicons/react/24/outline';
 import {
     useCurrentUserSuspense,
@@ -20,12 +20,12 @@ export function MasterPersonalInfoPage() {
 }
 
 function MasterPersonalInfoContent() {
-    const router = useRouter();
+    const safeBack = useSafeBack('/master');
     const { data: user } = useCurrentUserSuspense();
     const { mutate, isPending, error } = useUpdateProfile();
 
     function handleSubmit(data: TProfileFormData) {
-        mutate(data, { onSuccess: () => router.back() });
+        mutate(data, { onSuccess: safeBack });
     }
 
     return (
@@ -47,7 +47,7 @@ function MasterPersonalInfoContent() {
                             </p>
                         </div>
                         <Link
-                            href="/dashboard/master/change-email"
+                            href="/master/change-email"
                             className="btn btn-ghost btn-sm btn-circle shrink-0"
                             aria-label="Изменить email"
                         >

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useSafeBack } from '@/shared/lib';
 import {
     EServiceGrade,
     useUpdateAccountService,
@@ -22,7 +22,7 @@ type TQualificationFormProps = {
 };
 
 export function QualificationForm({ initialGrade }: TQualificationFormProps) {
-    const router = useRouter();
+    const safeBack = useSafeBack('/master');
     const [selected, setSelected] = useState<EServiceGrade | null>(initialGrade ?? null);
     const { mutate, isPending, error } = useUpdateAccountService();
 
@@ -31,7 +31,7 @@ export function QualificationForm({ initialGrade }: TQualificationFormProps) {
     function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
         if (!selected) return;
-        mutate({ grade: selected }, { onSuccess: () => router.back() });
+        mutate({ grade: selected }, { onSuccess: safeBack });
     }
 
     return (

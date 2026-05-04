@@ -13,7 +13,7 @@ type TLocationCardProps = {
 export function LocationCard({
     address,
     departureBasis,
-    linkTo = '/dashboard/master/location',
+    linkTo = '/master/location',
     readOnly = false,
     outlined = false,
 }: TLocationCardProps) {

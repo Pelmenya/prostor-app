@@ -20,15 +20,22 @@ export function VehicleCard({
     maxCargoWidth,
     maxCargoHeight,
     maxCargoWeight,
-    linkTo = '/dashboard/master/vehicle',
+    linkTo = '/master/vehicle',
     readOnly = false,
     outlined = false,
 }: TVehicleCardProps) {
-    const hasCargo =
-        maxCargoLength != null ||
-        maxCargoWidth != null ||
-        maxCargoHeight != null ||
-        maxCargoWeight != null;
+    const carParts = [carModel, carNumber ? `ГОС номер: ${carNumber}` : null]
+        .filter(Boolean)
+        .join(', ');
+
+    const cargoParts = [
+        maxCargoLength != null && `Длина, см: ${maxCargoLength}`,
+        maxCargoWidth != null && `Ширина, см: ${maxCargoWidth}`,
+        maxCargoHeight != null && `Высота, см: ${maxCargoHeight}`,
+        maxCargoWeight != null && `Макс. вес, кг: ${maxCargoWeight}`,
+    ]
+        .filter(Boolean)
+        .join(', ');
 
     return (
         <MasterProfileCard
@@ -38,22 +45,13 @@ export function VehicleCard({
             readOnly={readOnly}
             outlined={outlined}
         >
-            {carModel || carNumber ? (
+            {carParts ? (
                 <>
-                    <p className="text-sm text-base-content/70">
-                        {carModel}
-                        {carModel && carNumber ? ', ' : ''}
-                        {carNumber ? `ГОС номер: ${carNumber}` : ''}
-                    </p>
-                    {hasCargo && (
+                    <p className="text-sm text-base-content/70">{carParts}</p>
+                    {cargoParts && (
                         <>
                             <div className="divider m-0" />
-                            <p className="text-sm text-base-content/70">
-                                {maxCargoLength != null && `Длина, см: ${maxCargoLength}`}
-                                {maxCargoWidth != null && `, Ширина, см: ${maxCargoWidth}`}
-                                {maxCargoHeight != null && `, Высота, см: ${maxCargoHeight}`}
-                                {maxCargoWeight != null && `, Макс. вес, кг: ${maxCargoWeight}`}
-                            </p>
+                            <p className="text-sm text-base-content/70">{cargoParts}</p>
                         </>
                     )}
                 </>

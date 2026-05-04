@@ -4,10 +4,10 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useRouter } from 'next/navigation';
 import { changeEmail } from '@/features/auth';
 import { ApiError } from '@/shared/api';
 import { useAuth } from '@/shared/lib/platform';
+import { useSafeBack } from '@/shared/lib';
 import { PageContainer, FormCard, InputField, DashboardBackHeader } from '@/shared/ui';
 
 const schema = z.object({
@@ -21,7 +21,7 @@ export function MasterChangeEmailPage() {
 }
 
 function MasterChangeEmailContent() {
-    const router = useRouter();
+    const safeBack = useSafeBack('/master');
     const { authHeader } = useAuth();
     const [sentTo, setSentTo] = useState<string | null>(null);
     const [serverError, setServerError] = useState<string | null>(null);
@@ -63,7 +63,7 @@ function MasterChangeEmailContent() {
                         <p className="text-sm text-base-content/60">
                             Не пришло? Проверьте папку «Спам».
                         </p>
-                        <button className="btn btn-ghost btn-sm" onClick={() => router.back()}>
+                        <button className="btn btn-ghost btn-sm" onClick={safeBack}>
                             Вернуться назад
                         </button>
                     </div>

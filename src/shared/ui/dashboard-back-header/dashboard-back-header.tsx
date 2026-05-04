@@ -12,7 +12,7 @@ type TDashboardBackHeaderProps = {
 
 export function DashboardBackHeader({
     title,
-    fallbackHref = '/dashboard/master',
+    fallbackHref = '/master',
     onBack,
 }: TDashboardBackHeaderProps) {
     const router = useRouter();

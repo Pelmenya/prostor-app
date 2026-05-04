@@ -16,5 +16,11 @@ export {
 export { useAuthStore, mapUserToPlatformUser } from './auth';
 export { sleep, expBackoff, MAX_RETRY_ATTEMPTS, retryAsync } from './retry';
 export { buildSearchParams } from './build-search-params';
-export { useClickOutside, useFormDraft, getFormDraft, useDebouncedValue } from './hooks';
+export {
+    useClickOutside,
+    useFormDraft,
+    getFormDraft,
+    useDebouncedValue,
+    useSafeBack,
+} from './hooks';
 export { getSalePrices } from './product';

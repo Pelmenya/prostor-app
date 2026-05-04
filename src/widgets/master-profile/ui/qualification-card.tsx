@@ -19,7 +19,7 @@ export function QualificationCard({
     grade,
     outlined = false,
     readOnly = false,
-    linkTo = '/dashboard/master/qualification',
+    linkTo = '/master/qualification',
 }: TQualificationCardProps) {
     const categories = grade ? getCategoriesByGrade(grade) : [];
 

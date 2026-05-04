@@ -22,9 +22,7 @@ function MasterWorkDaysContent() {
                 <p className="text-sm text-base-content/60">
                     Выберите рабочий день чтобы посмотреть маршрут и заказы.
                 </p>
-                <WorkDaysCalendar
-                    onDayClick={(date) => router.push(`/dashboard/master/work-days/${date}`)}
-                />
+                <WorkDaysCalendar onDayClick={(date) => router.push(`/master/work-days/${date}`)} />
             </div>
         </PageContainer>
     );

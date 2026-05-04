@@ -7,7 +7,7 @@ type TScheduleCardProps = {
 };
 
 export function ScheduleCard({
-    linkTo = '/dashboard/master/schedule',
+    linkTo = '/master/schedule',
     readOnly = false,
 }: TScheduleCardProps) {
     return (
