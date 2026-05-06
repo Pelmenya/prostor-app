@@ -1,6 +1,7 @@
 export {
     useAccountService,
     useUpdateAccountService,
+    useUpdateServiceSetup,
     useGetWorkDays,
     accountServiceKeys,
 } from './api/account-service.api';
