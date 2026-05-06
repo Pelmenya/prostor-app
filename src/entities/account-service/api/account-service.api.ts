@@ -31,6 +31,18 @@ export function useAccountService() {
     });
 }
 
+export function useAccountServiceQuery(options?: { enabled?: boolean }) {
+    const api = useApi();
+    return useQuery<TAccountService | null>({
+        queryKey: accountServiceKeys.my(),
+        queryFn: async () => {
+            const data = await api<TAccountService | null>('/service/account');
+            return data ?? null;
+        },
+        enabled: options?.enabled,
+    });
+}
+
 export function useUpdateAccountService() {
     const api = useApi();
     const queryClient = useQueryClient();

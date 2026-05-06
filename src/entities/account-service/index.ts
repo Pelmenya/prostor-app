@@ -1,5 +1,6 @@
 export {
     useAccountService,
+    useAccountServiceQuery,
     useUpdateAccountService,
     useUpdateServiceSetup,
     useGetWorkDays,
