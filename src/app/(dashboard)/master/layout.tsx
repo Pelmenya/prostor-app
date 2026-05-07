@@ -6,7 +6,7 @@ import { useCurrentUser } from '@/entities/user';
 import { useAccountServiceQuery } from '@/entities/account-service';
 import { EUserRole } from '@/shared/model';
 
-const SETUP_PATH = '/dashboard/master/settings';
+const SETUP_PATH = '/master/settings';
 
 export default function MasterLayout({ children }: { children: React.ReactNode }) {
     const router = useRouter();

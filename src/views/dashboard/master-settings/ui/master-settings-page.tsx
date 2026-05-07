@@ -35,7 +35,7 @@ function MasterSettingsContent() {
 
     useEffect(() => {
         if (isCompleted) {
-            router.replace('/dashboard/master');
+            router.replace('/master');
         }
     }, [isCompleted, router]);
 

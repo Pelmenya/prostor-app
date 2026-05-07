@@ -33,7 +33,7 @@ export function ServiceSettingsWizard({
 
             if (isLastStep) {
                 await updateSetup({ currentStep: TOTAL_STEPS, completed: true });
-                router.replace('/dashboard/master');
+                router.replace('/master');
             } else {
                 await updateSetup({ currentStep: currentStep + 1 });
             }
