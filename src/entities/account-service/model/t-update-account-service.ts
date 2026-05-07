@@ -12,7 +12,7 @@ export type TUpdateAccountService = {
     maxCargoWeight?: number;
     address?: string;
     suggestion?: { machine: string; sign: string; value: string; zip: string };
-    geoData?: Record<string, unknown>;
+    geoData?: unknown;
     coordinates?: { type: 'Point'; coordinates: [number, number] };
     departureBasis?: EDepartureBasis;
     storeId?: string | null;

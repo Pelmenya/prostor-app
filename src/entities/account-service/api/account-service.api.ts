@@ -31,6 +31,18 @@ export function useAccountService() {
     });
 }
 
+export function useAccountServiceQuery(options?: { enabled?: boolean }) {
+    const api = useApi();
+    return useQuery<TAccountService | null>({
+        queryKey: accountServiceKeys.my(),
+        queryFn: async () => {
+            const data = await api<TAccountService | null>('/service/account');
+            return data ?? null;
+        },
+        enabled: options?.enabled,
+    });
+}
+
 export function useUpdateAccountService() {
     const api = useApi();
     const queryClient = useQueryClient();
@@ -39,6 +51,18 @@ export function useUpdateAccountService() {
             api<TAccountService>('/service/account', { method: 'POST', body: data }),
         onSuccess: () => {
             void queryClient.invalidateQueries({ queryKey: accountServiceKeys.my() });
+        },
+    });
+}
+
+export function useUpdateServiceSetup() {
+    const api = useApi();
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (data: { currentStep?: number; completed?: boolean }) =>
+            api<TAccountService>('/service/account/setup-step', { method: 'PATCH', body: data }),
+        onSuccess: (data) => {
+            queryClient.setQueryData(accountServiceKeys.my(), data);
         },
     });
 }

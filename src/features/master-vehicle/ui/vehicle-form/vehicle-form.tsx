@@ -1,5 +1,6 @@
 'use client';
 
+import { forwardRef, useImperativeHandle } from 'react';
 import { useSafeBack } from '@/shared/lib';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -18,6 +19,10 @@ const vehicleSchema = z.object({
 
 type TVehicleForm = z.infer<typeof vehicleSchema>;
 
+export type TVehicleFormHandle = {
+    submit: () => Promise<boolean>;
+};
+
 type TVehicleFormProps = {
     initialData?: {
         carModel?: string | null;
@@ -27,6 +32,8 @@ type TVehicleFormProps = {
         maxCargoHeight?: number | null;
         maxCargoWeight?: number | null;
     } | null;
+    hideSubmit?: boolean;
+    onSuccess?: () => void;
 };
 
 function toOptionalInt(val: string): number | undefined {
@@ -35,9 +42,12 @@ function toOptionalInt(val: string): number | undefined {
     return isNaN(n) || n < 1 ? undefined : n;
 }
 
-export function VehicleForm({ initialData }: TVehicleFormProps) {
+export const VehicleForm = forwardRef<TVehicleFormHandle, TVehicleFormProps>(function VehicleForm(
+    { initialData, hideSubmit = false, onSuccess },
+    ref,
+) {
     const safeBack = useSafeBack('/master');
-    const { mutate, isPending, error } = useUpdateAccountService();
+    const { mutate, mutateAsync, isPending, error } = useUpdateAccountService();
 
     const {
         register,
@@ -55,6 +65,30 @@ export function VehicleForm({ initialData }: TVehicleFormProps) {
         },
     });
 
+    useImperativeHandle(ref, () => ({
+        submit: () =>
+            new Promise<boolean>((resolve) => {
+                void handleSubmit(
+                    async (data) => {
+                        try {
+                            await mutateAsync({
+                                carModel: data.carModel || undefined,
+                                carNumber: data.carNumber || undefined,
+                                maxCargoLength: toOptionalInt(data.maxCargoLength),
+                                maxCargoWidth: toOptionalInt(data.maxCargoWidth),
+                                maxCargoHeight: toOptionalInt(data.maxCargoHeight),
+                                maxCargoWeight: toOptionalInt(data.maxCargoWeight),
+                            });
+                            resolve(true);
+                        } catch {
+                            resolve(false);
+                        }
+                    },
+                    () => resolve(false),
+                )();
+            }),
+    }));
+
     function onSubmit(form: TVehicleForm) {
         mutate(
             {
@@ -65,7 +99,7 @@ export function VehicleForm({ initialData }: TVehicleFormProps) {
                 maxCargoHeight: toOptionalInt(form.maxCargoHeight),
                 maxCargoWeight: toOptionalInt(form.maxCargoWeight),
             },
-            { onSuccess: safeBack },
+            { onSuccess: onSuccess ?? safeBack },
         );
     }
 
@@ -137,9 +171,15 @@ export function VehicleForm({ initialData }: TVehicleFormProps) {
                 <p className="text-error text-sm">Не удалось сохранить. Попробуйте ещё раз.</p>
             )}
 
-            <button type="submit" className="btn btn-primary w-full" disabled={isPending}>
-                {isPending ? <span className="loading loading-spinner loading-sm" /> : 'Сохранить'}
-            </button>
+            {!hideSubmit && (
+                <button type="submit" className="btn btn-primary w-full" disabled={isPending}>
+                    {isPending ? (
+                        <span className="loading loading-spinner loading-sm" />
+                    ) : (
+                        'Сохранить'
+                    )}
+                </button>
+            )}
         </form>
     );
-}
+});
