@@ -1,23 +1,15 @@
 'use client';
 
-import { forwardRef, useImperativeHandle } from 'react';
+import { forwardRef } from 'react';
 import { WeeklyScheduleForm, WorkScheduleCalendar } from '@/features/master-schedule';
+import type { TWeeklyScheduleFormHandle } from '@/features/master-schedule';
 
-export type TScheduleStepHandle = {
-    submit: () => Promise<boolean>;
-};
-
-export const ScheduleStep = forwardRef<TScheduleStepHandle>(function ScheduleStep(_, ref) {
-    useImperativeHandle(ref, () => ({
-        submit: async () => true,
-    }));
-
+export const ScheduleStep = forwardRef<TWeeklyScheduleFormHandle>(function ScheduleStep(_, ref) {
     return (
         <div className="flex flex-col gap-6 max-w-lg mx-auto w-full">
             <h2 className="text-xl font-bold">График работы</h2>
             <p className="text-sm text-base-content/60">
-                Настройте расписание. Нажмите на дату чтобы добавить рабочий день. Можно изменить
-                позже.
+                Настройте расписание. Нажмите на дату чтобы добавить рабочий день.
             </p>
 
             <div className="flex flex-col gap-3">
@@ -32,7 +24,7 @@ export const ScheduleStep = forwardRef<TScheduleStepHandle>(function ScheduleSte
                 <p className="text-sm text-base-content/60">
                     Шаблон для автоматического заполнения календаря.
                 </p>
-                <WeeklyScheduleForm />
+                <WeeklyScheduleForm ref={ref} hideSubmit />
             </div>
         </div>
     );

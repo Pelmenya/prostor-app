@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { forwardRef, useEffect, useImperativeHandle } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -18,10 +18,15 @@ const schema = z.object({
 
 export type TProfileFormData = z.infer<typeof schema>;
 
+export type TProfileFormHandle = {
+    submit: () => Promise<boolean>;
+};
+
 type TProfileFormProps = {
     user: TUser | null;
-    onSubmit: (data: TProfileFormData) => void;
+    onSubmit: (data: TProfileFormData) => void | Promise<void>;
     isLoading?: boolean;
+    hideSubmit?: boolean;
 };
 
 function capitalizeName(str: string): string {
@@ -29,7 +34,10 @@ function capitalizeName(str: string): string {
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }
 
-export function ProfileForm({ user, onSubmit, isLoading = false }: TProfileFormProps) {
+export const ProfileForm = forwardRef<TProfileFormHandle, TProfileFormProps>(function ProfileForm(
+    { user, onSubmit, isLoading = false, hideSubmit = false },
+    ref,
+) {
     const {
         register,
         handleSubmit,
@@ -58,6 +66,23 @@ export function ProfileForm({ user, onSubmit, isLoading = false }: TProfileFormP
         });
     }, [user, reset]);
 
+    useImperativeHandle(ref, () => ({
+        submit: () =>
+            new Promise<boolean>((resolve) => {
+                void handleSubmit(
+                    async (data) => {
+                        try {
+                            await Promise.resolve(onSubmit(data));
+                            resolve(true);
+                        } catch {
+                            resolve(false);
+                        }
+                    },
+                    () => resolve(false),
+                )();
+            }),
+    }));
+
     const nameInputHandler =
         (field: 'first_name' | 'last_name') => (e: React.FormEvent<HTMLInputElement>) => {
             setValue(field, capitalizeName(e.currentTarget.value), {
@@ -67,7 +92,12 @@ export function ProfileForm({ user, onSubmit, isLoading = false }: TProfileFormP
         };
 
     return (
-        <FormCard onSubmit={handleSubmit(onSubmit)} submitText="Сохранить" isLoading={isLoading}>
+        <FormCard
+            onSubmit={handleSubmit(onSubmit)}
+            submitText="Сохранить"
+            isLoading={isLoading}
+            hideSubmit={hideSubmit}
+        >
             <InputField label="Ваше имя" error={errors.first_name?.message}>
                 <input
                     type="text"
@@ -107,7 +137,7 @@ export function ProfileForm({ user, onSubmit, isLoading = false }: TProfileFormP
                                         formatRuPhoneForView(normalizeRuPhone(text)),
                                     ),
                                 );
-                                if (isSubmitted) setTimeout(() => trigger('phone'), 0);
+                                if (isSubmitted) setTimeout(() => void trigger('phone'), 0);
                             }}
                             inputMode="tel"
                             maxLength={18}
@@ -117,4 +147,4 @@ export function ProfileForm({ user, onSubmit, isLoading = false }: TProfileFormP
             </InputField>
         </FormCard>
     );
-}
+});

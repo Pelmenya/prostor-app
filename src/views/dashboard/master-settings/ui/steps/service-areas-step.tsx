@@ -1,17 +1,16 @@
 'use client';
 
-import { forwardRef, useImperativeHandle } from 'react';
-import { useAccountService } from '@/entities/account-service';
+import { forwardRef } from 'react';
 import { ZoneSelector } from '@/features/master-service-area';
+import type { TZoneSelectorHandle } from '@/features/master-service-area';
+import type { TAccountService } from '@/entities/account-service';
 
-export type TServiceAreasStepHandle = {
-    submit: () => Promise<boolean>;
+type TServiceAreasStepProps = {
+    accountService: TAccountService | null;
 };
 
-export const ServiceAreasStep = forwardRef<TServiceAreasStepHandle>(
-    function ServiceAreasStep(_, ref) {
-        const { data: accountService } = useAccountService();
-
+export const ServiceAreasStep = forwardRef<TZoneSelectorHandle, TServiceAreasStepProps>(
+    function ServiceAreasStep({ accountService }, ref) {
         const center = accountService?.coordinates
             ? {
                   latitude: accountService.coordinates.coordinates[1],
@@ -19,17 +18,13 @@ export const ServiceAreasStep = forwardRef<TServiceAreasStepHandle>(
               }
             : undefined;
 
-        useImperativeHandle(ref, () => ({
-            submit: async () => true,
-        }));
-
         return (
             <div className="flex flex-col gap-4 max-w-lg mx-auto w-full">
                 <h2 className="text-xl font-bold">Зоны обслуживания</h2>
                 <p className="text-sm text-base-content/60">
-                    Выберите районы, в которых вы готовы работать. Можно изменить позже.
+                    Выберите районы, в которых вы готовы работать.
                 </p>
-                <ZoneSelector center={center} />
+                <ZoneSelector ref={ref} center={center} hideSubmit />
             </div>
         );
     },

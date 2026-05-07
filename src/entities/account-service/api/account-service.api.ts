@@ -59,10 +59,10 @@ export function useUpdateServiceSetup() {
     const api = useApi();
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (data: { currentStep: number; completed?: boolean }) =>
+        mutationFn: (data: { currentStep?: number; completed?: boolean }) =>
             api<TAccountService>('/service/account/setup-step', { method: 'PATCH', body: data }),
-        onSuccess: () => {
-            void queryClient.invalidateQueries({ queryKey: accountServiceKeys.my() });
+        onSuccess: (data) => {
+            queryClient.setQueryData(accountServiceKeys.my(), data);
         },
     });
 }

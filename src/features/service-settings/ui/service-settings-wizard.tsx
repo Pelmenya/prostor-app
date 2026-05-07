@@ -1,82 +1,78 @@
 'use client';
 
-import { useState, type ReactNode } from 'react';
-import { useRouter } from 'next/navigation';
-import { useUpdateServiceSetup } from '@/entities/account-service';
+import { type ReactNode } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
+import { useUpdateServiceSetup, accountServiceKeys } from '@/entities/account-service';
+import { MASTER_PATH, MASTER_SETTINGS_PATH } from '@/shared/config';
 
-const TOTAL_STEPS = 5;
-const STEP_LABELS = ['Профиль', 'Локация', 'Авто', 'Зоны', 'График'];
+const STEP_LABELS = ['Профиль', 'Локация', 'Авто', 'Зоны', 'График'] as const;
+const TOTAL_STEPS = STEP_LABELS.length;
 
 type TServiceSettingsWizardProps = {
-    currentStep: number;
     onBeforeNext: () => Promise<boolean>;
     children: ReactNode;
 };
 
-export function ServiceSettingsWizard({
-    currentStep,
-    onBeforeNext,
-    children,
-}: TServiceSettingsWizardProps) {
+export function ServiceSettingsWizard({ onBeforeNext, children }: TServiceSettingsWizardProps) {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const queryClient = useQueryClient();
     const { mutateAsync: updateSetup, isPending } = useUpdateServiceSetup();
-    const [error, setError] = useState<string | null>(null);
 
+    const currentStep = Math.max(
+        1,
+        Math.min(TOTAL_STEPS, parseInt(searchParams.get('step') ?? '1', 10)),
+    );
     const isFirstStep = currentStep === 1;
     const isLastStep = currentStep === TOTAL_STEPS;
 
     async function handleNext() {
-        setError(null);
-        try {
-            const canProceed = await onBeforeNext();
-            if (!canProceed) return;
+        const canProceed = await onBeforeNext();
+        if (!canProceed) return;
 
-            if (isLastStep) {
-                await updateSetup({ currentStep: TOTAL_STEPS, completed: true });
-                router.replace('/master');
-            } else {
-                await updateSetup({ currentStep: currentStep + 1 });
+        if (isLastStep) {
+            try {
+                const updated = await updateSetup({ completed: true });
+                queryClient.setQueryData(accountServiceKeys.my(), updated);
+                router.replace(MASTER_PATH);
+            } catch {
+                // error handled by step forms
             }
-        } catch {
-            setError('Не удалось сохранить. Попробуйте ещё раз.');
+        } else {
+            router.push(`${MASTER_SETTINGS_PATH}?step=${currentStep + 1}`);
         }
     }
 
-    async function handleBack() {
-        setError(null);
-        try {
-            await updateSetup({ currentStep: currentStep - 1 });
-        } catch {
-            setError('Ошибка. Попробуйте ещё раз.');
-        }
+    function handleBack() {
+        router.push(`${MASTER_SETTINGS_PATH}?step=${currentStep - 1}`);
     }
 
     return (
         <div className="flex flex-col min-h-dvh">
             <div className="px-4 pt-6 pb-2">
-                <ul className="steps steps-horizontal w-full">
-                    {Array.from({ length: TOTAL_STEPS }, (_, i) => (
+                <ol
+                    aria-label="Прогресс настройки профиля"
+                    className="steps steps-horizontal w-full"
+                >
+                    {STEP_LABELS.map((label, i) => (
                         <li
-                            key={i}
+                            key={label}
+                            aria-current={i + 1 === currentStep ? 'step' : undefined}
                             className={`step text-xs ${i < currentStep ? 'step-primary' : ''}`}
                         >
-                            {STEP_LABELS[i]}
+                            {label}
                         </li>
                     ))}
-                </ul>
+                </ol>
             </div>
 
             <div className="flex-1 overflow-y-auto p-4">{children}</div>
 
-            {error && (
-                <div className="px-4">
-                    <p className="text-error text-sm text-center">{error}</p>
-                </div>
-            )}
-
-            <div className="p-4 bg-base-100 border-t border-base-300 safe-area-bottom">
+            <div className="p-4 bg-base-100 border-t border-base-300 pb-[calc(1rem+env(safe-area-inset-bottom))]">
                 {isFirstStep ? (
                     <button
+                        type="button"
                         className="btn btn-primary w-full"
                         onClick={handleNext}
                         disabled={isPending}
@@ -90,6 +86,7 @@ export function ServiceSettingsWizard({
                 ) : (
                     <div className="flex gap-3">
                         <button
+                            type="button"
                             className="btn btn-outline flex-1"
                             onClick={handleBack}
                             disabled={isPending}
@@ -97,6 +94,7 @@ export function ServiceSettingsWizard({
                             Назад
                         </button>
                         <button
+                            type="button"
                             className="btn btn-primary flex-1"
                             onClick={handleNext}
                             disabled={isPending}
