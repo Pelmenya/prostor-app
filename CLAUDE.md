@@ -402,6 +402,8 @@ claude mcp list
 
 **Когда обновлять:** MCP-сервер сам подтягивается через `@latest` при старте Claude Code. Browser binary — раз в 2-3 месяца или при логе «browser not found»: `npx playwright install chromium` ещё раз.
 
+**ОБЯЗАТЕЛЬНОЕ правило для Claude Code:** для просмотра и тестирования любых UI-изменений (новые страницы, компоненты, баги вёрстки, проверка тёмной темы, адаптива, behavior'а на iPad/desktop viewport) использовать **Playwright MCP** — не просить у пользователя скриншот, не «допущать что работает». Стандартный цикл: запустить dev (`npm run dev`) → `mcp__playwright__browser_navigate` на нужный URL → `browser_snapshot` или `browser_take_screenshot` → `browser_console_messages` для проверки ошибок → итерировать. Это ускоряет петлю обратной связи в десятки раз.
+
 ### Что ещё в `.mcp.json` (project-scope)
 
 Здесь лежат сервера специфичные для prostor-app — например, MCP к локальному dev-серверу backend'а или YouGile. Глобальные (`playwright`, `flowise-slovo`, `pencil`) живут в `~/.claude.json` и не дублируются здесь.

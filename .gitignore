@@ -53,3 +53,9 @@ next-env.d.ts
 *.pem
 
 certificates
+
+# Playwright MCP traces (transient screenshots / yml snapshots, не в git)
+.playwright-mcp/
+
+# Корневые скриншоты от MCP (постоянные скрины — в docs/feedback/screenshots/)
+/*.png
