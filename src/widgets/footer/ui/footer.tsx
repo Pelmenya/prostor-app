@@ -3,6 +3,7 @@
 import { usePathname } from 'next/navigation';
 import { ShoppingCartIcon, SquaresPlusIcon } from '@heroicons/react/24/outline';
 import { useCartStore, selectTotalItems } from '@/entities/cart';
+import { WaterDrop } from '@/shared/ui';
 import { FooterItem } from './footer-item';
 
 type TMenuItem = {
@@ -23,14 +24,22 @@ export function Footer() {
         return pathArray.some((path) => pathname.includes(path));
     };
 
-    // Для web-гостя: каталог + корзина
-    // TODO: после авторизации — добавить заказы, профиль
+    // Web-гость: каталог + вода (карта качества) + корзина.
+    // Капля «Вода» — outline-вариант через currentColor, в стиле других heroicons.
+    // Active state — стандартный daisyui dock-active (primary color через CSS).
+    // TODO: после авторизации — добавить заказы, профиль.
     const menu: TMenuItem[] = [
         {
             to: '/catalog',
             icon: <SquaresPlusIcon />,
             label: 'Каталог',
             paths: ['catalog', 'product'],
+        },
+        {
+            to: '/water',
+            icon: <WaterDrop variant="outline" />,
+            label: 'Вода',
+            paths: ['water'],
         },
         {
             to: '/cart',

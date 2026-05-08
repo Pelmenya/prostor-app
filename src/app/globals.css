@@ -128,3 +128,48 @@
     margin-top: -0.165em;
     margin-bottom: -0.165em;
 }
+
+/* ============================================================================
+ * PROSTOR brand animations — капля + sparkle.
+ * Источник: claude design Smart-Search mockup (май 2026).
+ * Точная копия CSS из оригинала (verified через runtime CSSStyleSheet).
+ * ========================================================================= */
+
+/* Sparkle «дыхание» внутри капли. Активируется только когда у SVG
+ * есть класс `waterdrop-anim` (opt-in через WaterDrop animated prop).
+ * Без `.waterdrop-anim` — sparkle отрисован статично, без движения. */
+@keyframes wdspark {
+    0%,
+    100% {
+        opacity: 0.7;
+        transform: scale(0.95) rotate(0deg);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.05) rotate(8deg);
+    }
+}
+
+.waterdrop-anim .wd-spark {
+    transform-origin: 24px 28px;
+    animation: wdspark 2.4s ease-in-out infinite;
+}
+
+/* Map area placeholder — radial gradient skeleton (имитация heatmap до подключения
+ * реальной maplibre карты в Phase 4). Light / Dark варианты через [data-theme]
+ * чтобы корректно работать в обеих темах daisyui. */
+.water-map-skeleton-bg {
+    background:
+        radial-gradient(ellipse at 30% 30%, oklch(72% 0.16 232 / 0.15) 0%, transparent 50%),
+        radial-gradient(ellipse at 70% 60%, oklch(58% 0.22 250 / 0.12) 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 80%, oklch(48% 0.26 270 / 0.1) 0%, transparent 50%),
+        oklch(96% 0.02 232);
+}
+
+[data-theme='dark'] .water-map-skeleton-bg {
+    background:
+        radial-gradient(ellipse at 30% 30%, oklch(72% 0.16 232 / 0.2) 0%, transparent 50%),
+        radial-gradient(ellipse at 70% 60%, oklch(58% 0.22 250 / 0.18) 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 80%, oklch(48% 0.26 270 / 0.15) 0%, transparent 50%),
+        oklch(20% 0.02 240);
+}

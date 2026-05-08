@@ -25,7 +25,7 @@ export { RangeSlider } from './range-slider';
 export { CompactModal } from './compact-modal';
 export { BottomSheetModal } from './bottom-sheet-modal';
 export { Base } from './base';
-export { Borehole, Well, Reservoir, WaterSupply, People } from './icons';
+export { Borehole, Well, Reservoir, WaterSupply, People, WaterDrop } from './icons';
 export { MapView } from './map-view';
 export { CartCardWrapper } from './cart-card-wrapper';
 export { InfiniteList } from './infinite-list';
