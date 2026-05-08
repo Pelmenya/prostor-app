@@ -12,6 +12,7 @@ import {
     ServiceAreaCard,
     ScheduleCard,
     WorkCard,
+    OrdersCard,
     QualificationCard,
     RatingCard,
 } from '@/widgets/master-profile';
@@ -55,6 +56,8 @@ function MasterAccountContent() {
             {hasLocation && <ServiceAreaCard zoneCount={myZones.length} />}
 
             <ScheduleCard />
+
+            <OrdersCard />
 
             <WorkCard />
 
