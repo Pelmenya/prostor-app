@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import dynamic from 'next/dynamic';
+import { useDaisyTheme, useMediaQuery } from '@/shared/lib';
 import { WaterDrop } from '@/shared/ui';
 import { useClientPinStore, useWaterMapStore } from '../model';
 import { AutoEquipmentCard } from './auto-equipment-card';
@@ -12,7 +13,6 @@ import { PointPopup } from './point-popup';
 import { PredictModal } from './predict-modal';
 import { SeverityLegend } from './severity-legend';
 import { SimilarFab } from './similar-fab';
-import { useDaisyTheme } from './use-theme';
 import { WaterMapTopBar } from './water-map-top-bar';
 
 const WaterMapCanvas = dynamic(() => import('./water-map-canvas').then((m) => m.WaterMapCanvas), {
@@ -27,13 +27,13 @@ type TPointSelection = {
 
 export function WaterMapPage() {
     const theme = useDaisyTheme();
-    // Lazy initial — на desktop (≥lg) панель открыта по умолчанию,
-    // на mobile закрыта. Читаем matchMedia в инициализаторе useState (один
-    // раз на mount), без setState в useEffect — React 19 правило
-    // react-hooks/set-state-in-effect.
-    const [layersOpen, setLayersOpen] = useState<boolean>(
-        () => typeof window !== 'undefined' && window.matchMedia('(min-width: 992px)').matches,
-    );
+    // Default: на desktop (≥lg) панель открыта, на mobile закрыта.
+    // Hydration-safe через useSyncExternalStore (SSR snapshot=false, клиент
+    // подхватывает реальный media-query). userOverride трекает явный toggle
+    // юзером — null = «следуем дефолту», true/false = override.
+    const isDesktop = useMediaQuery('(min-width: 992px)');
+    const [userOverride, setUserOverride] = useState<boolean | null>(null);
+    const layersOpen = userOverride ?? isDesktop;
     const [selectedPoint, setSelectedPoint] = useState<TPointSelection | null>(null);
     const selectedCellCoords = useWaterMapStore((s) => s.selectedCellCoords);
     const pin = useClientPinStore((s) => s.pin);
@@ -65,12 +65,12 @@ export function WaterMapPage() {
             />
 
             <WaterMapTopBar
-                onToggleLayers={() => setLayersOpen((v) => !v)}
+                onToggleLayers={() => setUserOverride(!layersOpen)}
                 layersOpen={layersOpen}
                 subtitle="Москва и Подмосковье · 15 504 анализа"
             />
 
-            <LayerPanel open={layersOpen} onClose={() => setLayersOpen(false)} />
+            <LayerPanel open={layersOpen} onClose={() => setUserOverride(false)} />
 
             <SeverityLegend />
 

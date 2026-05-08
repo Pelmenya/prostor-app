@@ -3,14 +3,19 @@
 import { useSyncExternalStore } from 'react';
 
 /**
- * Подписка на data-theme на <html> через `useSyncExternalStore` —
- * правильная stable-API для синхронизации с external mutable source
- * (browser DOM-attribute) без `setState` в эффекте (React-19 правило
- * react-hooks/set-state-in-effect).
+ * Подписка на `data-theme` на `<html>` (daisyui механизм переключения).
+ * `useSyncExternalStore` — стабильная API для синхронизации с external mutable
+ * source (DOM-attribute) без `setState` в `useEffect` (правило React 19
+ * `react-hooks/set-state-in-effect`).
  *
- * SSR snapshot = 'light' (default daisyui тема). После hydration
- * client snapshot читает фактический attribute и обновляется при
- * каждом MutationObserver tick'е.
+ * SSR-snapshot = `'light'` (default daisyui тема). После hydration клиент
+ * читает фактический attribute и перерисовывается на каждый MutationObserver tick.
+ *
+ * Пример:
+ * ```tsx
+ * const theme = useDaisyTheme(); // 'light' | 'dark'
+ * <Map style={theme === 'dark' ? DARK_URL : LIGHT_URL} />
+ * ```
  */
 
 const SUBSCRIBERS = new Set<() => void>();

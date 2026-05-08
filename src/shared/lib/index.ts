@@ -22,5 +22,7 @@ export {
     getFormDraft,
     useDebouncedValue,
     useSafeBack,
+    useDaisyTheme,
+    useMediaQuery,
 } from './hooks';
 export { getSalePrices } from './product';
