@@ -1,20 +1,15 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { useGetOrders, MasterOrderCard, EOrderStatus } from '@/entities/order';
-import { InfiniteList, PageContainer, QueryBoundary, DashboardBackHeader } from '@/shared/ui';
-
-type TTab = 'active' | 'done';
-
-const TAB_STATUS: Record<TTab, EOrderStatus[]> = {
-    active: [EOrderStatus.PENDING, EOrderStatus.CONFIRMED, EOrderStatus.IN_PROGRESS],
-    done: [EOrderStatus.COMPLETED, EOrderStatus.CANCELLED],
-};
-
-const TAB_LABEL: Record<TTab, string> = {
-    active: 'Активные',
-    done: 'Выполненные',
-};
+import { useGetOrders, MasterOrderCard } from '@/entities/order';
+import {
+    OrderList,
+    OrdersTabSwitcher,
+    OrdersNotFound,
+    TAB_STATUS_PRESETS,
+} from '@/features/orders';
+import type { TTabType } from '@/features/orders';
+import { PageContainer, QueryBoundary, DashboardBackHeader } from '@/shared/ui';
 
 export function MasterOrdersListPage() {
     return (
@@ -25,17 +20,17 @@ export function MasterOrdersListPage() {
 }
 
 function MasterOrdersListContent() {
-    const [activeTab, setActiveTab] = useState<TTab>('active');
+    const [activeTab, setActiveTab] = useState<TTabType>('actual');
     const [isPending, startTransition] = useTransition();
 
     const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = useGetOrders({
         limit: 20,
-        status: TAB_STATUS[activeTab],
+        status: [...TAB_STATUS_PRESETS[activeTab]],
     });
 
     const orders = data.pages.flatMap((page) => page.items);
 
-    const handleTabChange = (tab: TTab) => {
+    const handleTabChange = (tab: TTabType) => {
         startTransition(() => setActiveTab(tab));
     };
 
@@ -51,34 +46,22 @@ function MasterOrdersListContent() {
             <div
                 className={`flex flex-col gap-4 max-w-lg mx-auto py-4 ${isPending ? 'opacity-60 transition-opacity' : ''}`}
             >
-                <div role="tablist" className="tabs tabs-boxed bg-base-100">
-                    {(Object.keys(TAB_STATUS) as TTab[]).map((tab) => (
-                        <button
-                            key={tab}
-                            role="tab"
-                            className={`tab ${activeTab === tab ? 'tab-active' : ''}`}
-                            onClick={() => handleTabChange(tab)}
-                        >
-                            {TAB_LABEL[tab]}
-                        </button>
-                    ))}
-                </div>
+                <OrdersTabSwitcher
+                    activeTab={activeTab}
+                    onTabChange={handleTabChange}
+                    actualLabel="Активные"
+                    completedLabel="Выполненные"
+                />
 
                 {orders.length === 0 ? (
-                    <div className="card bg-base-100 p-6 text-sm text-base-content/50 text-center">
-                        {activeTab === 'active'
-                            ? 'Нет активных заказов'
-                            : 'Нет выполненных заказов'}
-                    </div>
+                    <OrdersNotFound type="tab" href="/catalog" />
                 ) : (
-                    <InfiniteList
-                        items={orders}
+                    <OrderList
+                        orders={orders}
                         hasMore={!!hasNextPage}
-                        isLoading={isFetchingNextPage}
+                        isFetchingNextPage={isFetchingNextPage}
                         onLoadMore={handleLoadMore}
                         renderItem={(order) => <MasterOrderCard order={order} />}
-                        keyExtractor={(order) => order.id}
-                        className="flex flex-col gap-3"
                     />
                 )}
             </div>

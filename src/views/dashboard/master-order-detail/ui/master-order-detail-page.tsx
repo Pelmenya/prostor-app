@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import {
     HomeIcon,
@@ -16,37 +17,15 @@ import {
     EOrderStatus,
     STATUS_LABEL,
     OrderPositionsList,
+    getMasterTransition,
 } from '@/entities/order';
+import { useCurrentUserSuspense } from '@/entities/user';
 import { useSingleOrderThumbnails } from '@/features/orders';
 import { formatDateRu, formatUserInitials } from '@/shared/lib';
 import { ConfirmDialog, DashboardBackHeader, PageContainer, QueryBoundary } from '@/shared/ui';
 
 type TProps = {
     orderId: number;
-};
-
-type TStatusAction = {
-    label: string;
-    next: EOrderStatus;
-    confirm: string;
-};
-
-const STATUS_ACTIONS: Partial<Record<EOrderStatus, TStatusAction>> = {
-    [EOrderStatus.PENDING]: {
-        label: 'Принять заказ',
-        next: EOrderStatus.CONFIRMED,
-        confirm: 'Принять заказ и подтвердить выезд?',
-    },
-    [EOrderStatus.CONFIRMED]: {
-        label: 'Начать работу',
-        next: EOrderStatus.IN_PROGRESS,
-        confirm: 'Отметить заказ как «В работе»?',
-    },
-    [EOrderStatus.IN_PROGRESS]: {
-        label: 'Завершить заказ',
-        next: EOrderStatus.COMPLETED,
-        confirm: 'Отметить заказ как выполненный?',
-    },
 };
 
 export function MasterOrderDetailPage({ orderId }: TProps) {
@@ -61,7 +40,14 @@ function MasterOrderDetailContent({ orderId }: TProps) {
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [confirmError, setConfirmError] = useState<string | null>(null);
 
+    const { data: user } = useCurrentUserSuspense();
     const { data: order } = useGetOrderById(orderId);
+
+    // PII-гард: заказ с исполнителем не должен открываться чужим мастером
+    if (order.executor && order.executor.id !== user.id) {
+        notFound();
+    }
+
     const {
         mutate: updateStatus,
         isPending: isUpdating,
@@ -74,7 +60,7 @@ function MasterOrderDetailContent({ orderId }: TProps) {
     // без useEffect, через производный стейт
     const isDialogOpen = confirmOpen && !isUpdateSuccess;
 
-    const action = STATUS_ACTIONS[order.status] ?? null;
+    const action = getMasterTransition(order.status);
     const isFinished =
         order.status === EOrderStatus.COMPLETED || order.status === EOrderStatus.CANCELLED;
 
@@ -94,7 +80,7 @@ function MasterOrderDetailContent({ orderId }: TProps) {
     };
 
     const handleConfirm = () => {
-        if (!action) return;
+        if (!action || isUpdating) return;
         updateStatus(
             { orderId, status: action.next },
             {

@@ -1,8 +1,6 @@
 import Link from 'next/link';
 import { MapPinIcon, UserIcon, CalendarDaysIcon } from '@heroicons/react/24/outline';
 import type { TOrder } from '../../model/types/t-order';
-import { EOrderStatus } from '../../model/types/e-order-status';
-import { calcReward } from '../../lib/calc-reward';
 import { CardWrapper } from '@/shared/ui';
 import { OrderCardHeader } from '../order-card-header/order-card-header';
 import { formatDateRu } from '@/shared/lib';
@@ -17,8 +15,6 @@ export function MasterOrderCard({ order }: TMasterOrderCardProps) {
     const clientName = order.client
         ? `${order.client.first_name} ${order.client.last_name}`.trim()
         : null;
-    const isCancelled = order.status === EOrderStatus.CANCELLED;
-    const reward = isCancelled ? 0 : calcReward(order);
 
     return (
         <Link href={`/master/orders/${order.id}`}>
@@ -38,18 +34,11 @@ export function MasterOrderCard({ order }: TMasterOrderCardProps) {
                     )}
 
                     {order.realEstate?.address && (
-                        <div className="flex items-start justify-between gap-2">
-                            <div className="flex items-start gap-2 min-w-0">
-                                <MapPinIcon className="size-4 shrink-0 text-base-content/40 mt-0.5" />
-                                <span className="text-sm text-base-content/80 leading-snug">
-                                    {order.realEstate.address}
-                                </span>
-                            </div>
-                            {reward > 0 && (
-                                <span className="text-success font-medium text-sm whitespace-nowrap shrink-0">
-                                    + {reward.toLocaleString('ru-RU')} ₽
-                                </span>
-                            )}
+                        <div className="flex items-start gap-2">
+                            <MapPinIcon className="size-4 shrink-0 text-base-content/40 mt-0.5" />
+                            <span className="text-sm text-base-content/80 leading-snug">
+                                {order.realEstate.address}
+                            </span>
                         </div>
                     )}
 

@@ -10,6 +10,8 @@ type TOrdersTabSwitcherProps = {
     completedCount?: number;
     isActualCountLoading?: boolean;
     isCompletedCountLoading?: boolean;
+    actualLabel?: string;
+    completedLabel?: string;
 };
 
 function CountBadge({ count, isLoading }: { count?: number; isLoading?: boolean }) {
@@ -27,6 +29,8 @@ export function OrdersTabSwitcher({
     completedCount,
     isActualCountLoading,
     isCompletedCountLoading,
+    actualLabel = 'Актуальные',
+    completedLabel = 'Завершенные',
 }: TOrdersTabSwitcherProps) {
     return (
         <div role="tablist" className="tabs tabs-border">
@@ -38,7 +42,7 @@ export function OrdersTabSwitcher({
                 onClick={() => onTabChange('actual')}
             >
                 <span className="inline-flex items-center gap-1">
-                    Актуальные
+                    {actualLabel}
                     <CountBadge count={actualCount} isLoading={isActualCountLoading} />
                 </span>
             </button>
@@ -50,7 +54,7 @@ export function OrdersTabSwitcher({
                 onClick={() => onTabChange('completed')}
             >
                 <span className="inline-flex items-center gap-1">
-                    Завершенные
+                    {completedLabel}
                     <CountBadge count={completedCount} isLoading={isCompletedCountLoading} />
                 </span>
             </button>
