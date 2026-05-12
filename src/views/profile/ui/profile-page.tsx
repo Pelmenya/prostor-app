@@ -1,18 +1,13 @@
 'use client';
 
-import { useSyncExternalStore } from 'react';
 import Link from 'next/link';
 import { PencilSquareIcon, LockClosedIcon, EnvelopeIcon } from '@heroicons/react/24/outline';
-import { useAuthStore, normalizeRuPhone, formatRuPhoneForView } from '@/shared/lib';
+import { useAuthStore, normalizeRuPhone, formatRuPhoneForView, useIsClient } from '@/shared/lib';
 import { PageContainer, PageTitle } from '@/shared/ui';
 
 export function ProfilePage() {
     const user = useAuthStore((s) => s.user);
-    const mounted = useSyncExternalStore(
-        () => () => {},
-        () => true,
-        () => false,
-    );
+    const mounted = useIsClient();
 
     if (!mounted || !user) return null;
 
