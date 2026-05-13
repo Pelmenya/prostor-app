@@ -228,6 +228,17 @@ export const WATER_PARAM_META: Record<TWaterParam, TWaterParamMeta> = {
         pdk: 30,
         category: 'synthetic',
     },
+    // Density-режим — сколько анализов в cell. Не severity, не показывается
+    // в all-params modal (доступен только через отдельный toggle «Покрытие
+    // архива»). pdk=15 — denseCount-threshold для UI legend.
+    coverage: {
+        code: 'coverage',
+        label: 'Покрытие архива',
+        fullLabel: 'Плотность анализов (анализов на cell)',
+        unit: '',
+        pdk: 15,
+        category: 'synthetic',
+    },
 };
 
 /**

@@ -9,7 +9,7 @@ import type { TIntakeType, TWaterParam } from '@/entities/water-analysis';
  * Aggregated layers по умолчанию off (см. прототип «Слой выкл...») — чтобы
  * не перегружать первый просмотр.
  */
-export type TWaterMapLayer = 'heatmap' | 'depthMap' | 'points';
+export type TWaterMapLayer = 'heatmap' | 'depthMap' | 'points' | 'coverage';
 
 /**
  * Режим отрисовки cells — управляет stacked layers:

@@ -121,6 +121,12 @@ export function LayerPanel({ open, onClose }: TLayerPanelProps) {
                             checked={activeLayers.has('points')}
                             onChange={(v) => setLayer('points', v)}
                         />
+                        <LayerToggleRow
+                            label="Покрытие архива"
+                            description="Плотность анализов — серая подложка поверх любого режима"
+                            checked={activeLayers.has('coverage')}
+                            onChange={(v) => setLayer('coverage', v)}
+                        />
                     </section>
 
                     <section className="pt-4 mt-2 border-t border-base-content/10">

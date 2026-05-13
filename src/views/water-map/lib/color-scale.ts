@@ -271,6 +271,98 @@ export function pointsCircleOpacityExpression(): ExpressionSpecification {
 }
 
 // =============================================================================
+// COVERAGE layer paint — density-режим (paramCode='coverage').
+//
+// Не severity, а dataset density: сколько анализов в cell. Используется как
+// ОТДЕЛЬНЫЙ toggle поверх любого heatmap. Grey-scale palette — нейтральный
+// слой не конкурирует с severity-цветами.
+//
+// Backend smoke (МО, 886 cells): max=1817, percentiles ~ <5/5-15/>=15.
+// Weight нормируем через clamp 50 чтобы dense Москва-blob не «съедал» весь
+// gradient на overview.
+// =============================================================================
+
+export function coverageHeatmapWeightExpression(): ExpressionSpecification {
+    return [
+        'interpolate',
+        ['linear'],
+        ['coalesce', ['get', 'count'], 0],
+        0,
+        0,
+        50,
+        1.0,
+    ] as unknown as ExpressionSpecification;
+}
+
+export function coverageHeatmapIntensityExpression(): ExpressionSpecification {
+    return [
+        'interpolate',
+        ['linear'],
+        ['zoom'],
+        6,
+        0.8,
+        10,
+        1.2,
+        12,
+        1.6,
+    ] as unknown as ExpressionSpecification;
+}
+
+/**
+ * Grey-scale palette — light/medium/dark grey. Density-stops аналогичны
+ * heatmap predator (0.02/0.20/0.45/0.70/1.0) для smooth gradient.
+ */
+export function coverageHeatmapColorExpression(): ExpressionSpecification {
+    return [
+        'interpolate',
+        ['linear'],
+        ['heatmap-density'],
+        0,
+        'rgba(0, 0, 0, 0)',
+        0.02,
+        'rgba(156, 163, 175, 0.30)', // gray-400 (light)
+        0.25,
+        'rgba(107, 114, 128, 0.50)', // gray-500
+        0.5,
+        'rgba(75, 85, 99, 0.70)', // gray-600 (medium)
+        0.8,
+        'rgba(55, 65, 81, 0.85)', // gray-700
+        1.0,
+        'rgba(31, 41, 55, 0.95)', // gray-800 (dark)
+    ] as unknown as ExpressionSpecification;
+}
+
+export function coverageHeatmapRadiusExpression(): ExpressionSpecification {
+    return [
+        'interpolate',
+        ['linear'],
+        ['zoom'],
+        6,
+        20,
+        9,
+        32,
+        11,
+        45,
+        13,
+        60,
+    ] as unknown as ExpressionSpecification;
+}
+
+export function coverageHeatmapOpacityExpression(): ExpressionSpecification {
+    return [
+        'interpolate',
+        ['linear'],
+        ['zoom'],
+        6,
+        0.55,
+        11,
+        0.55,
+        13,
+        0,
+    ] as unknown as ExpressionSpecification;
+}
+
+// =============================================================================
 // DEPTH-MAP layer — для drilling extras (Phase 4.5.2).
 // =============================================================================
 

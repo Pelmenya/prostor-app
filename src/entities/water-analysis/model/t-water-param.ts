@@ -34,6 +34,10 @@ export const WATER_PARAMS = [
     // (commit 0d9d786 в slovo). Per cell exceedsPct = % rows где хотя бы один
     // param > ПДК. Status thresholds: <30% good, 30-60% mid, ≥60% bad.
     'all_problems',
+    // Density-режим (commit 1bd6d69 в slovo). Не severity, а dataset coverage —
+    // сколько анализов в cell. Используется как ОТДЕЛЬНЫЙ layer-toggle, не
+    // pill (другая семантика). status по count: <5 good, 5-15 mid, ≥15 bad.
+    'coverage',
 ] as const;
 
 export type TWaterParam = (typeof WATER_PARAMS)[number];

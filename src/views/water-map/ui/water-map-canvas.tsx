@@ -15,6 +15,11 @@ import {
     cellsCircleOpacityExpression,
     cellsCircleRadiusExpression,
     cellsCircleStrokeWidthExpression,
+    coverageHeatmapColorExpression,
+    coverageHeatmapIntensityExpression,
+    coverageHeatmapOpacityExpression,
+    coverageHeatmapRadiusExpression,
+    coverageHeatmapWeightExpression,
     heatmapColorExpression,
     heatmapIntensityExpression,
     heatmapOpacityExpression,
@@ -31,6 +36,8 @@ import {
 const CELLS_SOURCE_ID = 'wm-cells';
 const CELLS_HEATMAP_LAYER_ID = 'wm-cells-heatmap';
 const CELLS_LAYER_ID = 'wm-cells-layer';
+const COVERAGE_SOURCE_ID = 'wm-coverage';
+const COVERAGE_LAYER_ID = 'wm-coverage-heatmap';
 const POINTS_SOURCE_ID = 'wm-points';
 const POINTS_LAYER_ID = 'wm-points-layer';
 const PIN_SOURCE_ID = 'wm-client-pin';
@@ -129,6 +136,12 @@ export function WaterMapCanvas({ theme, onCellClick, onPointClick }: TWaterMapCa
         : null;
     const heatmap = useHeatmap(heatmapQuery);
 
+    const coverageEnabled = activeLayers.has('coverage');
+    const coverageQuery = coverageEnabled
+        ? { ...snapBbox(bbox, 0.05), param: 'coverage' as const, grid: 0.05 }
+        : null;
+    const coverage = useHeatmap(coverageQuery);
+
     const pointsEnabled = activeLayers.has('points');
     const pointsQuery =
         pointsEnabled && zoom >= 10 ? { ...snapBbox(bbox, 0.02), limit: 200 } : null;
@@ -192,6 +205,23 @@ export function WaterMapCanvas({ theme, onCellClick, onPointClick }: TWaterMapCa
                     'circle-opacity': cellsCircleOpacityExpression() as never,
                     'circle-stroke-width': cellsCircleStrokeWidthExpression() as never,
                     'circle-stroke-color': 'rgba(255, 255, 255, 0.85)',
+                },
+                layout: { visibility: 'none' },
+            });
+
+            // ---- COVERAGE layer (density-режим, grey-scale, отдельный toggle)
+            map.addSource(COVERAGE_SOURCE_ID, { type: 'geojson', data: EMPTY_HEATMAP });
+            map.addLayer({
+                id: COVERAGE_LAYER_ID,
+                type: 'heatmap',
+                source: COVERAGE_SOURCE_ID,
+                maxzoom: 14,
+                paint: {
+                    'heatmap-weight': coverageHeatmapWeightExpression() as never,
+                    'heatmap-intensity': coverageHeatmapIntensityExpression() as never,
+                    'heatmap-color': coverageHeatmapColorExpression() as never,
+                    'heatmap-radius': coverageHeatmapRadiusExpression() as never,
+                    'heatmap-opacity': coverageHeatmapOpacityExpression() as never,
                 },
                 layout: { visibility: 'none' },
             });
@@ -338,6 +368,26 @@ export function WaterMapCanvas({ theme, onCellClick, onPointClick }: TWaterMapCa
                     layout: { visibility: dotsVisible ? 'visible' : 'none' },
                 });
             }
+            if (!map.getSource(COVERAGE_SOURCE_ID)) {
+                map.addSource(COVERAGE_SOURCE_ID, {
+                    type: 'geojson',
+                    data: coverage.data ?? EMPTY_HEATMAP,
+                });
+                map.addLayer({
+                    id: COVERAGE_LAYER_ID,
+                    type: 'heatmap',
+                    source: COVERAGE_SOURCE_ID,
+                    maxzoom: 14,
+                    paint: {
+                        'heatmap-weight': coverageHeatmapWeightExpression() as never,
+                        'heatmap-intensity': coverageHeatmapIntensityExpression() as never,
+                        'heatmap-color': coverageHeatmapColorExpression() as never,
+                        'heatmap-radius': coverageHeatmapRadiusExpression() as never,
+                        'heatmap-opacity': coverageHeatmapOpacityExpression() as never,
+                    },
+                    layout: { visibility: coverageEnabled ? 'visible' : 'none' },
+                });
+            }
             if (!map.getSource(POINTS_SOURCE_ID)) {
                 map.addSource(POINTS_SOURCE_ID, {
                     type: 'geojson',
@@ -405,6 +455,32 @@ export function WaterMapCanvas({ theme, onCellClick, onPointClick }: TWaterMapCa
             src.setData(EMPTY_HEATMAP);
         }
     }, [heatmap.data, heatmap.isLoading, mapReady]);
+
+    // Coverage data → setData
+    useEffect(() => {
+        const map = mapRef.current;
+        if (!map || !mapReady) return;
+        const src = map.getSource(COVERAGE_SOURCE_ID) as GeoJSONSource | undefined;
+        if (!src) return;
+        if (coverage.data) {
+            src.setData(coverage.data);
+        } else if (!coverage.isLoading) {
+            src.setData(EMPTY_HEATMAP);
+        }
+    }, [coverage.data, coverage.isLoading, mapReady]);
+
+    // Coverage visibility (toggle «Покрытие архива»)
+    useEffect(() => {
+        const map = mapRef.current;
+        if (!map || !mapReady) return;
+        if (map.getLayer(COVERAGE_LAYER_ID)) {
+            map.setLayoutProperty(
+                COVERAGE_LAYER_ID,
+                'visibility',
+                coverageEnabled ? 'visible' : 'none',
+            );
+        }
+    }, [coverageEnabled, mapReady]);
 
     // Points data → setData
     useEffect(() => {
