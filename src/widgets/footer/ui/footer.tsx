@@ -50,7 +50,7 @@ export function Footer() {
     ];
 
     return (
-        <footer className="relative z-11 shrink-0 bg-base-100 border-t border-base-content/10 shadow-sm-top">
+        <footer className="relative z-40 shrink-0 bg-base-100 border-t border-base-content/10 shadow-sm-top">
             <nav>
                 <ul className="static dock dock-lg md:dock-xl lg:h-22 xl:h-24">
                     {menu.map((item) => (
