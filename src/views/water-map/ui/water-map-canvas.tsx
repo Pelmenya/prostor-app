@@ -4,11 +4,13 @@ import { useEffect, useRef, useState } from 'react';
 import maplibregl, { type Map as MaplibreMap, type GeoJSONSource } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
+import { useNearestRetailStoresByCoords, useRoutePolylineByCoords } from '@/entities/real-estate';
 import type {
     TDepthMapResponse,
     THeatmapResponse,
     TPointsResponse,
 } from '@/entities/water-analysis';
+import type { TRetailStoreWithRouteInfo } from '@/shared/model';
 import { useWaterMapStore, useClientPinStore } from '../model';
 import {
     DEFAULT_ZOOM,
@@ -50,6 +52,10 @@ const DEPTH_SOURCE_ID = 'wm-depth';
 const DEPTH_LAYER_ID = 'wm-depth-layer';
 const POINTS_SOURCE_ID = 'wm-points';
 const POINTS_LAYER_ID = 'wm-points-layer';
+const STORES_SOURCE_ID = 'wm-stores';
+const STORES_LAYER_ID = 'wm-stores-layer';
+const ROUTE_SOURCE_ID = 'wm-route';
+const ROUTE_LAYER_ID = 'wm-route-layer';
 const PIN_SOURCE_ID = 'wm-client-pin';
 const RADIUS_SOURCE_ID = 'wm-similar-radius';
 const RADIUS_LAYER_ID = 'wm-similar-radius-layer';
@@ -81,6 +87,36 @@ const EMPTY_DEPTH: TDepthMapResponse = {
     timeTakenMs: 0,
     cached: false,
 };
+const EMPTY_STORES: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: [] };
+
+/**
+ * Преобразовать список retail-stores в GeoJSON FeatureCollection. Координаты
+ * берём из `coordinates.coordinates` (GeoJSON Point), properties — name /
+ * address / duration / distance / availability + organization metadata.
+ */
+function storesToFeatureCollection(
+    storesList: TRetailStoreWithRouteInfo[],
+): GeoJSON.FeatureCollection {
+    return {
+        type: 'FeatureCollection',
+        features: storesList.map((s) => ({
+            type: 'Feature' as const,
+            geometry: {
+                type: 'Point' as const,
+                coordinates: s.coordinates.coordinates,
+            },
+            properties: {
+                id: s.id,
+                name: s.name,
+                address: s.address,
+                duration: s.duration,
+                distance: s.distance,
+                availability: s.availability ?? 'partial',
+                organizationName: s.organizationName ?? null,
+            },
+        })),
+    };
+}
 
 /**
  * Полигон-окружность вокруг lat/lon заданного радиуса (км). 64 сегмента —
@@ -113,6 +149,7 @@ type TWaterMapCanvasProps = {
     onCellClick?: (coords: [number, number], properties: Record<string, unknown>) => void;
     onPointClick?: (coords: [number, number], properties: Record<string, unknown>) => void;
     onDepthClick?: (coords: [number, number], properties: Record<string, unknown>) => void;
+    onStoreClick?: (coords: [number, number], properties: Record<string, unknown>) => void;
 };
 
 /**
@@ -134,6 +171,7 @@ export function WaterMapCanvas({
     onCellClick,
     onPointClick,
     onDepthClick,
+    onStoreClick,
 }: TWaterMapCanvasProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const mapRef = useRef<MaplibreMap | null>(null);
@@ -148,7 +186,10 @@ export function WaterMapCanvas({
     const setSelectedCellCoords = useWaterMapStore((s) => s.setSelectedCellCoords);
     const similarOn = useWaterMapStore((s) => s.similarOn);
     const similarRadiusKm = useWaterMapStore((s) => s.similarRadiusKm);
+    const pinPlacementMode = useWaterMapStore((s) => s.pinPlacementMode);
+    const setPinPlacementMode = useWaterMapStore((s) => s.setPinPlacementMode);
     const pin = useClientPinStore((s) => s.pin);
+    const setPin = useClientPinStore((s) => s.setPin);
 
     const heatmapEnabled = activeLayers.has('heatmap');
     // Layer visibility: «Качество воды» toggle ⨯ view-mode (spline/dots/both).
@@ -176,6 +217,24 @@ export function WaterMapCanvas({
         pointsEnabled && zoom >= 10 ? { ...snapBbox(bbox, 0.02), limit: 200 } : null;
     const points = usePoints(pointsQuery);
 
+    // Stores layer: public endpoint /retail-stores/nearest по любым координатам
+    // pin'a (real-estate / геолокация / manual). Не требует auth.
+    const storesEnabled = activeLayers.has('stores');
+    const storesParams = storesEnabled && pin ? { lat: pin.lat, lon: pin.lon, limit: 20 } : null;
+    const stores = useNearestRetailStoresByCoords(storesParams);
+
+    // Route polyline: рисуется когда юзер тапнул «Маршрут» в StorePopup и в
+    // store выставлен `selectedRouteTo`. From — текущий pin (любого source).
+    const selectedRouteTo = useWaterMapStore((s) => s.selectedRouteTo);
+    const routeParams =
+        selectedRouteTo && pin
+            ? {
+                  from: [pin.lon, pin.lat] as [number, number],
+                  to: selectedRouteTo,
+              }
+            : null;
+    const route = useRoutePolylineByCoords(routeParams);
+
     // Создаём карту один раз
     useEffect(() => {
         if (!containerRef.current || mapRef.current) return;
@@ -196,6 +255,12 @@ export function WaterMapCanvas({
             attributionControl: false,
         });
         mapRef.current = map;
+
+        // DEBUG: dev-only exposure для Playwright диагностики (slovo-claude
+        // 2026-05-13 20:10). Удалить когда points-zoom15 bug закроется.
+        if (typeof window !== 'undefined' && process.env.NODE_ENV !== 'production') {
+            (window as unknown as { __mlmap?: MaplibreMap }).__mlmap = map;
+        }
 
         map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
         map.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-left');
@@ -288,6 +353,81 @@ export function WaterMapCanvas({
                 layout: { visibility: 'none' },
             });
 
+            // ---- STORES layer (точки продаж / приёма анализа)
+            // Brand-marker через circle: outer ring белый, fill primary-blue,
+            // inner cross-mark делается через stroke-color интерактивно.
+            // Symbol layer с custom иконкой требует sprite atlas — для MVP
+            // circle достаточно. Цвет по availability: full=green, partial=orange.
+            map.addSource(STORES_SOURCE_ID, { type: 'geojson', data: EMPTY_STORES });
+            map.addLayer({
+                id: STORES_LAYER_ID,
+                type: 'circle',
+                source: STORES_SOURCE_ID,
+                paint: {
+                    'circle-radius': [
+                        'interpolate',
+                        ['linear'],
+                        ['zoom'],
+                        8,
+                        6,
+                        12,
+                        10,
+                        15,
+                        14,
+                    ] as never,
+                    'circle-color': [
+                        'case',
+                        ['==', ['get', 'availability'], 'full'],
+                        '#22c55e', // green-500
+                        '#f59e0b', // amber-500 — partial / unknown
+                    ] as never,
+                    'circle-stroke-color': '#ffffff',
+                    'circle-stroke-width': 2.5,
+                    'circle-opacity': 0.95,
+                },
+                layout: { visibility: 'none' },
+            });
+
+            // ---- ROUTE polyline (OSRM от pin к выбранной точке продаж)
+            // Рисуется НАД cells/coverage но ПОД stores/points (чтобы маркеры
+            // были визуально поверх линии). LineString layer с двумя
+            // паралельными штрихами — outer white halo для контраста на
+            // любом фоне + inner primary.
+            map.addSource(ROUTE_SOURCE_ID, {
+                type: 'geojson',
+                data: { type: 'FeatureCollection', features: [] },
+            });
+            map.addLayer({
+                id: `${ROUTE_LAYER_ID}-halo`,
+                type: 'line',
+                source: ROUTE_SOURCE_ID,
+                layout: {
+                    'line-cap': 'round',
+                    'line-join': 'round',
+                    visibility: 'none',
+                },
+                paint: {
+                    'line-color': '#ffffff',
+                    'line-width': 7,
+                    'line-opacity': 0.85,
+                },
+            });
+            map.addLayer({
+                id: ROUTE_LAYER_ID,
+                type: 'line',
+                source: ROUTE_SOURCE_ID,
+                layout: {
+                    'line-cap': 'round',
+                    'line-join': 'round',
+                    visibility: 'none',
+                },
+                paint: {
+                    'line-color': '#2563eb', // primary blue
+                    'line-width': 4,
+                    'line-opacity': 0.95,
+                },
+            });
+
             // ---- PIN
             map.addSource(PIN_SOURCE_ID, {
                 type: 'geojson',
@@ -330,6 +470,8 @@ export function WaterMapCanvas({
             map.on('mouseleave', POINTS_LAYER_ID, resetCursor);
             map.on('mouseenter', DEPTH_LAYER_ID, setPointerCursor);
             map.on('mouseleave', DEPTH_LAYER_ID, resetCursor);
+            map.on('mouseenter', STORES_LAYER_ID, setPointerCursor);
+            map.on('mouseleave', STORES_LAYER_ID, resetCursor);
 
             // Click на cell — circle layer рендерит features individually,
             // queryRenderedFeatures возвращает их корректно.
@@ -355,6 +497,14 @@ export function WaterMapCanvas({
                 if (!f) return;
                 const coords = (f.geometry as GeoJSON.Point).coordinates as [number, number];
                 onDepthClick?.([coords[1], coords[0]], f.properties ?? {});
+            });
+
+            // Click на store marker — mini-popup
+            map.on('click', STORES_LAYER_ID, (e) => {
+                const f = e.features?.[0];
+                if (!f) return;
+                const coords = (f.geometry as GeoJSON.Point).coordinates as [number, number];
+                onStoreClick?.([coords[1], coords[0]], f.properties ?? {});
             });
 
             // bbox/zoom tracking
@@ -482,6 +632,40 @@ export function WaterMapCanvas({
                     layout: { visibility: pointsEnabled ? 'visible' : 'none' },
                 });
             }
+            if (!map.getSource(STORES_SOURCE_ID)) {
+                map.addSource(STORES_SOURCE_ID, {
+                    type: 'geojson',
+                    data: stores.data ? storesToFeatureCollection(stores.data) : EMPTY_STORES,
+                });
+                map.addLayer({
+                    id: STORES_LAYER_ID,
+                    type: 'circle',
+                    source: STORES_SOURCE_ID,
+                    paint: {
+                        'circle-radius': [
+                            'interpolate',
+                            ['linear'],
+                            ['zoom'],
+                            8,
+                            6,
+                            12,
+                            10,
+                            15,
+                            14,
+                        ] as never,
+                        'circle-color': [
+                            'case',
+                            ['==', ['get', 'availability'], 'full'],
+                            '#22c55e',
+                            '#f59e0b',
+                        ] as never,
+                        'circle-stroke-color': '#ffffff',
+                        'circle-stroke-width': 2.5,
+                        'circle-opacity': 0.95,
+                    },
+                    layout: { visibility: storesEnabled ? 'visible' : 'none' },
+                });
+            }
             if (!map.getSource(PIN_SOURCE_ID)) {
                 map.addSource(PIN_SOURCE_ID, {
                     type: 'geojson',
@@ -578,6 +762,66 @@ export function WaterMapCanvas({
         }
     }, [depthEnabled, mapReady]);
 
+    // Stores data → setData (transform retail-stores в FeatureCollection)
+    useEffect(() => {
+        const map = mapRef.current;
+        if (!map || !mapReady) return;
+        const src = map.getSource(STORES_SOURCE_ID) as GeoJSONSource | undefined;
+        if (!src) return;
+        if (stores.data) {
+            src.setData(storesToFeatureCollection(stores.data));
+        } else if (!stores.isLoading) {
+            src.setData(EMPTY_STORES);
+        }
+    }, [stores.data, stores.isLoading, mapReady]);
+
+    // Route polyline data → setData + visibility
+    useEffect(() => {
+        const map = mapRef.current;
+        if (!map || !mapReady) return;
+        const src = map.getSource(ROUTE_SOURCE_ID) as GeoJSONSource | undefined;
+        if (!src) return;
+
+        const coords = route.data?.routes?.[0]?.geometry?.coordinates;
+        const visible = !!selectedRouteTo && !!coords && coords.length >= 2;
+
+        if (visible && coords) {
+            src.setData({
+                type: 'FeatureCollection',
+                features: [
+                    {
+                        type: 'Feature',
+                        properties: {},
+                        geometry: { type: 'LineString', coordinates: coords },
+                    },
+                ],
+            });
+        } else {
+            src.setData({ type: 'FeatureCollection', features: [] });
+        }
+
+        const v = visible ? 'visible' : 'none';
+        if (map.getLayer(ROUTE_LAYER_ID)) {
+            map.setLayoutProperty(ROUTE_LAYER_ID, 'visibility', v);
+        }
+        if (map.getLayer(`${ROUTE_LAYER_ID}-halo`)) {
+            map.setLayoutProperty(`${ROUTE_LAYER_ID}-halo`, 'visibility', v);
+        }
+    }, [route.data, selectedRouteTo, mapReady]);
+
+    // Stores visibility (toggle «Точки продаж и приёма»)
+    useEffect(() => {
+        const map = mapRef.current;
+        if (!map || !mapReady) return;
+        if (map.getLayer(STORES_LAYER_ID)) {
+            map.setLayoutProperty(
+                STORES_LAYER_ID,
+                'visibility',
+                storesEnabled ? 'visible' : 'none',
+            );
+        }
+    }, [storesEnabled, mapReady]);
+
     // Points data → setData
     useEffect(() => {
         const map = mapRef.current;
@@ -650,6 +894,34 @@ export function WaterMapCanvas({
             pinMarkerRef.current.setLngLat([pin.lon, pin.lat]);
         }
     }, [pin, mapReady]);
+
+    // Pin placement mode — слушаем next click на карте и ставим pin.
+    // After click автоматически выключаем mode. Cursor — crosshair для
+    // visual cue. Layer-specific click handler'ы тоже сработают (если попал
+    // в feature), но это OK — pin всё равно ставится по lngLat клика.
+    useEffect(() => {
+        const map = mapRef.current;
+        if (!map || !mapReady) return;
+        if (!pinPlacementMode) {
+            map.getCanvas().style.cursor = '';
+            return;
+        }
+        map.getCanvas().style.cursor = 'crosshair';
+        const handleClick = (e: maplibregl.MapMouseEvent) => {
+            setPin({
+                lat: e.lngLat.lat,
+                lon: e.lngLat.lng,
+                source: 'manual',
+                label: `${e.lngLat.lat.toFixed(4)}, ${e.lngLat.lng.toFixed(4)}`,
+            });
+            setPinPlacementMode(false);
+        };
+        map.once('click', handleClick);
+        return () => {
+            map.off('click', handleClick);
+            map.getCanvas().style.cursor = '';
+        };
+    }, [pinPlacementMode, mapReady, setPin, setPinPlacementMode]);
 
     // Radius circle (similar)
     useEffect(() => {

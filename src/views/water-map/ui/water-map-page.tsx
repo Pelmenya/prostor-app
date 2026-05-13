@@ -8,6 +8,8 @@ import { useClientPinStore, useWaterMapStore } from '../model';
 import { AquiferLegend } from './aquifer-legend';
 import { AquiferStatsModal } from './aquifer-stats-modal';
 import { AutoEquipmentCard } from './auto-equipment-card';
+import { RealEstatePicker } from './real-estate-picker';
+import { StorePopup } from './store-popup';
 import { CellPopup } from './cell-popup';
 import { DepthPopup } from './depth-popup';
 import { EquipmentModal } from './equipment-modal';
@@ -39,15 +41,18 @@ export function WaterMapPage() {
     const layersOpen = userOverride ?? isDesktop;
     const [selectedPoint, setSelectedPoint] = useState<TCanvasSelection | null>(null);
     const [selectedDepth, setSelectedDepth] = useState<TCanvasSelection | null>(null);
+    const [selectedStore, setSelectedStore] = useState<TCanvasSelection | null>(null);
     const selectedCellCoords = useWaterMapStore((s) => s.selectedCellCoords);
     const activeLayers = useWaterMapStore((s) => s.activeLayers);
+    const pinPlacementMode = useWaterMapStore((s) => s.pinPlacementMode);
+    const setPinPlacementMode = useWaterMapStore((s) => s.setPinPlacementMode);
     const pin = useClientPinStore((s) => s.pin);
     const setPin = useClientPinStore((s) => s.setPin);
 
     const heatmapVisible = activeLayers.has('heatmap');
     const depthVisible = activeLayers.has('depthMap');
 
-    const showPinHint = !pin;
+    const showPinHint = !pin && !pinPlacementMode;
 
     const requestGeolocation = () => {
         if (!navigator.geolocation) return;
@@ -71,6 +76,7 @@ export function WaterMapPage() {
                 theme={theme}
                 onPointClick={(coords, properties) => setSelectedPoint({ coords, properties })}
                 onDepthClick={(coords, properties) => setSelectedDepth({ coords, properties })}
+                onStoreClick={(coords, properties) => setSelectedStore({ coords, properties })}
             />
 
             <WaterMapTopBar
@@ -78,6 +84,25 @@ export function WaterMapPage() {
                 layersOpen={layersOpen}
                 subtitle="Москва и Подмосковье · 15 504 анализа"
             />
+
+            {/* Pin placement mode banner — instructs user куда тапать */}
+            {pinPlacementMode && (
+                <div
+                    className="pointer-events-auto absolute left-1/2 -translate-x-1/2 z-20 rounded-full bg-primary text-primary-content shadow-lg px-4 py-2 flex items-center gap-3"
+                    style={{ top: 'calc(env(safe-area-inset-top, 0) + 4.5rem)' }}
+                >
+                    <span className="text-sm font-medium">
+                        Кликните на карте, чтобы поставить пин
+                    </span>
+                    <button
+                        type="button"
+                        onClick={() => setPinPlacementMode(false)}
+                        className="text-xs underline opacity-90 hover:opacity-100"
+                    >
+                        Отмена
+                    </button>
+                </div>
+            )}
 
             <LayerPanel open={layersOpen} onClose={() => setUserOverride(false)} />
 
@@ -103,36 +128,45 @@ export function WaterMapPage() {
 
             <PointPopup data={selectedPoint} onClose={() => setSelectedPoint(null)} />
             <DepthPopup data={selectedDepth} onClose={() => setSelectedDepth(null)} />
+            <StorePopup data={selectedStore} onClose={() => setSelectedStore(null)} />
 
             <PredictModal />
             <EquipmentModal />
             <AquiferStatsModal />
 
-            {/* FTUX hint когда пина нет — primary geolocation button */}
+            {/* FTUX hint когда пина нет — real-estate picker (если auth + есть
+                объекты) или fallback на геолокацию. Picker и кнопка геолокации
+                идут вместе — если у юзера 1 объект всё равно полезна геолокация
+                чтобы проверить «другой адрес». */}
             {showPinHint && (
                 <div
-                    className="pointer-events-auto absolute left-2 right-2 z-10 rounded-xl bg-base-100/95 backdrop-blur-md shadow-md border border-primary/30 px-3 py-3 flex items-start gap-3 lg:left-[376px] lg:right-auto lg:max-w-sm"
+                    className="pointer-events-auto absolute left-2 right-2 z-10 rounded-xl bg-base-100/95 backdrop-blur-md shadow-md border border-primary/30 px-3 py-3 flex flex-col gap-3 lg:left-[376px] lg:right-auto lg:max-w-sm"
                     style={{ bottom: 'calc(env(safe-area-inset-bottom, 0) + 5.5rem)' }}
                 >
-                    <span className="size-2 rounded-full bg-primary mt-1.5 shrink-0 animate-pulse" />
-                    <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-base-content leading-tight">
-                            Поставьте пин на свой адрес
-                        </p>
-                        <p className="text-xs text-base-content/60 leading-snug mt-0.5 mb-2">
-                            Чтобы получить прогноз воды и подбор фильтра по соседям.
-                        </p>
-                        <button
-                            type="button"
-                            onClick={requestGeolocation}
-                            className="btn btn-primary btn-sm w-full gap-1.5 normal-case"
-                        >
-                            <span className="size-4 inline-block">
-                                <WaterDrop size={16} />
-                            </span>
-                            Использовать геолокацию
-                        </button>
+                    <div className="flex items-start gap-3">
+                        <span className="size-2 rounded-full bg-primary mt-1.5 shrink-0 animate-pulse" />
+                        <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-base-content leading-tight">
+                                Выберите объект или поставьте пин
+                            </p>
+                            <p className="text-xs text-base-content/60 leading-snug mt-0.5">
+                                Чтобы получить прогноз воды и подбор фильтра по соседям.
+                            </p>
+                        </div>
                     </div>
+
+                    <RealEstatePicker />
+
+                    <button
+                        type="button"
+                        onClick={requestGeolocation}
+                        className="btn btn-primary btn-sm w-full gap-1.5 normal-case"
+                    >
+                        <span className="size-4 inline-block">
+                            <WaterDrop size={16} />
+                        </span>
+                        Использовать геолокацию
+                    </button>
                 </div>
             )}
         </div>

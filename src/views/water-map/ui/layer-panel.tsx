@@ -3,10 +3,15 @@
 import { useState } from 'react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { useWaterMapStore } from '../model';
+import { MapPinIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { useNearestRetailStoresByCoords } from '@/entities/real-estate';
+import { WaterDrop } from '@/shared/ui';
 import { AllParamsModal } from './all-params-modal';
 import { LayerToggleRow } from './layer-toggle-row';
 import { ParamPills } from './param-pills';
+import { RealEstatePicker } from './real-estate-picker';
 import { ViewModeToggle } from './view-mode-toggle';
+import { useClientPinStore } from '../model';
 
 type TLayerPanelProps = {
     open: boolean;
@@ -32,7 +37,60 @@ export function LayerPanel({ open, onClose }: TLayerPanelProps) {
     const setAquiferStatsOpen = useWaterMapStore((s) => s.setAquiferStatsOpen);
     const cellsViewMode = useWaterMapStore((s) => s.cellsViewMode);
     const setCellsViewMode = useWaterMapStore((s) => s.setCellsViewMode);
+    const pin = useClientPinStore((s) => s.pin);
+    const setPin = useClientPinStore((s) => s.setPin);
+    const pinPlacementMode = useWaterMapStore((s) => s.pinPlacementMode);
+    const setPinPlacementMode = useWaterMapStore((s) => s.setPinPlacementMode);
     const [allParamsOpen, setAllParamsOpen] = useState(false);
+
+    const requestGeolocation = () => {
+        if (typeof navigator === 'undefined' || !navigator.geolocation) return;
+        navigator.geolocation.getCurrentPosition(
+            (pos) => {
+                setPin({
+                    lat: pos.coords.latitude,
+                    lon: pos.coords.longitude,
+                    source: 'geolocation',
+                    label: 'Текущее местоположение',
+                });
+            },
+            () => {},
+            { enableHighAccuracy: false, timeout: 5000 },
+        );
+    };
+
+    const pinSourceLabel = (() => {
+        if (!pin) return null;
+        if (pin.source === 'geolocation') return 'Геолокация';
+        if (pin.source === 'real-estate') return 'Объект';
+        return 'Вручную';
+    })();
+
+    // Пре-проверка stores чтобы показать badge с count / ошибкой возле toggle.
+    // Запрос по координатам любого pin (real-estate / геолокация / manual).
+    // Тот же запрос делает canvas — useQuery дедупит cache.
+    const storesQuery = useNearestRetailStoresByCoords(
+        activeLayers.has('stores') && pin ? { lat: pin.lat, lon: pin.lon, limit: 20 } : null,
+    );
+    const storesAccessory = (() => {
+        if (!activeLayers.has('stores') || !pin) return undefined;
+        if (storesQuery.isLoading) {
+            return <span className="loading loading-spinner loading-xs" />;
+        }
+        if (storesQuery.isError) {
+            return (
+                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-warning/15 text-warning font-medium">
+                    не загрузилось
+                </span>
+            );
+        }
+        const count = storesQuery.data?.length ?? 0;
+        return (
+            <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-base-200 text-base-content/70 font-medium">
+                {count}
+            </span>
+        );
+    })();
 
     return (
         <>
@@ -81,6 +139,73 @@ export function LayerPanel({ open, onClose }: TLayerPanelProps) {
 
                 {/* Scroll content */}
                 <div className="flex-1 overflow-y-auto px-4 pb-4">
+                    {/* Ваше местоположение — current pin label + кнопки сменить.
+                        Всегда видна (для гостя — кнопка геолокации; для auth —
+                        ещё real-estate picker). */}
+                    <section className="pt-3 pb-1 space-y-2">
+                        <h3 className="text-[10px] font-bold uppercase tracking-wider text-base-content/50">
+                            Ваше местоположение
+                        </h3>
+
+                        {pin ? (
+                            <div className="rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 flex items-start gap-2">
+                                <MapPinIcon className="size-4 text-primary mt-0.5 shrink-0" />
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-xs font-medium text-base-content leading-tight">
+                                        {pin.label ??
+                                            `${pin.lat.toFixed(4)}, ${pin.lon.toFixed(4)}`}
+                                    </p>
+                                    {pinSourceLabel && (
+                                        <p className="text-[10px] text-base-content/55 leading-tight mt-0.5">
+                                            {pinSourceLabel}
+                                        </p>
+                                    )}
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setPin(null)}
+                                    aria-label="Очистить пин"
+                                    title="Очистить пин"
+                                    className="rounded-full p-1 hover:bg-base-200 text-base-content/55 shrink-0"
+                                >
+                                    <TrashIcon className="size-4" />
+                                </button>
+                            </div>
+                        ) : (
+                            <p className="text-xs text-base-content/55 leading-snug">
+                                Пин не выбран. Выберите объект или используйте геолокацию.
+                            </p>
+                        )}
+
+                        <RealEstatePicker />
+
+                        <div className="grid grid-cols-2 gap-2">
+                            <button
+                                type="button"
+                                onClick={requestGeolocation}
+                                className="btn btn-outline btn-primary btn-sm gap-1.5 normal-case"
+                            >
+                                <span className="size-4 inline-block">
+                                    <WaterDrop size={16} />
+                                </span>
+                                Геолокация
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setPinPlacementMode(!pinPlacementMode);
+                                    onClose();
+                                }}
+                                className={`btn btn-sm gap-1.5 normal-case ${
+                                    pinPlacementMode ? 'btn-primary' : 'btn-outline btn-primary'
+                                }`}
+                            >
+                                <MapPinIcon className="size-4" />
+                                {pinPlacementMode ? 'Отменить' : 'На карте'}
+                            </button>
+                        </div>
+                    </section>
+
                     <section className="pt-3">
                         <h3 className="text-[10px] font-bold uppercase tracking-wider text-base-content/50 mb-1">
                             Слои
@@ -126,6 +251,18 @@ export function LayerPanel({ open, onClose }: TLayerPanelProps) {
                             description="Плотность анализов — серая подложка поверх любого режима"
                             checked={activeLayers.has('coverage')}
                             onChange={(v) => setLayer('coverage', v)}
+                        />
+                        <LayerToggleRow
+                            label="Точки продаж и приёма анализа"
+                            description={
+                                pin
+                                    ? 'Магазины Аквафор-Pro рядом с пином'
+                                    : 'Поставьте пин, чтобы увидеть ближайшие магазины'
+                            }
+                            checked={activeLayers.has('stores')}
+                            onChange={(v) => setLayer('stores', v)}
+                            disabled={!pin}
+                            accessory={storesAccessory}
                         />
                     </section>
 

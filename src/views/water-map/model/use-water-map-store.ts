@@ -9,7 +9,7 @@ import type { TIntakeType, TWaterParam } from '@/entities/water-analysis';
  * Aggregated layers по умолчанию off (см. прототип «Слой выкл...») — чтобы
  * не перегружать первый просмотр.
  */
-export type TWaterMapLayer = 'heatmap' | 'depthMap' | 'points' | 'coverage';
+export type TWaterMapLayer = 'heatmap' | 'depthMap' | 'points' | 'coverage' | 'stores';
 
 /**
  * Режим отрисовки cells — управляет stacked layers:
@@ -48,6 +48,21 @@ export type TWaterMapStore = {
     /** Режим отрисовки cells (spline/dots/both). */
     cellsViewMode: TCellsViewMode;
     setCellsViewMode: (m: TCellsViewMode) => void;
+
+    /**
+     * Режим ручной установки пина: следующий click на карте → setPin manual.
+     * После клика автоматически выключается. Transient — не персистится.
+     */
+    pinPlacementMode: boolean;
+    setPinPlacementMode: (v: boolean) => void;
+
+    /**
+     * Координаты `[lng, lat]` точки назначения для отображения polyline'a
+     * маршрута. null = маршрут скрыт. Выставляется из StorePopup при тапе
+     * «Маршрут». From берётся из текущего pin'а в canvas.
+     */
+    selectedRouteTo: [number, number] | null;
+    setSelectedRouteTo: (to: [number, number] | null) => void;
 
     /** Открыты ли модалки. Для UI без локальных useState. */
     predictOpen: boolean;
@@ -100,6 +115,12 @@ export const useWaterMapStore = create<TWaterMapStore>()(
 
             cellsViewMode: 'both',
             setCellsViewMode: (m) => set({ cellsViewMode: m }),
+
+            pinPlacementMode: false,
+            setPinPlacementMode: (v) => set({ pinPlacementMode: v }),
+
+            selectedRouteTo: null,
+            setSelectedRouteTo: (to) => set({ selectedRouteTo: to }),
 
             predictOpen: false,
             equipmentOpen: false,
