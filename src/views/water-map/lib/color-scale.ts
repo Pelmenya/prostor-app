@@ -218,55 +218,65 @@ export function heatmapOpacityExpression(): ExpressionSpecification {
 }
 
 // =============================================================================
-// POINTS layer (high-zoom, zoom > 11) — individual анализы.
+// POINTS layer (high-zoom, zoom > 10) — individual анализы.
 //
-// circle-color по risk (если есть) или fallback по pdkStatus аналог.
+// circle-color по risk-score (synthetic 0-100). Если property отсутствует
+// или null — серый fallback. `coalesce` с -1 чтобы избежать crash'а при
+// сравнении null с числом (MapLibre `<=` против null = false → попадёт
+// в default branch RED, что неверно).
 // =============================================================================
 
-/**
- * Цвет point по risk-score (synthetic 0-100). Параметры из /heatmap thresholds:
- * good ≤50, mid 50-80, bad >80.
- */
 export function pointsCircleColorExpression(): ExpressionSpecification {
     return [
         'case',
-        ['==', ['get', 'risk'], null],
-        '#9ca3af', // gray — нет данных
-        ['<=', ['get', 'risk'], 50],
+        ['!', ['has', 'risk']],
+        '#9ca3af',
+        ['==', ['typeof', ['get', 'risk']], 'null'],
+        '#9ca3af',
+        ['<=', ['coalesce', ['get', 'risk'], -1], 50],
         GREEN,
-        ['<=', ['get', 'risk'], 80],
+        ['<=', ['coalesce', ['get', 'risk'], -1], 80],
         ORANGE,
         RED,
     ] as unknown as ExpressionSpecification;
 }
 
+/**
+ * Радиус point — sane minimum (4px) на любом видимом zoom, плавный рост
+ * до 10px на zoom 16. Без upper extrapolation чтобы dots не разрастались
+ * до огромного размера при пожалуйшем zoom-in.
+ */
 export function pointsCircleRadiusExpression(): ExpressionSpecification {
     return [
         'interpolate',
         ['linear'],
         ['zoom'],
         10,
-        3,
+        4,
         12,
-        5,
+        6,
         14,
-        7,
+        8,
         16,
         10,
     ] as unknown as ExpressionSpecification;
 }
 
+/**
+ * Opacity fade-in start на zoom 10 чтобы точки появлялись плавно при
+ * переключении с агрегированных cells.
+ */
 export function pointsCircleOpacityExpression(): ExpressionSpecification {
     return [
         'interpolate',
         ['linear'],
         ['zoom'],
         10,
-        0,
+        0.5,
         11,
-        0.4,
-        12,
         0.85,
+        12,
+        0.95,
     ] as unknown as ExpressionSpecification;
 }
 
@@ -363,22 +373,38 @@ export function coverageHeatmapOpacityExpression(): ExpressionSpecification {
 }
 
 // =============================================================================
-// DEPTH-MAP layer — для drilling extras (Phase 4.5.2).
+// DEPTH-MAP circle layer — drilling USP-4 (бурильщики/копатели/гидрогеологи).
+//
+// Color по `dominantLayerId` (5 aquifer типов) через `aquiferMatchExpression`.
+// Radius по count агрегатов глубин — больше скважин в cell = плотнее точка.
+// Opacity static (drilling-юзер хочет видеть точки чётко на любом zoom).
 // =============================================================================
 
 export function depthMapCircleRadiusExpression(): ExpressionSpecification {
     return [
         'interpolate',
         ['linear'],
-        ['get', 'count'],
-        1,
+        ['zoom'],
+        6,
+        4,
         9,
-        10,
-        15,
-        50,
-        22,
-        200,
-        28,
+        7,
+        11,
+        11,
+        13,
+        16,
+    ] as unknown as ExpressionSpecification;
+}
+
+export function depthMapCircleStrokeWidthExpression(): ExpressionSpecification {
+    return [
+        'interpolate',
+        ['linear'],
+        ['zoom'],
+        6,
+        0.5,
+        11,
+        1.5,
     ] as unknown as ExpressionSpecification;
 }
 

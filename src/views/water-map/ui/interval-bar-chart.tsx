@@ -74,7 +74,11 @@ export function IntervalBarChart({
         return ((v - axisMin) / r) * 100;
     };
 
-    const fmt = (v: number) => (paramCode ? formatParamValue(paramCode, v) : v.toFixed(2));
+    const fmt = (v: number): string => {
+        if (paramCode) return formatParamValue(paramCode, v);
+        if (typeof v !== 'number' || !Number.isFinite(v)) return '—';
+        return v.toFixed(2);
+    };
 
     return (
         <div className={compact ? 'py-1.5' : 'py-2.5'}>

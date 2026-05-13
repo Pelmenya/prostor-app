@@ -5,8 +5,11 @@ import dynamic from 'next/dynamic';
 import { useDaisyTheme, useMediaQuery } from '@/shared/lib';
 import { WaterDrop } from '@/shared/ui';
 import { useClientPinStore, useWaterMapStore } from '../model';
+import { AquiferLegend } from './aquifer-legend';
+import { AquiferStatsModal } from './aquifer-stats-modal';
 import { AutoEquipmentCard } from './auto-equipment-card';
 import { CellPopup } from './cell-popup';
+import { DepthPopup } from './depth-popup';
 import { EquipmentModal } from './equipment-modal';
 import { LayerPanel } from './layer-panel';
 import { PointPopup } from './point-popup';
@@ -20,7 +23,7 @@ const WaterMapCanvas = dynamic(() => import('./water-map-canvas').then((m) => m.
     loading: () => <div className="absolute inset-0 water-map-skeleton-bg" />,
 });
 
-type TPointSelection = {
+type TCanvasSelection = {
     coords: [number, number];
     properties: Record<string, unknown>;
 };
@@ -34,10 +37,15 @@ export function WaterMapPage() {
     const isDesktop = useMediaQuery('(min-width: 992px)');
     const [userOverride, setUserOverride] = useState<boolean | null>(null);
     const layersOpen = userOverride ?? isDesktop;
-    const [selectedPoint, setSelectedPoint] = useState<TPointSelection | null>(null);
+    const [selectedPoint, setSelectedPoint] = useState<TCanvasSelection | null>(null);
+    const [selectedDepth, setSelectedDepth] = useState<TCanvasSelection | null>(null);
     const selectedCellCoords = useWaterMapStore((s) => s.selectedCellCoords);
+    const activeLayers = useWaterMapStore((s) => s.activeLayers);
     const pin = useClientPinStore((s) => s.pin);
     const setPin = useClientPinStore((s) => s.setPin);
+
+    const heatmapVisible = activeLayers.has('heatmap');
+    const depthVisible = activeLayers.has('depthMap');
 
     const showPinHint = !pin;
 
@@ -58,10 +66,11 @@ export function WaterMapPage() {
     };
 
     return (
-        <div className="relative size-full min-h-[calc(100dvh-9rem)] bg-base-200">
+        <div className="relative size-full bg-base-200">
             <WaterMapCanvas
                 theme={theme}
                 onPointClick={(coords, properties) => setSelectedPoint({ coords, properties })}
+                onDepthClick={(coords, properties) => setSelectedDepth({ coords, properties })}
             />
 
             <WaterMapTopBar
@@ -72,7 +81,19 @@ export function WaterMapPage() {
 
             <LayerPanel open={layersOpen} onClose={() => setUserOverride(false)} />
 
-            <SeverityLegend />
+            {/* Legends stack — vertical column в правом-нижнем углу над FAB.
+                Все легенды одной ширины (w-56), складываются друг над другом
+                через flex-col gap-2. Без absolute-позиционирования у каждой
+                легенды отдельно — это решает overlap при двух одновременно. */}
+            {(heatmapVisible || depthVisible) && (
+                <div
+                    className="pointer-events-none absolute right-4 z-10 flex flex-col items-end gap-2"
+                    style={{ bottom: 'calc(env(safe-area-inset-bottom, 0) + 5.5rem)' }}
+                >
+                    {depthVisible && <AquiferLegend />}
+                    {heatmapVisible && <SeverityLegend />}
+                </div>
+            )}
 
             <SimilarFab />
 
@@ -81,9 +102,11 @@ export function WaterMapPage() {
             <CellPopup coords={selectedCellCoords} />
 
             <PointPopup data={selectedPoint} onClose={() => setSelectedPoint(null)} />
+            <DepthPopup data={selectedDepth} onClose={() => setSelectedDepth(null)} />
 
             <PredictModal />
             <EquipmentModal />
+            <AquiferStatsModal />
 
             {/* FTUX hint когда пина нет — primary geolocation button */}
             {showPinHint && (

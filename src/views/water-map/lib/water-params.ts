@@ -257,13 +257,49 @@ export const WATER_PARAM_CATEGORIES: ReadonlyArray<{
 
 /**
  * Format value + unit. Risk → 0-100 без единиц.
+ *
+ * Defensive type-guard: если backend вернёт не-number (объект для range-type
+ * параметра или null для нерегулируемого) — возвращаем '—' вместо crash'а
+ * `value.toFixed is not a function`. Источник: slovo-claude feedback
+ * 2026-05-13 17:50.
  */
-export function formatParamValue(code: string, value: number): string {
+export function formatParamValue(code: string, value: unknown): string {
+    if (typeof value !== 'number' || !Number.isFinite(value)) return '—';
     const meta = WATER_PARAM_META[code as TWaterParam];
     const unit = meta?.unit ? ` ${meta.unit}` : '';
     const precision =
         Math.abs(value) >= 100 ? 0 : Math.abs(value) >= 10 ? 1 : Math.abs(value) >= 1 ? 2 : 3;
     return `${value.toFixed(precision)}${unit}`;
+}
+
+function formatNumberCompact(n: number): string {
+    if (!Number.isFinite(n)) return '—';
+    return Math.abs(n) >= 100 ? n.toFixed(0) : Math.abs(n) >= 10 ? n.toFixed(1) : n.toFixed(2);
+}
+
+/**
+ * Format ПДК-значение. Backend type — union `number | { min, max }` (range для
+ * pH из СанПиН). Type-narrow обязателен — без него `pdk.toFixed()` упадёт
+ * на pH cell.
+ *
+ * @param pdk — number, range или null (нерегулируемый параметр).
+ * @param unit — единица для display, без префикса.
+ * @param prefix — «ПДК » (default), '' для голого значения.
+ */
+export function formatPdk(
+    pdk: number | { min: number; max: number } | null | undefined,
+    unit: string = '',
+    prefix: string = 'ПДК ',
+): string {
+    if (pdk === null || pdk === undefined) return 'не нормируется';
+    const u = unit ? ` ${unit}` : '';
+    if (typeof pdk === 'number') {
+        return `${prefix}${formatNumberCompact(pdk)}${u}`;
+    }
+    if (typeof pdk === 'object' && 'min' in pdk && 'max' in pdk) {
+        return `${prefix}${formatNumberCompact(pdk.min)}–${formatNumberCompact(pdk.max)}${u}`;
+    }
+    return '—';
 }
 
 export function paramLabel(code: string): string {

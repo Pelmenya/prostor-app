@@ -43,6 +43,7 @@ export {
     WATER_PARAM_META,
     WATER_PARAM_CATEGORIES,
     formatParamValue,
+    formatPdk,
     paramLabel,
     paramFullLabel,
     paramsByCategory,
@@ -87,6 +88,7 @@ export {
     pointsCircleRadiusExpression,
     pointsCircleOpacityExpression,
     depthMapCircleRadiusExpression,
+    depthMapCircleStrokeWidthExpression,
     HEATMAP_PALETTE,
 } from './color-scale';
 
@@ -98,3 +100,5 @@ export {
     MO_BBOX,
     snapBbox,
 } from './map-styles';
+
+export { parseMaplibreObject } from './maplibre-quirks';

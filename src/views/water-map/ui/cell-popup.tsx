@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { BottomSheetModal } from '@/shared/ui';
 import type { TParamBreakdown } from '@/entities/water-analysis';
 import { useEquipmentSourceStore, useWaterMapStore } from '../model';
-import { paramFullLabel, paramLabel, useHeatmapCellDetail } from '../lib';
+import { formatPdk, paramFullLabel, paramLabel, useHeatmapCellDetail } from '../lib';
 
 const CELL_GRID = 0.05; // hardcoded — фронт работает с тем же default что в backend
 
@@ -193,13 +193,8 @@ function severityFromPct(pct: number): 'mild' | 'mid' | 'high' {
     return 'mild';
 }
 
-function formatPdk(pdk: number | { min: number; max: number }, unit: string): string {
-    const u = unit ? ` ${unit}` : '';
-    if (typeof pdk === 'number') return `ПДК ${formatNumber(pdk)}${u}`;
-    return `ПДК ${pdk.min}–${pdk.max}${u}`;
-}
-
-function formatNumber(n: number): string {
+function formatNumber(n: unknown): string {
+    if (typeof n !== 'number' || !Number.isFinite(n)) return '—';
     return Math.abs(n) >= 100 ? n.toFixed(0) : Math.abs(n) >= 10 ? n.toFixed(1) : n.toFixed(2);
 }
 

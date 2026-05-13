@@ -5,6 +5,7 @@ import type { TPdkStatus, TPredictResponse } from '@/entities/water-analysis';
 import { useClientPinStore, useWaterMapStore } from '../model';
 import { paramFullLabel, usePredict, WATER_PARAM_META } from '../lib';
 import { IntervalBarChart } from './interval-bar-chart';
+import { PredictDepthSection } from './predict-depth-section';
 import { SeverityBadge } from './severity-badge';
 
 const SECTION_ORDER: ReadonlyArray<{
@@ -81,6 +82,9 @@ export function PredictModal() {
                             <span className="ml-auto truncate">{data.mostLikelyAquiferLayer}</span>
                         )}
                     </div>
+
+                    {/* Drilling USP-4 — глубина бурения для этой координаты */}
+                    {pin && <PredictDepthSection lat={pin.lat} lon={pin.lon} enabled={open} />}
 
                     {SECTION_ORDER.map(({ key, status }) => {
                         const codes = data.byCategory[key];

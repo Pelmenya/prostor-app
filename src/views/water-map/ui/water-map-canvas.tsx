@@ -4,13 +4,18 @@ import { useEffect, useRef, useState } from 'react';
 import maplibregl, { type Map as MaplibreMap, type GeoJSONSource } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
-import type { THeatmapResponse, TPointsResponse } from '@/entities/water-analysis';
+import type {
+    TDepthMapResponse,
+    THeatmapResponse,
+    TPointsResponse,
+} from '@/entities/water-analysis';
 import { useWaterMapStore, useClientPinStore } from '../model';
 import {
     DEFAULT_ZOOM,
     MAP_STYLE_DARK,
     MAP_STYLE_LIGHT,
     MO_BBOX,
+    aquiferMatchExpression,
     cellsCircleColorExpression,
     cellsCircleOpacityExpression,
     cellsCircleRadiusExpression,
@@ -20,6 +25,8 @@ import {
     coverageHeatmapOpacityExpression,
     coverageHeatmapRadiusExpression,
     coverageHeatmapWeightExpression,
+    depthMapCircleRadiusExpression,
+    depthMapCircleStrokeWidthExpression,
     heatmapColorExpression,
     heatmapIntensityExpression,
     heatmapOpacityExpression,
@@ -29,6 +36,7 @@ import {
     pointsCircleOpacityExpression,
     pointsCircleRadiusExpression,
     snapBbox,
+    useDepthMap,
     useHeatmap,
     usePoints,
 } from '../lib';
@@ -38,6 +46,8 @@ const CELLS_HEATMAP_LAYER_ID = 'wm-cells-heatmap';
 const CELLS_LAYER_ID = 'wm-cells-layer';
 const COVERAGE_SOURCE_ID = 'wm-coverage';
 const COVERAGE_LAYER_ID = 'wm-coverage-heatmap';
+const DEPTH_SOURCE_ID = 'wm-depth';
+const DEPTH_LAYER_ID = 'wm-depth-layer';
 const POINTS_SOURCE_ID = 'wm-points';
 const POINTS_LAYER_ID = 'wm-points-layer';
 const PIN_SOURCE_ID = 'wm-client-pin';
@@ -60,6 +70,14 @@ const EMPTY_POINTS: TPointsResponse = {
     count: 0,
     truncated: false,
     limit: 200,
+    timeTakenMs: 0,
+    cached: false,
+};
+const EMPTY_DEPTH: TDepthMapResponse = {
+    type: 'FeatureCollection',
+    features: [],
+    intakeType: 'all',
+    grid: 0.05,
     timeTakenMs: 0,
     cached: false,
 };
@@ -94,6 +112,7 @@ type TWaterMapCanvasProps = {
     theme: 'light' | 'dark';
     onCellClick?: (coords: [number, number], properties: Record<string, unknown>) => void;
     onPointClick?: (coords: [number, number], properties: Record<string, unknown>) => void;
+    onDepthClick?: (coords: [number, number], properties: Record<string, unknown>) => void;
 };
 
 /**
@@ -110,7 +129,12 @@ type TWaterMapCanvasProps = {
  *  - PIN (DOM marker) — пин клиента (WaterDrop SVG).
  *  - RADIUS (fill+line) — radius-кольцо «Похожие рядом».
  */
-export function WaterMapCanvas({ theme, onCellClick, onPointClick }: TWaterMapCanvasProps) {
+export function WaterMapCanvas({
+    theme,
+    onCellClick,
+    onPointClick,
+    onDepthClick,
+}: TWaterMapCanvasProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const mapRef = useRef<MaplibreMap | null>(null);
     const [mapReady, setMapReady] = useState(false);
@@ -120,6 +144,7 @@ export function WaterMapCanvas({ theme, onCellClick, onPointClick }: TWaterMapCa
     const selectedParam = useWaterMapStore((s) => s.selectedParam);
     const activeLayers = useWaterMapStore((s) => s.activeLayers);
     const cellsViewMode = useWaterMapStore((s) => s.cellsViewMode);
+    const intakeType = useWaterMapStore((s) => s.intakeType);
     const setSelectedCellCoords = useWaterMapStore((s) => s.setSelectedCellCoords);
     const similarOn = useWaterMapStore((s) => s.similarOn);
     const similarRadiusKm = useWaterMapStore((s) => s.similarRadiusKm);
@@ -141,6 +166,10 @@ export function WaterMapCanvas({ theme, onCellClick, onPointClick }: TWaterMapCa
         ? { ...snapBbox(bbox, 0.05), param: 'coverage' as const, grid: 0.05 }
         : null;
     const coverage = useHeatmap(coverageQuery);
+
+    const depthEnabled = activeLayers.has('depthMap');
+    const depthQuery = depthEnabled ? { ...snapBbox(bbox, 0.05), intakeType, grid: 0.05 } : null;
+    const depth = useDepthMap(depthQuery);
 
     const pointsEnabled = activeLayers.has('points');
     const pointsQuery =
@@ -226,6 +255,22 @@ export function WaterMapCanvas({ theme, onCellClick, onPointClick }: TWaterMapCa
                 layout: { visibility: 'none' },
             });
 
+            // ---- DEPTH-MAP layer (drilling USP-4, цвет по dominantLayerId)
+            map.addSource(DEPTH_SOURCE_ID, { type: 'geojson', data: EMPTY_DEPTH });
+            map.addLayer({
+                id: DEPTH_LAYER_ID,
+                type: 'circle',
+                source: DEPTH_SOURCE_ID,
+                paint: {
+                    'circle-radius': depthMapCircleRadiusExpression() as never,
+                    'circle-color': aquiferMatchExpression() as never,
+                    'circle-opacity': 0.85,
+                    'circle-stroke-width': depthMapCircleStrokeWidthExpression() as never,
+                    'circle-stroke-color': 'rgba(255, 255, 255, 0.85)',
+                },
+                layout: { visibility: 'none' },
+            });
+
             // ---- POINTS layer (individual анализы, high-zoom > 11)
             map.addSource(POINTS_SOURCE_ID, { type: 'geojson', data: EMPTY_POINTS });
             map.addLayer({
@@ -283,6 +328,8 @@ export function WaterMapCanvas({ theme, onCellClick, onPointClick }: TWaterMapCa
             map.on('mouseleave', CELLS_LAYER_ID, resetCursor);
             map.on('mouseenter', POINTS_LAYER_ID, setPointerCursor);
             map.on('mouseleave', POINTS_LAYER_ID, resetCursor);
+            map.on('mouseenter', DEPTH_LAYER_ID, setPointerCursor);
+            map.on('mouseleave', DEPTH_LAYER_ID, resetCursor);
 
             // Click на cell — circle layer рендерит features individually,
             // queryRenderedFeatures возвращает их корректно.
@@ -300,6 +347,14 @@ export function WaterMapCanvas({ theme, onCellClick, onPointClick }: TWaterMapCa
                 if (!f) return;
                 const coords = (f.geometry as GeoJSON.Point).coordinates as [number, number];
                 onPointClick?.([coords[1], coords[0]], f.properties ?? {});
+            });
+
+            // Click на depth cell — drilling popup
+            map.on('click', DEPTH_LAYER_ID, (e) => {
+                const f = e.features?.[0];
+                if (!f) return;
+                const coords = (f.geometry as GeoJSON.Point).coordinates as [number, number];
+                onDepthClick?.([coords[1], coords[0]], f.properties ?? {});
             });
 
             // bbox/zoom tracking
@@ -386,6 +441,25 @@ export function WaterMapCanvas({ theme, onCellClick, onPointClick }: TWaterMapCa
                         'heatmap-opacity': coverageHeatmapOpacityExpression() as never,
                     },
                     layout: { visibility: coverageEnabled ? 'visible' : 'none' },
+                });
+            }
+            if (!map.getSource(DEPTH_SOURCE_ID)) {
+                map.addSource(DEPTH_SOURCE_ID, {
+                    type: 'geojson',
+                    data: depth.data ?? EMPTY_DEPTH,
+                });
+                map.addLayer({
+                    id: DEPTH_LAYER_ID,
+                    type: 'circle',
+                    source: DEPTH_SOURCE_ID,
+                    paint: {
+                        'circle-radius': depthMapCircleRadiusExpression() as never,
+                        'circle-color': aquiferMatchExpression() as never,
+                        'circle-opacity': 0.85,
+                        'circle-stroke-width': depthMapCircleStrokeWidthExpression() as never,
+                        'circle-stroke-color': 'rgba(255, 255, 255, 0.85)',
+                    },
+                    layout: { visibility: depthEnabled ? 'visible' : 'none' },
                 });
             }
             if (!map.getSource(POINTS_SOURCE_ID)) {
@@ -481,6 +555,28 @@ export function WaterMapCanvas({ theme, onCellClick, onPointClick }: TWaterMapCa
             );
         }
     }, [coverageEnabled, mapReady]);
+
+    // Depth-map data → setData
+    useEffect(() => {
+        const map = mapRef.current;
+        if (!map || !mapReady) return;
+        const src = map.getSource(DEPTH_SOURCE_ID) as GeoJSONSource | undefined;
+        if (!src) return;
+        if (depth.data) {
+            src.setData(depth.data);
+        } else if (!depth.isLoading) {
+            src.setData(EMPTY_DEPTH);
+        }
+    }, [depth.data, depth.isLoading, mapReady]);
+
+    // Depth visibility (toggle «Глубина скважин»)
+    useEffect(() => {
+        const map = mapRef.current;
+        if (!map || !mapReady) return;
+        if (map.getLayer(DEPTH_LAYER_ID)) {
+            map.setLayoutProperty(DEPTH_LAYER_ID, 'visibility', depthEnabled ? 'visible' : 'none');
+        }
+    }, [depthEnabled, mapReady]);
 
     // Points data → setData
     useEffect(() => {
