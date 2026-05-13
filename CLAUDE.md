@@ -44,6 +44,41 @@
 | **crm-aqua-kinetics-back**  | `C:\Users\Diamond\Desktop\crm-aqua-kinetics-back`  | Backend (NestJS) — см. `docs/references/BACKEND.md`                                                          |
 | **crm-aqua-kinetics-front** | `C:\Users\Diamond\Desktop\crm-aqua-kinetics-front` | Старый фронт (Vite + React 18, Telegram-only) — референс для переноса, см. `docs/references/LEGACY-FRONT.md` |
 | **crm-aqua-kinetics-osm**   | `C:\Users\Diamond\Desktop\crm-aqua-kinetics-osm`   | OSRM маршрутизация                                                                                           |
+| **slovo**                   | `C:\Users\Diamond\Desktop\slovo`                   | NestJS monorepo для water-analysis (heatmap/predict/depth-map endpoints — потребляются на карте PROSTOR)     |
+| **slovo-llm**               | `C:\Users\Diamond\Desktop\slovo-llm`               | Локальный Ollama runtime для LLM-фичей slovo                                                                 |
+
+## Co-agents coordination (Layer 1)
+
+Ты — агент **prostor-frontend**. Параллельно в смежных репах могут идти другие Claude Code сессии.
+
+**Shared board:** `C:\Users\Diamond\.claude\AGENT-STATUS.md` — единая точка координации.
+**Setup doc:** `C:\Users\Diamond\Desktop\multi-agent-setup\multi-agent-setup.md`.
+
+### Sibling agents
+
+| Агент                 | Репо                       | Точки касания с prostor-frontend                                                                                  |
+| --------------------- | -------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| **crm-back**          | `crm-aqua-kinetics-back/`  | основной API (Auth, Order, Cart, Catalog, RealEstate, Payment)                                                    |
+| **crm-front**         | `crm-aqua-kinetics-front/` | legacy-фронт — референс при переносе компонентов / поведения                                                      |
+| **slovo-backend**     | `slovo/`                   | water-analysis API: `GET /heatmap`, `GET /predict`, `GET /depth-map`, `POST /equipment-suggest` для карты PROSTOR |
+| **slovo-llm-runtime** | `slovo-llm/`               | косвенно — через slovo-backend                                                                                    |
+
+### Protocol
+
+**Перед задачей:**
+
+1. Прочитать `~/.claude/AGENT-STATUS.md`
+2. Если slovo-backend / crm-back прямо сейчас правит API, который ты собираешься потреблять → **спросить у пользователя**, не запускаться
+3. Добавить строку про себя в `## Active` (Agent / Repo / Started / Intent / Touching / ETA / Notes)
+
+**Во время работы:** обновлять intent при milestone'ах.
+
+**После задачи:**
+
+- Перенести строку из `## Active` в `## Completed`
+- Если запрашиваешь у бэка новый endpoint / поле / shape — оформить как handoff в `## Recent handoffs` (`prostor-frontend → crm-back` или `→ slovo-backend`) с примером запроса/ответа и use-case'ом
+
+**User (Дмитрий) = mediator on conflicts. Auto-merge cross-repo запрещён.**
 
 ## Технологический стек
 
@@ -412,23 +447,25 @@ claude mcp list
 
 В `.claude/agents/` установлены кастомные субагенты. **При вызове Agent tool использовать `subagent_type` из таблицы ниже, а не `general-purpose`.**
 
-| Агент                    | Когда использовать                                               | subagent_type          |
-| ------------------------ | ---------------------------------------------------------------- | ---------------------- |
-| **code-reviewer**        | Ревью кода: качество, безопасность, дублирование, best practices | `code-reviewer`        |
-| **architect-reviewer**   | Архитектурные решения: FSD, паттерны, слои, зависимости          | `architect-reviewer`   |
-| **test-automator**       | Генерация тестов, покрытие, стратегия тестирования               | `test-automator`       |
-| **performance-engineer** | Оптимизация: бандл, рендер, SSR/ISR, lazy loading                | `performance-engineer` |
-| **frontend-developer**   | React, Next.js, Tailwind — реализация UI компонентов             | `frontend-developer`   |
+| Агент                    | Когда использовать                                                                                                                                                                                                                                        | subagent_type          |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- |
+| **code-reviewer**        | Ревью кода: качество, безопасность, дублирование, best practices                                                                                                                                                                                          | `code-reviewer`        |
+| **architect-reviewer**   | Архитектурные решения: FSD, паттерны, слои, зависимости                                                                                                                                                                                                   | `architect-reviewer`   |
+| **test-automator**       | Генерация тестов, покрытие, стратегия тестирования                                                                                                                                                                                                        | `test-automator`       |
+| **performance-engineer** | Оптимизация: бандл, рендер, SSR/ISR, lazy loading                                                                                                                                                                                                         | `performance-engineer` |
+| **frontend-developer**   | React, Next.js, Tailwind — реализация UI компонентов                                                                                                                                                                                                      | `frontend-developer`   |
+| **docs-reviewer**        | Дрейф документации: CLAUDE.md vs `package.json`/`TECH-STACK.md`, прогресс «Текущая задача» (auth adapter, strangle fig) vs git log, FSD структура, layout groups, ссылки на десятки docs/\* файлов. **Особо следит за CLAUDE.md** — его читают все агенты | `docs-reviewer`        |
 
-| Команда пользователя         | subagent_type          |
-| ---------------------------- | ---------------------- |
-| «запусти code-reviewer»      | `code-reviewer`        |
-| «проверь архитектуру»        | `architect-reviewer`   |
-| «проверь производительность» | `performance-engineer` |
-| «сгенерируй тесты»           | `test-automator`       |
-| «сделай фронтенд»            | `frontend-developer`   |
+| Команда пользователя                       | subagent_type          |
+| ------------------------------------------ | ---------------------- |
+| «запусти code-reviewer»                    | `code-reviewer`        |
+| «проверь архитектуру»                      | `architect-reviewer`   |
+| «проверь производительность»               | `performance-engineer` |
+| «сгенерируй тесты»                         | `test-automator`       |
+| «сделай фронтенд»                          | `frontend-developer`   |
+| «проверь документацию» / «доки актуальны?» | `docs-reviewer`        |
 
-Все агенты используют модель `opus`. Рекомендуется запускать `code-reviewer` и `architect-reviewer` **перед каждым PR**.
+Все агенты используют модель `opus`. Рекомендуется запускать `code-reviewer` и `architect-reviewer` **перед каждым PR**. **При изменениях в `CLAUDE.md` / `docs/**/\*.md`/`package.json`/ FSD-структуре / прогрессе текущих задач** — обязательно`docs-reviewer` (он флагает дрейф который code-ревьюеры пропустят).
 
 **Автоматический pre-commit hook** на `git commit` в `.claude/settings.json` проверяет FSD violations, дублирование, cross-slice импорты, бизнес-логику в `app/`, лишний `'use client'`. Если найдены проблемы — коммит блокируется.
 
