@@ -7,6 +7,7 @@ import {
     OrdersTabSwitcher,
     OrdersNotFound,
     TAB_STATUS_PRESETS,
+    useOrderThumbnails,
 } from '@/features/orders';
 import type { TTabType } from '@/features/orders';
 import { PageContainer, QueryBoundary, DashboardBackHeader } from '@/shared/ui';
@@ -29,6 +30,7 @@ function MasterOrdersListContent() {
     });
 
     const orders = data.pages.flatMap((page) => page.items);
+    const { imageUrls, loadingIds } = useOrderThumbnails(orders);
 
     const handleTabChange = (tab: TTabType) => {
         startTransition(() => setActiveTab(tab));
@@ -61,7 +63,13 @@ function MasterOrdersListContent() {
                         hasMore={!!hasNextPage}
                         isFetchingNextPage={isFetchingNextPage}
                         onLoadMore={handleLoadMore}
-                        renderItem={(order) => <MasterOrderCard order={order} />}
+                        renderItem={(order) => (
+                            <MasterOrderCard
+                                order={order}
+                                imageUrls={imageUrls}
+                                loadingIds={loadingIds}
+                            />
+                        )}
                     />
                 )}
             </div>

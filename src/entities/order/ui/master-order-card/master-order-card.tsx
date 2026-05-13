@@ -3,21 +3,25 @@ import { MapPinIcon, UserIcon, CalendarDaysIcon } from '@heroicons/react/24/outl
 import type { TOrder } from '../../model/types/t-order';
 import { CardWrapper } from '@/shared/ui';
 import { OrderCardHeader } from '../order-card-header/order-card-header';
+import { OrderPositionsList } from '../order-positions-list/order-positions-list';
 import { formatDateRu } from '@/shared/lib';
+import { masterOrderPath } from '@/shared/config';
 
 type TMasterOrderCardProps = {
     order: TOrder;
+    imageUrls?: Record<string, string | undefined>;
+    loadingIds?: Set<string>;
 };
 
-export function MasterOrderCard({ order }: TMasterOrderCardProps) {
-    const displayDate = order.scheduledDate?.date ?? order.createdAt;
-    const dateLabel = order.scheduledDate?.date ? 'Дата выезда' : 'Создан';
+export function MasterOrderCard({ order, imageUrls, loadingIds }: TMasterOrderCardProps) {
     const clientName = order.client
-        ? `${order.client.first_name} ${order.client.last_name}`.trim()
+        ? [order.client.first_name, order.client.last_name].filter(Boolean).join(' ') || null
         : null;
 
+    const hasItems = Object.keys(order.cartState.items ?? {}).length > 0;
+
     return (
-        <Link href={`/master/orders/${order.id}`}>
+        <Link href={masterOrderPath(order.id)}>
             <CardWrapper className="flex-col gap-3 w-full">
                 <OrderCardHeader
                     title={String(order.id)}
@@ -42,13 +46,23 @@ export function MasterOrderCard({ order }: TMasterOrderCardProps) {
                         </div>
                     )}
 
-                    <div className="flex items-center gap-2">
-                        <CalendarDaysIcon className="size-4 shrink-0 text-base-content/40" />
-                        <span className="text-xs text-base-content/50">
-                            {dateLabel}: {formatDateRu(displayDate)}
-                        </span>
-                    </div>
+                    {order.scheduledDate?.date && (
+                        <div className="flex items-center gap-2">
+                            <CalendarDaysIcon className="size-4 shrink-0 text-base-content/40" />
+                            <span className="text-xs text-base-content/50">
+                                Дата выезда: {formatDateRu(order.scheduledDate.date)}
+                            </span>
+                        </div>
+                    )}
                 </div>
+
+                {hasItems && (
+                    <OrderPositionsList
+                        cartState={order.cartState}
+                        imageUrls={imageUrls}
+                        loadingIds={loadingIds}
+                    />
+                )}
             </CardWrapper>
         </Link>
     );
