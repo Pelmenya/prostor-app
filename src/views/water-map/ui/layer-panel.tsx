@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ChevronDownIcon, MapPinIcon, TrashIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useNearestRetailStoresByCoords } from '@/entities/real-estate';
 import { WaterDrop } from '@/shared/ui';
@@ -49,6 +49,49 @@ export function LayerPanel({ open, onClose }: TLayerPanelProps) {
     const pinPlacementMode = useWaterMapStore((s) => s.pinPlacementMode);
     const setPinPlacementMode = useWaterMapStore((s) => s.setPinPlacementMode);
     const [allParamsOpen, setAllParamsOpen] = useState(false);
+
+    // Body scroll lock на mobile когда sheet открыт — иначе под backdrop'ом
+    // карта/body продолжает прокручиваться от inertia при swipe. На lg+
+    // sheet это sidebar (не fullscreen overlay), lock не нужен — body должен
+    // оставаться interactable.
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        const isMobile = window.matchMedia('(max-width: 991px)').matches;
+        if (!open || !isMobile) return;
+        const prev = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        return () => {
+            document.body.style.overflow = prev;
+        };
+    }, [open]);
+
+    // Drag-to-dismiss: follow finger вниз (только mobile), close при delta > 100px.
+    // Threshold 100 — баланс между «случайно дёрнул» (не закрылось) и «явный
+    // swipe» (close). Visual follow до 80% screen чтобы не уезжало вниз бесконечно.
+    const [dragOffset, setDragOffset] = useState(0);
+    const dragStartY = useRef<number | null>(null);
+
+    const handleDragStart = (e: React.PointerEvent) => {
+        // Только primary touch/mouse, игнор multi-touch
+        if (!e.isPrimary) return;
+        dragStartY.current = e.clientY;
+        (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    };
+    const handleDragMove = (e: React.PointerEvent) => {
+        if (dragStartY.current === null) return;
+        const delta = e.clientY - dragStartY.current;
+        // Только swipe вниз — отрицательное игнор (нельзя «вверх потянуть»)
+        setDragOffset(Math.max(0, Math.min(delta, window.innerHeight * 0.8)));
+    };
+    const handleDragEnd = (e: React.PointerEvent) => {
+        if (dragStartY.current === null) return;
+        const delta = e.clientY - dragStartY.current;
+        dragStartY.current = null;
+        setDragOffset(0);
+        if (delta > 100) {
+            onClose();
+        }
+    };
 
     // Default open per section. `null` = follow heuristic, иначе respect override.
     const layersOpen = panelSections.layers ?? true;
@@ -108,10 +151,12 @@ export function LayerPanel({ open, onClose }: TLayerPanelProps) {
 
     return (
         <>
-            {/* Backdrop — только mobile bottom-sheet */}
+            {/* Backdrop — только mobile bottom-sheet. touch-none гасит scroll
+                / pinch-zoom на underlying карте — body scroll lock тоже стоит,
+                но touch-none дополнительная защита для iOS overscroll. */}
             {open && (
                 <div
-                    className="lg:hidden fixed inset-0 z-20 bg-black/30 backdrop-blur-sm"
+                    className="lg:hidden fixed inset-0 z-20 bg-black/30 backdrop-blur-sm touch-none"
                     onClick={onClose}
                     aria-hidden
                 />
@@ -120,7 +165,7 @@ export function LayerPanel({ open, onClose }: TLayerPanelProps) {
             <aside
                 className={`
                     fixed z-30 bg-base-100 shadow-xl border-base-content/10
-                    transition-transform duration-300 ease-out
+                    ${dragOffset > 0 ? '' : 'transition-transform duration-300 ease-out'}
                     flex flex-col
                     lg:top-0 lg:left-0 lg:bottom-0 lg:w-[360px] lg:border-r
                     inset-x-0 bottom-[calc(env(safe-area-inset-bottom,0)+4rem)] lg:bottom-0
@@ -128,11 +173,26 @@ export function LayerPanel({ open, onClose }: TLayerPanelProps) {
                     rounded-t-2xl border-t lg:rounded-none
                     ${open ? 'translate-y-0 lg:translate-x-0' : 'translate-y-full lg:translate-y-0 lg:-translate-x-full'}
                 `}
+                style={
+                    open && dragOffset > 0
+                        ? { transform: `translateY(${dragOffset}px)` }
+                        : undefined
+                }
                 aria-hidden={!open}
             >
-                {/* Drag handle (mobile only) */}
-                <div className="lg:hidden pt-2 pb-1 flex justify-center">
-                    <span className="block w-12 h-1 rounded-full bg-base-content/20" />
+                {/* Drag handle — drag-to-dismiss swipe вниз. Touch area
+                    расширена через py-3 (cumulative ~32px touchable region)
+                    для удобства попадания пальцем. Visual line остаётся тонкой. */}
+                <div
+                    className="lg:hidden flex justify-center py-3 cursor-grab active:cursor-grabbing touch-none"
+                    onPointerDown={handleDragStart}
+                    onPointerMove={handleDragMove}
+                    onPointerUp={handleDragEnd}
+                    onPointerCancel={handleDragEnd}
+                    aria-label="Свайп вниз — закрыть"
+                    role="button"
+                >
+                    <span className="block w-12 h-1 rounded-full bg-base-content/30" />
                 </div>
 
                 {/* Header */}
@@ -153,8 +213,10 @@ export function LayerPanel({ open, onClose }: TLayerPanelProps) {
                     </button>
                 </div>
 
-                {/* Scroll content */}
-                <div className="flex-1 overflow-y-auto">
+                {/* Scroll content. overscroll-contain — touch-scroll внутри
+                    sheet'а НЕ передаётся на body (не пробрасывает scroll
+                    наружу на iOS Safari). */}
+                <div className="flex-1 overflow-y-auto overscroll-contain">
                     {/* Sticky pills + ViewMode — sticky relative to scroll-area
                         чтобы выбор параметра был всегда доступен при scroll'е
                         вниз. Виден только если heatmap on (иначе controls
