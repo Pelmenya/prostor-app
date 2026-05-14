@@ -2,7 +2,7 @@
 
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
-import type { ReactNode } from 'react';
+import { useRef, useState, type ReactNode } from 'react';
 import { cn } from '@/shared/lib';
 
 type TBottomSheetModalProps = {
@@ -13,6 +13,17 @@ type TBottomSheetModalProps = {
     className?: string;
 };
 
+/**
+ * Native-style bottom sheet (mobile) / centered modal (sm+).
+ *
+ * Mobile-only фичи (sm-down):
+ * - Drag handle сверху (тонкая полоска) — visual hint что можно дёрнуть
+ * - Swipe-down to dismiss: pointer-events follow Y, при release > 100px
+ *   → `onClose()`. Транзишен отключается на время drag для плавного follow.
+ *
+ * На sm+ это centered modal — drag handle и swipe не используются (DialogPanel
+ * имеет sm:scale-down transition). Скрываем drag handle через `sm:hidden`.
+ */
 export function BottomSheetModal({
     isOpen,
     onClose,
@@ -20,22 +31,63 @@ export function BottomSheetModal({
     children,
     className,
 }: TBottomSheetModalProps) {
+    // Drag-to-dismiss state (только mobile bottom-sheet).
+    const [dragOffset, setDragOffset] = useState(0);
+    const dragStartY = useRef<number | null>(null);
+
+    const handleDragStart = (e: React.PointerEvent) => {
+        if (!e.isPrimary) return;
+        dragStartY.current = e.clientY;
+        (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    };
+    const handleDragMove = (e: React.PointerEvent) => {
+        if (dragStartY.current === null) return;
+        const delta = e.clientY - dragStartY.current;
+        setDragOffset(Math.max(0, Math.min(delta, window.innerHeight * 0.8)));
+    };
+    const handleDragEnd = (e: React.PointerEvent) => {
+        if (dragStartY.current === null) return;
+        const delta = e.clientY - dragStartY.current;
+        dragStartY.current = null;
+        setDragOffset(0);
+        if (delta > 100) onClose();
+    };
+
     return (
         <Dialog open={isOpen} onClose={onClose} className="relative z-50">
             <DialogBackdrop
                 transition
-                className="fixed inset-0 bg-black/40 transition duration-200 ease-out data-closed:opacity-0"
+                className="fixed inset-0 bg-black/30 backdrop-blur-sm transition duration-200 ease-out data-closed:opacity-0"
             />
             <div className="fixed inset-0 flex items-end sm:items-center sm:justify-center sm:p-4">
                 <DialogPanel
                     transition
                     className={cn(
-                        'flex flex-col w-full max-h-[85dvh] bg-base-100 rounded-t-2xl transition duration-200 ease-out data-closed:translate-y-full sm:max-w-md sm:rounded-2xl sm:data-closed:translate-y-0 sm:data-closed:scale-95 sm:data-closed:opacity-0 overflow-hidden',
+                        'flex flex-col w-full max-h-[85dvh] bg-base-100 rounded-t-2xl data-closed:translate-y-full sm:max-w-md sm:rounded-2xl sm:data-closed:translate-y-0 sm:data-closed:scale-95 sm:data-closed:opacity-0 overflow-hidden',
+                        dragOffset > 0 ? '' : 'transition duration-200 ease-out',
                         className,
                     )}
+                    style={
+                        dragOffset > 0 ? { transform: `translateY(${dragOffset}px)` } : undefined
+                    }
                 >
+                    {/* Drag handle — mobile only. Touch area расширена через py-2.5
+                        (~28px tappable region) — тонкая визуальная полоска
+                        остаётся, но пальцем удобно попасть. */}
+                    <div
+                        className="sm:hidden flex justify-center py-2.5 cursor-grab active:cursor-grabbing touch-none shrink-0"
+                        onPointerDown={handleDragStart}
+                        onPointerMove={handleDragMove}
+                        onPointerUp={handleDragEnd}
+                        onPointerCancel={handleDragEnd}
+                        aria-label="Свайп вниз — закрыть"
+                        role="button"
+                    >
+                        <span className="block w-12 h-1 rounded-full bg-base-content/30" />
+                    </div>
+
                     {title !== undefined && (
-                        <header className="shrink-0 flex items-center justify-between gap-2 p-4 border-b border-base-300">
+                        <header className="shrink-0 flex items-center justify-between gap-2 px-4 pb-4 sm:pt-4 border-b border-base-300">
                             <DialogTitle
                                 as="h3"
                                 className="font-bold text-lg leading-6 min-w-0 truncate"
