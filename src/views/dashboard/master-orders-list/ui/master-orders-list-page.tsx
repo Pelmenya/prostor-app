@@ -11,6 +11,7 @@ import {
 } from '@/features/orders';
 import type { TTabType } from '@/features/orders';
 import { PageContainer, QueryBoundary, DashboardBackHeader } from '@/shared/ui';
+import { cn } from '@/shared/lib';
 
 export function MasterOrdersListPage() {
     return (
@@ -46,7 +47,10 @@ function MasterOrdersListContent() {
         <PageContainer bg="bg-base-200">
             <DashboardBackHeader title="Мои заказы" />
             <div
-                className={`flex flex-col gap-4 max-w-lg mx-auto py-4 ${isPending ? 'opacity-60 transition-opacity' : ''}`}
+                className={cn(
+                    'flex flex-col gap-4 max-w-lg mx-auto py-4',
+                    isPending && 'opacity-60 transition-opacity',
+                )}
             >
                 <OrdersTabSwitcher
                     activeTab={activeTab}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { notFound } from 'next/navigation';
 import {
     useGetOrderById,
@@ -34,6 +34,7 @@ export function MasterOrderDetailPage({ orderId }: TProps) {
 function MasterOrderDetailContent({ orderId }: TProps) {
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [confirmError, setConfirmError] = useState<string | null>(null);
+    const isSubmittingRef = useRef(false);
 
     const { data: user } = useCurrentUserSuspense();
     const { data: order } = useGetOrderById(orderId);
@@ -66,12 +67,16 @@ function MasterOrderDetailContent({ orderId }: TProps) {
     };
 
     const handleConfirm = () => {
-        if (!action || isUpdating) return;
+        if (!action || isUpdating || isSubmittingRef.current) return;
+        isSubmittingRef.current = true;
         updateStatus(
             { orderId, status: action.next },
             {
                 onSuccess: () => setConfirmOpen(false),
                 onError: () => setConfirmError('Не удалось обновить статус. Попробуйте ещё раз.'),
+                onSettled: () => {
+                    isSubmittingRef.current = false;
+                },
             },
         );
     };

@@ -28,7 +28,7 @@ export type {
 } from './model/types/t-order';
 // Lib
 export { STATUS_STEP, STATUS_LABEL } from './lib/status-config';
-export { getMasterTransition, MASTER_STATUS_TRANSITIONS } from './lib/order-status-machine';
+export { getMasterTransition } from './lib/order-status-machine';
 export type { TStatusTransition } from './lib/order-status-machine';
 export { SERVICE_GROUPS } from './lib/service-groups';
 export { getServiceInfo } from './lib/get-service-info';

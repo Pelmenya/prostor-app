@@ -30,7 +30,9 @@ describe('getMasterTransition', () => {
     });
 
     it('все переходы имеют confirm-текст', () => {
-        Object.values(MASTER_STATUS_TRANSITIONS).forEach((t) => {
+        const transitions = Object.values(MASTER_STATUS_TRANSITIONS);
+        expect(transitions.length).toBeGreaterThan(0);
+        transitions.forEach((t) => {
             expect(t?.confirm).toBeTruthy();
         });
     });
