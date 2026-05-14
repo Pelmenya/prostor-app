@@ -230,3 +230,38 @@ html,
 body {
     overscroll-behavior-y: none;
 }
+
+/* ============================================================================
+ * MapLibre NavigationControl (zoom +/−) — темизация под daisyui
+ * Дефолтные стили — белый фон, серая иконка. На dark theme выглядит чужеродно.
+ * Берём цвета через base-100/base-content (daisyui tokens), реагируют на смену
+ * темы автоматически (как остальной UI).
+ * ============================================================================ */
+/* daisyui v5 переменные содержат полную oklch(...) строку, поэтому
+   oklch(var(--color-*) / N) ломается. Используем color-mix с transparent
+   как proper-way alpha. Без !important — стили основаны на iconAlready
+   load order maplibre-gl/dist/maplibre-gl.css загружается раньше globals. */
+.maplibregl-ctrl-group {
+    background-color: color-mix(in oklch, var(--color-base-100) 95%, transparent);
+    border: 1px solid color-mix(in oklch, var(--color-base-content) 10%, transparent);
+    box-shadow: 0 2px 8px color-mix(in oklch, var(--color-base-content) 15%, transparent);
+}
+.maplibregl-ctrl-group button {
+    background-color: transparent;
+}
+.maplibregl-ctrl-group button:hover {
+    background-color: color-mix(in oklch, var(--color-base-content) 8%, transparent);
+}
+.maplibregl-ctrl-group button + button {
+    border-top: 1px solid color-mix(in oklch, var(--color-base-content) 10%, transparent);
+}
+/* SVG-иконки maplibre чёрные (data:url с черным fill) — на dark theme
+   инвертируем filter'ом чтобы стали белыми. На light оставляем. */
+.maplibregl-ctrl-zoom-in .maplibregl-ctrl-icon,
+.maplibregl-ctrl-zoom-out .maplibregl-ctrl-icon,
+.maplibregl-ctrl-compass .maplibregl-ctrl-icon {
+    filter: invert(var(--wm-map-ctrl-invert, 0));
+}
+[data-theme='dark'] {
+    --wm-map-ctrl-invert: 1;
+}
