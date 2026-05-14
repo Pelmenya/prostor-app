@@ -73,6 +73,7 @@ export {
     cellsCircleRadiusExpression,
     cellsCircleColorExpression,
     cellsCircleStrokeWidthExpression,
+    cellsCircleStrokeColorExpression,
     cellsCircleOpacityExpression,
     heatmapWeightExpression,
     heatmapIntensityExpression,

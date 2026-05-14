@@ -165,7 +165,7 @@ export function WaterMapPage() {
                         <span className="size-4 inline-block">
                             <WaterDrop size={16} />
                         </span>
-                        Использовать геолокацию
+                        Узнать химию воды по адресу
                     </button>
                 </div>
             )}

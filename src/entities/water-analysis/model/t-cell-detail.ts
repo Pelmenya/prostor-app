@@ -13,6 +13,15 @@ export type TParamBreakdown = {
     exceedsPct: number;
     max: number;
     median: number;
+    /**
+     * `max / pdk` для single-pdk параметров. `null` для range-pdk (pH).
+     * Источник: slovo commit 845526d (handoff 2026-05-14 16:05).
+     */
+    maxExceedanceRatio: number | null;
+    /**
+     * `median / pdk` для single-pdk. `null` для range-pdk (pH).
+     */
+    medianExceedanceRatio: number | null;
 };
 
 /**

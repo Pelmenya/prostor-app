@@ -21,6 +21,7 @@ import {
     cellsCircleColorExpression,
     cellsCircleOpacityExpression,
     cellsCircleRadiusExpression,
+    cellsCircleStrokeColorExpression,
     cellsCircleStrokeWidthExpression,
     coverageHeatmapColorExpression,
     coverageHeatmapIntensityExpression,
@@ -298,7 +299,7 @@ export function WaterMapCanvas({
                     'circle-color': cellsCircleColorExpression() as never,
                     'circle-opacity': cellsCircleOpacityExpression() as never,
                     'circle-stroke-width': cellsCircleStrokeWidthExpression() as never,
-                    'circle-stroke-color': 'rgba(255, 255, 255, 0.85)',
+                    'circle-stroke-color': cellsCircleStrokeColorExpression() as never,
                 },
                 layout: { visibility: 'none' },
             });
@@ -568,7 +569,7 @@ export function WaterMapCanvas({
                         'circle-color': cellsCircleColorExpression() as never,
                         'circle-opacity': cellsCircleOpacityExpression() as never,
                         'circle-stroke-width': cellsCircleStrokeWidthExpression() as never,
-                        'circle-stroke-color': 'rgba(255, 255, 255, 0.85)',
+                        'circle-stroke-color': cellsCircleStrokeColorExpression() as never,
                     },
                     layout: { visibility: dotsVisible ? 'visible' : 'none' },
                 });

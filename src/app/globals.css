@@ -173,3 +173,43 @@
         radial-gradient(ellipse at 50% 80%, oklch(48% 0.26 270 / 0.15) 0%, transparent 50%),
         oklch(20% 0.02 240);
 }
+
+/* ============================================================================
+ * Water-map palette tokens — OKLCH refresh от claude design 2026-05-14.
+ *
+ * A11y fix (deuteranopia / ΔE):
+ *   - aquifer-Песчаный сдвинут с H150 (green) в H95 (khaki) — раньше совпадал
+ *     с severity-safe (H150) при включённых одновременно Качество + Глубина
+ *   - severity-borderline получит 1.5px тёмный stroke на CARTO basemap (низкий
+ *     contrast на #F8F5EF без обводки)
+ *
+ * Используется в `views/water-map/lib/color-scale.ts` + `aquifer-layers.ts`
+ * + paint expressions maplibre. Vars читаются через getComputedStyle для
+ * canvas-context (maplibre paint не реактивен к CSS vars напрямую).
+ * ========================================================================= */
+:root {
+    /* Severity — 4 уровня + tone-stroke для basemap-контраста */
+    --wm-severity-safe: oklch(72% 0.16 150);
+    --wm-severity-borderline: oklch(82% 0.16 95);
+    --wm-severity-concerning: oklch(72% 0.18 50);
+    --wm-severity-unsafe: oklch(62% 0.22 25);
+    --wm-severity-stroke: oklch(40% 0.005 285 / 0.3);
+
+    /* Aquifer — 5 горизонтов (Песчаный → khaki вместо green) */
+    --wm-aquifer-vrkh: oklch(50% 0.09 55);
+    --wm-aquifer-pesch: oklch(68% 0.12 95);
+    --wm-aquifer-pesch-izv: oklch(70% 0.1 195);
+    --wm-aquifer-izv: oklch(55% 0.18 250);
+    --wm-aquifer-artez: oklch(48% 0.2 305);
+
+    /* Store availability — 4 состояния (closed/nodata reserve) */
+    --wm-avail-full: oklch(76% 0.18 163);
+    --wm-avail-partial: oklch(82% 0.19 84);
+    --wm-avail-closed: oklch(71% 0.19 13);
+    --wm-avail-nodata: oklch(85% 0 0);
+
+    /* Brand — CTA, gradient, selection tint */
+    --wm-brand-primary: oklch(54% 0.245 263);
+    --wm-brand-info: oklch(74% 0.16 232);
+    --wm-brand-tint: oklch(96% 0.02 232);
+}

@@ -4,11 +4,17 @@ import type { TAquiferLayer, TAquiferLayerId } from '@/entities/water-analysis';
  * UI dictionary 5 водоносных горизонтов МО.
  * Источник: `slovo/.../water-analysis.constants.ts:AQUIFER_LAYERS`.
  *
- * Цвет для maplibre paint (по dominantLayerId) — diverging gradient от
- * приповерхностных слоёв (warm) к глубоким (cool blue).
+ * Палитра — diverging gradient от приповерхностных (warm) к глубоким (cool).
+ *
+ * **Refresh 2026-05-14 (claude design followup):** Песчаный сдвинут с green
+ * H150 (`#65a30d`) → khaki H95 (`#b59a40`) — раньше совпадал с severity-safe
+ * (тоже H150), deuteranopia не различала safe water dot vs Песчаный aquifer
+ * когда оба layer'а ON. ΔH 5° → 55°, ΔE 8 → 35.
+ *
+ * Hex-эквиваленты OKLCH (из `--wm-aquifer-*` в globals.css). Maplibre 5.x
+ * не парсит oklch() в paint expressions — используем hex.
  */
 export type TAquiferLayerMeta = TAquiferLayer & {
-    /** OKLCH hex для maplibre fill paint. */
     color: string;
 };
 
@@ -18,35 +24,35 @@ export const AQUIFER_LAYERS: ReadonlyArray<TAquiferLayerMeta> = [
         minDepth: 0,
         maxDepth: 15,
         label: '0-15м · Верховодка',
-        color: '#a16207', // warm sand-yellow (поверхностные)
+        color: '#8b5a2b', // ~oklch(50% 0.09 55) — warm brown
     },
     {
         id: 'sandy',
         minDepth: 15,
         maxDepth: 50,
         label: '15-50м · Песчаный',
-        color: '#65a30d',
+        color: '#b59a40', // ~oklch(68% 0.12 95) — KHAKI (было green #65a30d, a11y fix)
     },
     {
         id: 'sandy_limestone',
         minDepth: 50,
         maxDepth: 100,
         label: '50-100м · Песчано-известняковый',
-        color: '#0891b2',
+        color: '#5ca9aa', // ~oklch(70% 0.10 195) — teal
     },
     {
         id: 'limestone',
         minDepth: 100,
         maxDepth: 200,
         label: '100-200м · Известняковый',
-        color: '#2563eb',
+        color: '#3a6cd4', // ~oklch(55% 0.18 250) — blue
     },
     {
         id: 'artesian',
         minDepth: 200,
         maxDepth: null,
         label: '200м+ · Артезианский',
-        color: '#7c3aed', // глубокий
+        color: '#7039a5', // ~oklch(48% 0.20 305) — purple (глубокий)
     },
 ];
 
