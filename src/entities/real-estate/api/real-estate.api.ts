@@ -5,6 +5,7 @@ import type {
     TCreateRealEstate,
     TUpdateRealEstate,
     TRetailStoreWithRouteInfo,
+    TInventoryCheckResponse,
 } from '@/shared/model';
 
 export const realEstateKeys = {
@@ -186,6 +187,38 @@ type TRoutePolylineByCoordsParams = {
     /** `[lng, lat]` — точка назначения. */
     to: [number, number];
 };
+
+type TInventoryCheckParams = {
+    /** МойСклад storeId точки продаж (поле `id` из TRetailStoreWithRouteInfo). */
+    storeMoySkladId: string;
+    items: Array<{ productId: string; count: number; productName?: string }>;
+};
+
+/**
+ * Public endpoint `POST /retail-stores/:id/inventory-check` — детализированная
+ * проверка наличия items из cart в конкретной точке продаж. Для V2 StorePopup
+ * tab «Магазин · 12 из 14 в наличии».
+ *
+ * Body shape `{ items: [{productId, count, productName?}] }`. enabled = items
+ * не пустой, иначе бэк отдаст пустой ответ а query будет шуметь.
+ */
+export function useInventoryCheck(params: TInventoryCheckParams | null) {
+    const api = useApi();
+    return useQuery({
+        queryKey: params
+            ? ['retail-stores', 'inventory-check', params.storeMoySkladId, params.items]
+            : ['retail-stores', 'inventory-check', null],
+        queryFn: () => {
+            const { storeMoySkladId, items } = params!;
+            return api<TInventoryCheckResponse>(
+                `/retail-stores/${encodeURIComponent(storeMoySkladId)}/inventory-check`,
+                { method: 'POST', body: { items } },
+            );
+        },
+        enabled: params !== null && params.items.length > 0,
+        staleTime: 60 * 1000,
+    });
+}
 
 /**
  * Public endpoint `GET /retail-stores/route-polyline?from=lng,lat&to=lng,lat`.

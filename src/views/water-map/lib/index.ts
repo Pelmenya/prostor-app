@@ -100,6 +100,7 @@ export {
     DEFAULT_ZOOM,
     MO_BBOX,
     snapBbox,
+    localizeMapLabels,
 } from './map-styles';
 
 export { parseMaplibreObject } from './maplibre-quirks';

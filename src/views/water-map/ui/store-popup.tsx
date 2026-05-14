@@ -1,7 +1,9 @@
 'use client';
 
-import { XMarkIcon, MapPinIcon } from '@heroicons/react/24/outline';
+import { useState } from 'react';
+import { XMarkIcon, MapPinIcon, ChevronUpIcon } from '@heroicons/react/24/outline';
 import { useWaterMapStore } from '../model';
+import { StoreDetailsSheet } from './store-details-sheet';
 
 type TStorePopupData = {
     coords: [number, number];
@@ -25,9 +27,11 @@ type TStorePopupProps = {
 export function StorePopup({ data, onClose }: TStorePopupProps) {
     const setSelectedRouteTo = useWaterMapStore((s) => s.setSelectedRouteTo);
     const selectedRouteTo = useWaterMapStore((s) => s.selectedRouteTo);
+    const [detailsOpen, setDetailsOpen] = useState(false);
     if (!data) return null;
 
     const props = data.properties as {
+        id?: string;
         name?: string;
         address?: string;
         duration?: number;
@@ -101,16 +105,46 @@ export function StorePopup({ data, onClose }: TStorePopupProps) {
                 {distanceLabel && <span>· {distanceLabel}</span>}
             </div>
 
-            <button
-                type="button"
-                onClick={handleRoute}
-                className={`btn btn-sm w-full gap-1.5 normal-case ${
-                    isActiveRoute ? 'btn-outline btn-primary' : 'btn-primary'
-                }`}
-            >
-                <MapPinIcon className="size-4" />
-                {isActiveRoute ? 'Скрыть маршрут' : 'Построить маршрут'}
-            </button>
+            <div className="flex gap-2">
+                <button
+                    type="button"
+                    onClick={handleRoute}
+                    className={`btn btn-sm flex-1 gap-1.5 normal-case ${
+                        isActiveRoute ? 'btn-outline btn-primary' : 'btn-primary'
+                    }`}
+                >
+                    <MapPinIcon className="size-4" />
+                    {isActiveRoute ? 'Скрыть' : 'Маршрут'}
+                </button>
+                <button
+                    type="button"
+                    onClick={() => setDetailsOpen(true)}
+                    className="btn btn-sm btn-ghost gap-1 normal-case"
+                    aria-label="Подробнее"
+                >
+                    <ChevronUpIcon className="size-4" />
+                    Детали
+                </button>
+            </div>
+
+            <StoreDetailsSheet
+                isOpen={detailsOpen}
+                onClose={() => setDetailsOpen(false)}
+                coords={data.coords}
+                storeMoySkladId={props.id ?? null}
+                storeName={props.name ?? null}
+                storeAddress={props.address ?? null}
+                durationSeconds={
+                    typeof props.duration === 'number' && Number.isFinite(props.duration)
+                        ? props.duration
+                        : null
+                }
+                distanceMeters={
+                    typeof props.distance === 'number' && Number.isFinite(props.distance)
+                        ? props.distance
+                        : null
+                }
+            />
         </div>
     );
 }

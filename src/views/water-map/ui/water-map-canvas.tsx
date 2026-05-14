@@ -35,6 +35,7 @@ import {
     heatmapOpacityExpression,
     heatmapRadiusExpression,
     heatmapWeightExpression,
+    localizeMapLabels,
     pointsCircleColorExpression,
     pointsCircleOpacityExpression,
     pointsCircleRadiusExpression,
@@ -254,6 +255,11 @@ export function WaterMapCanvas({
             ],
             fitBoundsOptions: { padding: 16, duration: 0 },
             attributionControl: false,
+            // iOS Safari WebGL не справляется с heatmap + paint-expression
+            // circle layers на retina ×3 — fragment shader underflows и слой
+            // рендерится прозрачным. Cap pixelRatio до 2 — известный
+            // workaround для MapLibre 5.x на iPhone 12+.
+            pixelRatio: Math.min(typeof window !== 'undefined' ? window.devicePixelRatio : 1, 2),
         });
         mapRef.current = map;
 
@@ -265,6 +271,14 @@ export function WaterMapCanvas({
 
         map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
         map.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-left');
+
+        // Локализация labels — слушаем `styledata` (fires при загрузке style
+        // и каждом switch'е), это покрывает first-render + zoom-in/out
+        // tile-reload без проскока english. `'load'` срабатывает раньше но
+        // только один раз, чего недостаточно — base style может перекрашивать
+        // labels при zoom-dependent layers.
+        const relocalize = () => localizeMapLabels(map);
+        map.on('styledata', relocalize);
 
         map.on('load', () => {
             // ---- CELLS source — общий для heatmap-blobs и circle-dots
@@ -540,6 +554,9 @@ export function WaterMapCanvas({
         const newStyle = theme === 'dark' ? MAP_STYLE_DARK : MAP_STYLE_LIGHT;
 
         const reattach = () => {
+            // setStyle сбрасывает label-locale, но `'styledata'` listener
+            // выше повторно прогонит localizeMapLabels — здесь дублировать
+            // не нужно.
             if (!map.getSource(CELLS_SOURCE_ID)) {
                 map.addSource(CELLS_SOURCE_ID, {
                     type: 'geojson',

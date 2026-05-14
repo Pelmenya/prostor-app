@@ -105,8 +105,8 @@ export function cellsCircleStrokeColorExpression(): ExpressionSpecification {
             ['>=', ['coalesce', ['get', 'exceedsPct'], 0], 25],
             ['<', ['coalesce', ['get', 'exceedsPct'], 0], 50],
         ],
-        'rgba(40, 40, 50, 0.45)',
-        'rgba(255, 255, 255, 0.85)',
+        '#28283273',
+        '#ffffffd9',
     ] as unknown as ExpressionSpecification;
 }
 
@@ -182,6 +182,10 @@ export function heatmapIntensityExpression(): ExpressionSpecification {
  * сдвинуты к началу (0.02 для green) чтобы baseline-weight 0.15 (good cells)
  * уже попадал в зелёную зону палитры, а не оставался прозрачным. См.
  * Фикс A в docs/feedback/water-map-thread.md 2026-05-08 20:15.
+ *
+ * **iOS Safari fix:** `rgba(R, G, B, A)` со spaces после запятых иногда
+ * парсится в WebGL шейдере как alpha=0 (heatmap полностью прозрачный на
+ * iPhone). Используем 8-значный hex `#RRGGBBAA` — Safari парсит canonical.
  */
 export function heatmapColorExpression(): ExpressionSpecification {
     return [
@@ -189,19 +193,19 @@ export function heatmapColorExpression(): ExpressionSpecification {
         ['linear'],
         ['heatmap-density'],
         0,
-        'rgba(0, 0, 0, 0)',
+        '#00000000',
         0.02,
-        'rgba(34, 197, 94, 0.40)', // green-500 — safe (baseline 0.15 weight попадает сюда)
+        '#22c55e66', // green-500 alpha 0.40 — safe (baseline 0.15 weight попадает сюда)
         0.2,
-        'rgba(132, 204, 22, 0.55)', // lime-500
+        '#84cc168c', // lime-500 alpha 0.55
         0.4,
-        'rgba(234, 179, 8, 0.70)', // yellow-500
+        '#eab308b3', // yellow-500 alpha 0.70
         0.6,
-        'rgba(249, 115, 22, 0.82)', // orange-500
+        '#f97316d1', // orange-500 alpha 0.82
         0.8,
-        'rgba(239, 68, 68, 0.90)', // red-500
+        '#ef4444e6', // red-500 alpha 0.90
         1.0,
-        'rgba(220, 38, 38, 1.0)', // red-600 — peak heat
+        '#dc2626ff', // red-600 — peak heat alpha 1.0
     ] as unknown as ExpressionSpecification;
 }
 
@@ -351,17 +355,17 @@ export function coverageHeatmapColorExpression(): ExpressionSpecification {
         ['linear'],
         ['heatmap-density'],
         0,
-        'rgba(0, 0, 0, 0)',
+        '#00000000',
         0.02,
-        'rgba(156, 163, 175, 0.30)', // gray-400 (light)
+        '#9ca3af4d', // gray-400 alpha 0.30 (light)
         0.25,
-        'rgba(107, 114, 128, 0.50)', // gray-500
+        '#6b728080', // gray-500 alpha 0.50
         0.5,
-        'rgba(75, 85, 99, 0.70)', // gray-600 (medium)
+        '#4b5563b3', // gray-600 alpha 0.70 (medium)
         0.8,
-        'rgba(55, 65, 81, 0.85)', // gray-700
+        '#374151d9', // gray-700 alpha 0.85
         1.0,
-        'rgba(31, 41, 55, 0.95)', // gray-800 (dark)
+        '#1f2937f2', // gray-800 alpha 0.95 (dark)
     ] as unknown as ExpressionSpecification;
 }
 
