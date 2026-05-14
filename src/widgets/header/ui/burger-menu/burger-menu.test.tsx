@@ -12,12 +12,14 @@ vi.mock('@/shared/lib', async (importOriginal) => {
     return { ...actual, useClickOutside: vi.fn() };
 });
 
+let mockIsSupported = false;
+
 vi.mock('@/features/push-notifications', () => ({
     usePushNotifications: () => ({
         permission: 'default' as PermissionState,
         isSubscribed: false,
         isLoading: false,
-        isSupported: false,
+        isSupported: mockIsSupported,
         subscribe: vi.fn(),
         unsubscribe: vi.fn(),
     }),
@@ -46,6 +48,7 @@ const defaultProps = {
 
 beforeEach(() => {
     vi.clearAllMocks();
+    mockIsSupported = false;
 });
 
 describe('BurgerMenu', () => {
@@ -133,6 +136,32 @@ describe('BurgerMenu', () => {
         it('всегда присутствует в меню', () => {
             render(<BurgerMenu {...defaultProps} />);
             expect(screen.getByText('Тёмная тема')).toBeInTheDocument();
+        });
+    });
+
+    describe('пуш-уведомления', () => {
+        const authProps = {
+            ...defaultProps,
+            isAuthenticated: true,
+            user: { firstName: 'Иван', lastName: 'Петров', email: 'ivan@example.com' },
+        };
+
+        it('не показывает блок уведомлений незалогиненному даже если браузер поддерживает', () => {
+            mockIsSupported = true;
+            render(<BurgerMenu {...defaultProps} isAuthenticated={false} />);
+            expect(screen.queryByText('Уведомления')).not.toBeInTheDocument();
+        });
+
+        it('показывает блок уведомлений залогиненному если браузер поддерживает', () => {
+            mockIsSupported = true;
+            render(<BurgerMenu {...authProps} />);
+            expect(screen.getByText('Уведомления')).toBeInTheDocument();
+        });
+
+        it('не показывает блок уведомлений если браузер не поддерживает', () => {
+            mockIsSupported = false;
+            render(<BurgerMenu {...authProps} />);
+            expect(screen.queryByText('Уведомления')).not.toBeInTheDocument();
         });
     });
 });

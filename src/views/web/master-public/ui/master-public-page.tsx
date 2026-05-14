@@ -2,16 +2,20 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useSyncExternalStore } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { ArrowLeftIcon } from '@heroicons/react/20/solid';
 import { StarIcon } from '@heroicons/react/20/solid';
 import { EUserRole } from '@/shared/model';
 import { useGetExecutorAverageRating } from '@/entities/order-feedback';
-import { useGetMasterById } from '@/features/master-public';
-import { QualificationCard, LocationCard, VehicleCard } from '@/widgets/master-profile';
+import {
+    useGetMasterById,
+    QualificationDisplayCard,
+    LocationDisplayCard,
+    VehicleDisplayCard,
+} from '@/features/master-public';
 import { UserIcon } from '@heroicons/react/24/outline';
 import { PageContainer, PageTitle, PageSpinner, QueryBoundary } from '@/shared/ui';
+import { useIsClient } from '@/shared/lib';
 import { useAuth } from '@/shared/lib/platform';
 import { getSafeRedirect } from '@/shared/lib';
 
@@ -20,11 +24,7 @@ type TMasterPublicPageProps = {
 };
 
 export function MasterPublicPage({ masterId }: TMasterPublicPageProps) {
-    const isClient = useSyncExternalStore(
-        () => () => {},
-        () => true,
-        () => false,
-    );
+    const isClient = useIsClient();
     const { isAuthenticated } = useAuth();
 
     if (!isClient) return <PageSpinner />;
@@ -144,27 +144,21 @@ function MasterPublicContent({ masterId }: TMasterPublicPageProps) {
                     </div>
                 )}
 
-                {accountService?.grade && (
-                    <QualificationCard grade={accountService.grade} readOnly outlined />
-                )}
+                {accountService?.grade && <QualificationDisplayCard grade={accountService.grade} />}
                 {accountService?.address && (
-                    <LocationCard
+                    <LocationDisplayCard
                         address={accountService.address}
                         departureBasis={accountService.departureBasis}
-                        readOnly
-                        outlined
                     />
                 )}
                 {(accountService?.carModel || accountService?.carNumber) && (
-                    <VehicleCard
+                    <VehicleDisplayCard
                         carModel={accountService.carModel}
                         carNumber={accountService.carNumber}
                         maxCargoLength={accountService.maxCargoLength}
                         maxCargoWidth={accountService.maxCargoWidth}
                         maxCargoHeight={accountService.maxCargoHeight}
                         maxCargoWeight={accountService.maxCargoWeight}
-                        readOnly
-                        outlined
                     />
                 )}
             </div>

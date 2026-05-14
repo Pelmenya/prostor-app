@@ -122,7 +122,7 @@ export function BurgerMenu({
                     <ThemeToggle />
                 </div>
 
-                {isSupported && (
+                {isSupported && isAuthenticated && (
                     <>
                         <hr className="border-base-content/10" />
                         <div className="flex items-center gap-3 px-4 py-3">

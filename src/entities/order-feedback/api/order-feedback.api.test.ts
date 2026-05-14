@@ -2,7 +2,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createElement, Suspense, type ReactNode } from 'react';
-import { orderFeedbackKeys, useGetMyOrderFeedback } from './order-feedback.api';
+import {
+    orderFeedbackKeys,
+    useGetMyOrderFeedback,
+    useGetExecutorAverageRating,
+    useGetExecutorDetailedRating,
+} from './order-feedback.api';
 
 const mockApi = vi.fn();
 
@@ -82,6 +87,44 @@ describe('order-feedback API', () => {
                 const state = queryClient.getQueryState(orderFeedbackKeys.myFeedback(42));
                 expect(state?.error).toBeInstanceOf(Error);
             });
+        });
+    });
+
+    describe('useGetExecutorAverageRating', () => {
+        it('загружает средний рейтинг исполнителя', async () => {
+            const mockRating = { average: 4.5, count: 10 };
+            mockApi.mockResolvedValueOnce(mockRating);
+
+            const { wrapper } = createWrapper();
+            const { result } = renderHook(() => useGetExecutorAverageRating(7), { wrapper });
+
+            await waitFor(() => expect(result.current.isSuccess).toBe(true));
+            expect(result.current.data).toEqual(mockRating);
+            expect(mockApi).toHaveBeenCalledWith('/order-feedback/executor/7/average');
+        });
+
+        it('не делает запрос если userId не передан', () => {
+            const { wrapper } = createWrapper();
+            renderHook(() => useGetExecutorAverageRating(undefined), { wrapper });
+            expect(mockApi).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('useGetExecutorDetailedRating', () => {
+        it('загружает детальный рейтинг исполнителя', async () => {
+            const mockDetailed = {
+                average: 4.5,
+                count: 10,
+                parameters: { cleanliness: 4.8, professionalism: 4.3 },
+            };
+            mockApi.mockResolvedValueOnce(mockDetailed);
+
+            const { wrapper } = createWrapper();
+            const { result } = renderHook(() => useGetExecutorDetailedRating(7), { wrapper });
+
+            await waitFor(() => expect(result.current.isSuccess).toBe(true));
+            expect(result.current.data).toEqual(mockDetailed);
+            expect(mockApi).toHaveBeenCalledWith('/order-feedback/executor/7/detailed');
         });
     });
 });

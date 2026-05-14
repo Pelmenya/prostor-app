@@ -6,6 +6,7 @@ import { useOrderThumbnails, TAB_STATUS_PRESETS } from '@/features/orders';
 import type { TTabType } from '@/features/orders';
 import { PageSpinner, QueryBoundary } from '@/shared/ui';
 import { useAuth } from '@/shared/lib/platform';
+import { cn } from '@/shared/lib';
 import { OrdersPageContent } from './orders-page-content';
 
 export function OrdersPage() {
@@ -60,7 +61,7 @@ function OrdersContent() {
     };
 
     return (
-        <div className={isPending ? 'opacity-60 transition-opacity' : ''}>
+        <div className={cn('grow flex flex-col', isPending && 'opacity-60 transition-opacity')}>
             <OrdersPageContent
                 orders={orders}
                 activeTab={activeTab}
