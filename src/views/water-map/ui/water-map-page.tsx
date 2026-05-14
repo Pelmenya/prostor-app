@@ -71,7 +71,10 @@ export function WaterMapPage() {
     };
 
     return (
-        <div className="relative size-full bg-base-200">
+        <div
+            data-fullscreen-map
+            className="relative size-full bg-base-200 overflow-hidden overscroll-none"
+        >
             <WaterMapCanvas
                 theme={theme}
                 onPointClick={(coords, properties) => setSelectedPoint({ coords, properties })}

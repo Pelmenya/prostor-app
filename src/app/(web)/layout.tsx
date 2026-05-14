@@ -11,7 +11,13 @@ export default function WebLayout({ children }: { children: React.ReactNode }) {
             <CartSyncProvider />
             <div className="flex flex-col w-full h-dvh border border-base-content/10 bg-base-100">
                 <Header />
-                <main className="flex-1 overflow-y-auto">{children}</main>
+                {/* `has-[[data-fullscreen-map]]` — если внутри есть fullscreen
+                    page (например /water), main блокирует scroll через
+                    overflow-hidden. На остальных страницах scroll работает
+                    как обычно с overscroll-contain (без rubber-band за края). */}
+                <main className="flex-1 overflow-y-auto overscroll-contain has-[[data-fullscreen-map]]:overflow-hidden has-[[data-fullscreen-map]]:overscroll-none">
+                    {children}
+                </main>
                 <Footer />
             </div>
             <SearchModalMount />
