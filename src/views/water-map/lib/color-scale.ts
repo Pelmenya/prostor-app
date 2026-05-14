@@ -9,10 +9,11 @@ import type { ExpressionSpecification } from 'maplibre-gl';
  * a11y: aquifer-Песчаный сдвинут с green H150 → khaki H95 чтобы не совпадал
  * с severity-safe для deuteranopia (см. aquifer-layers.ts).
  */
-const GREEN = '#34c879'; // ~oklch(72% 0.16 150) — severity-safe
-const YELLOW = '#d6c44a'; // ~oklch(82% 0.16 95) — severity-borderline
-const ORANGE = '#e58146'; // ~oklch(72% 0.18 50) — severity-concerning
-const RED = '#dc4c3e'; // ~oklch(62% 0.22 25) — severity-unsafe
+// Откат к Tailwind 500-уровню — насыщенные цвета как в оригинальном варианте.
+const GREEN = '#22c55e'; // green-500
+const YELLOW = '#eab308'; // yellow-500
+const ORANGE = '#f97316'; // orange-500
+const RED = '#ef4444'; // red-500
 
 // =============================================================================
 // CELLS circle layer paint — главный визуал агрегированных cells.
@@ -92,25 +93,6 @@ export function cellsCircleStrokeWidthExpression(): ExpressionSpecification {
 }
 
 /**
- * Tone-stroke для cells: severity-borderline (yellow) слабо читается на
- * CARTO Voyager basemap (#F8F5EF), ΔE ≈ 24. Для borderline zone
- * (exceedsPct 25-50, color YELLOW) используем тёмный stroke. Для остальных
- * (green/orange/red) — white default. Источник: claude design 2026-05-14.
- */
-export function cellsCircleStrokeColorExpression(): ExpressionSpecification {
-    return [
-        'case',
-        [
-            'all',
-            ['>=', ['coalesce', ['get', 'exceedsPct'], 0], 25],
-            ['<', ['coalesce', ['get', 'exceedsPct'], 0], 50],
-        ],
-        '#28283273',
-        '#ffffffd9',
-    ] as unknown as ExpressionSpecification;
-}
-
-/**
  * Cell-opacity fade-out при zoom >= 11 — переключаемся на individual `/points`
  * layer (там реальные анализы, не агрегаты). На zoom 13+ cells полностью
  * прозрачные, points полностью visible.
@@ -182,10 +164,6 @@ export function heatmapIntensityExpression(): ExpressionSpecification {
  * сдвинуты к началу (0.02 для green) чтобы baseline-weight 0.15 (good cells)
  * уже попадал в зелёную зону палитры, а не оставался прозрачным. См.
  * Фикс A в docs/feedback/water-map-thread.md 2026-05-08 20:15.
- *
- * **iOS Safari fix:** `rgba(R, G, B, A)` со spaces после запятых иногда
- * парсится в WebGL шейдере как alpha=0 (heatmap полностью прозрачный на
- * iPhone). Используем 8-значный hex `#RRGGBBAA` — Safari парсит canonical.
  */
 export function heatmapColorExpression(): ExpressionSpecification {
     return [
@@ -193,19 +171,19 @@ export function heatmapColorExpression(): ExpressionSpecification {
         ['linear'],
         ['heatmap-density'],
         0,
-        '#00000000',
+        'rgba(0, 0, 0, 0)',
         0.02,
-        '#22c55e66', // green-500 alpha 0.40 — safe (baseline 0.15 weight попадает сюда)
+        'rgba(34, 197, 94, 0.40)', // green-500 — safe (baseline 0.15 weight попадает сюда)
         0.2,
-        '#84cc168c', // lime-500 alpha 0.55
+        'rgba(132, 204, 22, 0.55)', // lime-500
         0.4,
-        '#eab308b3', // yellow-500 alpha 0.70
+        'rgba(234, 179, 8, 0.70)', // yellow-500
         0.6,
-        '#f97316d1', // orange-500 alpha 0.82
+        'rgba(249, 115, 22, 0.82)', // orange-500
         0.8,
-        '#ef4444e6', // red-500 alpha 0.90
+        'rgba(239, 68, 68, 0.90)', // red-500
         1.0,
-        '#dc2626ff', // red-600 — peak heat alpha 1.0
+        'rgba(220, 38, 38, 1.0)', // red-600 — peak heat
     ] as unknown as ExpressionSpecification;
 }
 
@@ -355,17 +333,17 @@ export function coverageHeatmapColorExpression(): ExpressionSpecification {
         ['linear'],
         ['heatmap-density'],
         0,
-        '#00000000',
+        'rgba(0, 0, 0, 0)',
         0.02,
-        '#9ca3af4d', // gray-400 alpha 0.30 (light)
+        'rgba(156, 163, 175, 0.30)', // gray-400 (light)
         0.25,
-        '#6b728080', // gray-500 alpha 0.50
+        'rgba(107, 114, 128, 0.50)', // gray-500
         0.5,
-        '#4b5563b3', // gray-600 alpha 0.70 (medium)
+        'rgba(75, 85, 99, 0.70)', // gray-600 (medium)
         0.8,
-        '#374151d9', // gray-700 alpha 0.85
+        'rgba(55, 65, 81, 0.85)', // gray-700
         1.0,
-        '#1f2937f2', // gray-800 alpha 0.95 (dark)
+        'rgba(31, 41, 55, 0.95)', // gray-800 (dark)
     ] as unknown as ExpressionSpecification;
 }
 

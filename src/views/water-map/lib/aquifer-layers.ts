@@ -31,7 +31,7 @@ export const AQUIFER_LAYERS: ReadonlyArray<TAquiferLayerMeta> = [
         minDepth: 15,
         maxDepth: 50,
         label: '15-50м · Песчаный',
-        color: '#b59a40', // ~oklch(68% 0.12 95) — KHAKI (было green #65a30d, a11y fix)
+        color: '#65a30d', // lime-700 — оригинальный зелёный (откат khaki-варианта)
     },
     {
         id: 'sandy_limestone',

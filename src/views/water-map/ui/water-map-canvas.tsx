@@ -21,7 +21,6 @@ import {
     cellsCircleColorExpression,
     cellsCircleOpacityExpression,
     cellsCircleRadiusExpression,
-    cellsCircleStrokeColorExpression,
     cellsCircleStrokeWidthExpression,
     coverageHeatmapColorExpression,
     coverageHeatmapIntensityExpression,
@@ -255,11 +254,6 @@ export function WaterMapCanvas({
             ],
             fitBoundsOptions: { padding: 16, duration: 0 },
             attributionControl: false,
-            // iOS Safari WebGL не справляется с heatmap + paint-expression
-            // circle layers на retina ×3 — fragment shader underflows и слой
-            // рендерится прозрачным. Cap pixelRatio до 2 — известный
-            // workaround для MapLibre 5.x на iPhone 12+.
-            pixelRatio: Math.min(typeof window !== 'undefined' ? window.devicePixelRatio : 1, 2),
         });
         mapRef.current = map;
 
@@ -313,7 +307,7 @@ export function WaterMapCanvas({
                     'circle-color': cellsCircleColorExpression() as never,
                     'circle-opacity': cellsCircleOpacityExpression() as never,
                     'circle-stroke-width': cellsCircleStrokeWidthExpression() as never,
-                    'circle-stroke-color': cellsCircleStrokeColorExpression() as never,
+                    'circle-stroke-color': 'rgba(255, 255, 255, 0.85)',
                 },
                 layout: { visibility: 'none' },
             });
@@ -586,7 +580,7 @@ export function WaterMapCanvas({
                         'circle-color': cellsCircleColorExpression() as never,
                         'circle-opacity': cellsCircleOpacityExpression() as never,
                         'circle-stroke-width': cellsCircleStrokeWidthExpression() as never,
-                        'circle-stroke-color': cellsCircleStrokeColorExpression() as never,
+                        'circle-stroke-color': 'rgba(255, 255, 255, 0.85)',
                     },
                     layout: { visibility: dotsVisible ? 'visible' : 'none' },
                 });

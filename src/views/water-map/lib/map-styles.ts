@@ -47,11 +47,15 @@ export const MO_BBOX = {
 export function localizeMapLabels(map: maplibregl.Map, lang: 'ru' = 'ru'): void {
     const layers = map.getStyle()?.layers;
     if (!layers) return;
+    // Приоритет: name:ru (cities, populated places) → name (OSM default,
+    // в России это русский — улицы, шоссе) → name:latin (научный транслит
+    // ISO 9 — fallback для чужой страны). Старый порядок latin>name давал
+    // «Novoražanskoe šosse» для всех дорог.
     const localized: ExpressionSpecification = [
         'coalesce',
         ['get', `name:${lang}`],
-        ['get', 'name:latin'],
         ['get', 'name'],
+        ['get', 'name:latin'],
     ] as unknown as ExpressionSpecification;
     for (const layer of layers) {
         if (layer.type !== 'symbol') continue;
