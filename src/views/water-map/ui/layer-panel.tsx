@@ -228,8 +228,10 @@ export function LayerPanel({ open, onClose }: TLayerPanelProps) {
 
                 {/* Scroll content. overscroll-contain — touch-scroll внутри
                     sheet'а НЕ передаётся на body (не пробрасывает scroll
-                    наружу на iOS Safari). */}
-                <div className="flex-1 overflow-y-auto overscroll-contain">
+                    наружу на iOS Safari). overflow-x-hidden — длинные
+                    адреса real-estate / store name'а не создают горизонтальный
+                    скролл. */}
+                <div className="flex-1 overflow-y-auto overflow-x-hidden overscroll-contain">
                     {/* Sticky pills + ViewMode — sticky relative to scroll-area
                         чтобы выбор параметра был всегда доступен при scroll'е
                         вниз. Виден только если heatmap on (иначе controls

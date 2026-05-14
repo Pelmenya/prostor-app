@@ -237,23 +237,32 @@ body {
  * Берём цвета через base-100/base-content (daisyui tokens), реагируют на смену
  * темы автоматически (как остальной UI).
  * ============================================================================ */
-/* daisyui v5 переменные содержат полную oklch(...) строку, поэтому
-   oklch(var(--color-*) / N) ломается. Используем color-mix с transparent
-   как proper-way alpha. Без !important — стили основаны на iconAlready
-   load order maplibre-gl/dist/maplibre-gl.css загружается раньше globals. */
+/* Стиль идентичен кнопке «Слои» (WaterMapTopBar) — bg-base-100/95 +
+   backdrop-blur + shadow-md + border-base-content/10 + rounded-xl size-12.
+   color-mix обязательно — daisyui переменные содержат полную oklch()
+   строку, обычная alpha-syntax `oklch(var(--color-*) / N)` ломается.
+   !important нужен — maplibre-gl.css имеет высокую специфичность. */
 .maplibregl-ctrl-group {
-    background-color: color-mix(in oklch, var(--color-base-100) 95%, transparent);
-    border: 1px solid color-mix(in oklch, var(--color-base-content) 10%, transparent);
-    box-shadow: 0 2px 8px color-mix(in oklch, var(--color-base-content) 15%, transparent);
+    background-color: color-mix(in oklch, var(--color-base-100) 95%, transparent) !important;
+    backdrop-filter: blur(8px);
+    border: 1px solid color-mix(in oklch, var(--color-base-content) 10%, transparent) !important;
+    border-radius: 0.75rem !important;
+    box-shadow:
+        0 4px 6px -1px color-mix(in oklch, var(--color-base-content) 10%, transparent),
+        0 2px 4px -2px color-mix(in oklch, var(--color-base-content) 10%, transparent) !important;
+    overflow: hidden;
 }
 .maplibregl-ctrl-group button {
-    background-color: transparent;
+    background-color: transparent !important;
+    width: 3rem !important;
+    height: 3rem !important;
+    color: var(--color-base-content) !important;
 }
 .maplibregl-ctrl-group button:hover {
-    background-color: color-mix(in oklch, var(--color-base-content) 8%, transparent);
+    background-color: color-mix(in oklch, var(--color-base-content) 8%, transparent) !important;
 }
 .maplibregl-ctrl-group button + button {
-    border-top: 1px solid color-mix(in oklch, var(--color-base-content) 10%, transparent);
+    border-top: 1px solid color-mix(in oklch, var(--color-base-content) 10%, transparent) !important;
 }
 /* SVG-иконки maplibre чёрные (data:url с черным fill) — на dark theme
    инвертируем filter'ом чтобы стали белыми. На light оставляем. */
@@ -261,6 +270,8 @@ body {
 .maplibregl-ctrl-zoom-out .maplibregl-ctrl-icon,
 .maplibregl-ctrl-compass .maplibregl-ctrl-icon {
     filter: invert(var(--wm-map-ctrl-invert, 0));
+    width: 1.5rem;
+    height: 1.5rem;
 }
 [data-theme='dark'] {
     --wm-map-ctrl-invert: 1;
