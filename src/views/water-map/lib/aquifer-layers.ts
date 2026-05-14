@@ -31,7 +31,9 @@ export const AQUIFER_LAYERS: ReadonlyArray<TAquiferLayerMeta> = [
         minDepth: 15,
         maxDepth: 50,
         label: '15-50м · Песчаный',
-        color: '#65a30d', // lime-700 — оригинальный зелёный (откат khaki-варианта)
+        color: '#b59a40', // ~oklch(68% 0.12 95) — khaki (claude design 2026-05-14:
+        // раньше green H150 совпадал с severity-safe → deuteranopia не различала
+        // safe-water dot vs Песчаный аквифер при обоих слоях ON; сдвиг H150→H95)
     },
     {
         id: 'sandy_limestone',

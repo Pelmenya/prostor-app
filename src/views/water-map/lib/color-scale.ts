@@ -9,11 +9,15 @@ import type { ExpressionSpecification } from 'maplibre-gl';
  * a11y: aquifer-Песчаный сдвинут с green H150 → khaki H95 чтобы не совпадал
  * с severity-safe для deuteranopia (см. aquifer-layers.ts).
  */
-// Откат к Tailwind 500-уровню — насыщенные цвета как в оригинальном варианте.
-const GREEN = '#22c55e'; // green-500
-const YELLOW = '#eab308'; // yellow-500
-const ORANGE = '#f97316'; // orange-500
-const RED = '#ef4444'; // red-500
+/**
+ * Severity palette — hex-эквиваленты OKLCH targets из claude design refresh
+ * 2026-05-14 (см. `--wm-severity-*` в globals.css). MapLibre 5.x не парсит
+ * oklch() в paint expressions — используем hex.
+ */
+const GREEN = '#34c879'; // ~oklch(72% 0.16 150) — severity-safe
+const YELLOW = '#d6c44a'; // ~oklch(82% 0.16 95) — severity-borderline
+const ORANGE = '#e58146'; // ~oklch(72% 0.18 50) — severity-concerning
+const RED = '#dc4c3e'; // ~oklch(62% 0.22 25) — severity-unsafe
 
 // =============================================================================
 // CELLS circle layer paint — главный визуал агрегированных cells.
@@ -89,6 +93,25 @@ export function cellsCircleStrokeWidthExpression(): ExpressionSpecification {
         0,
         11,
         1.5,
+    ] as unknown as ExpressionSpecification;
+}
+
+/**
+ * Tone-stroke для cells: severity-borderline (yellow) слабо читается на
+ * CARTO Voyager basemap (#F8F5EF), ΔE ≈ 24. Для borderline zone
+ * (exceedsPct 25-50, color YELLOW) используем тёмный stroke. Для остальных
+ * (green/orange/red) — white default. Источник: claude design 2026-05-14.
+ */
+export function cellsCircleStrokeColorExpression(): ExpressionSpecification {
+    return [
+        'case',
+        [
+            'all',
+            ['>=', ['coalesce', ['get', 'exceedsPct'], 0], 25],
+            ['<', ['coalesce', ['get', 'exceedsPct'], 0], 50],
+        ],
+        'rgba(40, 40, 50, 0.45)',
+        'rgba(255, 255, 255, 0.85)',
     ] as unknown as ExpressionSpecification;
 }
 
