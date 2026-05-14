@@ -50,18 +50,31 @@ export function LayerPanel({ open, onClose }: TLayerPanelProps) {
     const setPinPlacementMode = useWaterMapStore((s) => s.setPinPlacementMode);
     const [allParamsOpen, setAllParamsOpen] = useState(false);
 
-    // Body scroll lock на mobile когда sheet открыт — иначе под backdrop'ом
-    // карта/body продолжает прокручиваться от inertia при swipe. На lg+
-    // sheet это sidebar (не fullscreen overlay), lock не нужен — body должен
-    // оставаться interactable.
+    // Body scroll lock на mobile когда sheet открыт. iOS Safari игнорирует
+    // одиночный `overflow: hidden` на body — нужен `position: fixed` +
+    // запомнить scrollY и восстановить при close. Это самый надёжный приём
+    // (используется в Headless UI Dialog внутри). На lg+ — sidebar, lock
+    // не нужен.
     useEffect(() => {
         if (typeof window === 'undefined') return;
         const isMobile = window.matchMedia('(max-width: 991px)').matches;
         if (!open || !isMobile) return;
-        const prev = document.body.style.overflow;
-        document.body.style.overflow = 'hidden';
+        const scrollY = window.scrollY;
+        const body = document.body;
+        const prevPos = body.style.position;
+        const prevTop = body.style.top;
+        const prevWidth = body.style.width;
+        const prevOverflow = body.style.overflow;
+        body.style.position = 'fixed';
+        body.style.top = `-${scrollY}px`;
+        body.style.width = '100%';
+        body.style.overflow = 'hidden';
         return () => {
-            document.body.style.overflow = prev;
+            body.style.position = prevPos;
+            body.style.top = prevTop;
+            body.style.width = prevWidth;
+            body.style.overflow = prevOverflow;
+            window.scrollTo(0, scrollY);
         };
     }, [open]);
 
