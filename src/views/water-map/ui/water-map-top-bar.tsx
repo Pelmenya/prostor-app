@@ -19,7 +19,7 @@ type TWaterMapTopBarProps = {
  */
 export function WaterMapTopBar({ onToggleLayers, subtitle, layersOpen }: TWaterMapTopBarProps) {
     return (
-        <div className="pointer-events-none absolute top-2 left-2 right-2 z-10 flex items-start gap-2">
+        <div className="pointer-events-none absolute top-4 left-4 right-4 z-10 flex items-start gap-2">
             <div className="pointer-events-auto flex-1 rounded-xl bg-base-100/95 backdrop-blur-md shadow-md border border-base-content/10 px-3 py-2 flex flex-col">
                 <span className="text-sm font-bold text-base-content leading-tight">
                     Карта качества воды

@@ -218,7 +218,8 @@
  * MapLibre controls — offset под top-bar (кнопка Слои в правом верхнем углу)
  * ============================================================================ */
 .maplibregl-ctrl-top-right {
-    margin-top: 4rem; /* size-12 кнопки Слои + 0.5rem top */
+    top: 4.5rem; /* под кнопкой «Слои» (size-12 = 3rem + top-4 = 1rem + 0.5rem gap) */
+    right: 1rem; /* выравнено с right-4 у top-bar / legends / SimilarFab */
 }
 
 /* ============================================================================
