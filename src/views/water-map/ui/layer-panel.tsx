@@ -123,7 +123,9 @@ export function LayerPanel({ open, onClose }: TLayerPanelProps) {
                     transition-transform duration-300 ease-out
                     flex flex-col
                     lg:top-0 lg:left-0 lg:bottom-0 lg:w-[360px] lg:border-r
-                    inset-x-0 bottom-0 max-h-[80dvh] rounded-t-2xl border-t lg:rounded-none
+                    inset-x-0 bottom-[calc(env(safe-area-inset-bottom,0)+4rem)] lg:bottom-0
+                    max-h-[calc(80dvh-4rem)] lg:max-h-none
+                    rounded-t-2xl border-t lg:rounded-none
                     ${open ? 'translate-y-0 lg:translate-x-0' : 'translate-y-full lg:translate-y-0 lg:-translate-x-full'}
                 `}
                 aria-hidden={!open}
