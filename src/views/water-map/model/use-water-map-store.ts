@@ -73,6 +73,19 @@ export type TWaterMapStore = {
     setEquipmentOpen: (v: boolean) => void;
     setAquiferStatsOpen: (v: boolean) => void;
     setDepthPredictOpen: (v: boolean) => void;
+
+    /**
+     * Persist'ed состояние accordion'ов LayerPanel. `null` = follow heuristic
+     * (не свитчили вручную), `true/false` = explicit user override. Сделано
+     * чтобы «Местоположение» открывалось при появлении pin'а у гостя, но
+     * respect'ил manual collapse если юзер закрыл сам.
+     */
+    panelSections: {
+        layers: boolean | null;
+        location: boolean | null;
+        analytics: boolean | null;
+    };
+    setPanelSection: (key: 'layers' | 'location' | 'analytics', expanded: boolean) => void;
 };
 
 /**
@@ -130,11 +143,21 @@ export const useWaterMapStore = create<TWaterMapStore>()(
             setEquipmentOpen: (v) => set({ equipmentOpen: v }),
             setAquiferStatsOpen: (v) => set({ aquiferStatsOpen: v }),
             setDepthPredictOpen: (v) => set({ depthPredictOpen: v }),
+
+            panelSections: { layers: null, location: null, analytics: null },
+            setPanelSection: (key, expanded) =>
+                set((s) => ({
+                    panelSections: { ...s.panelSections, [key]: expanded },
+                })),
         }),
         {
             name: 'water-map:store',
             // Persist только preference'ы — transient state не сохраняем.
-            partialize: (s) => ({ cellsViewMode: s.cellsViewMode }) as Partial<TWaterMapStore>,
+            partialize: (s) =>
+                ({
+                    cellsViewMode: s.cellsViewMode,
+                    panelSections: s.panelSections,
+                }) as Partial<TWaterMapStore>,
         },
     ),
 );
