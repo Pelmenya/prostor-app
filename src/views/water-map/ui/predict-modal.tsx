@@ -34,11 +34,26 @@ export function PredictModal() {
     const query = open && pin ? { lat: pin.lat, lon: pin.lon } : null;
     const { data, isLoading, isError } = usePredict(query);
 
+    const footer =
+        data && !data.insufficientData ? (
+            <button
+                type="button"
+                onClick={() => {
+                    setOpen(false);
+                    setEquipmentOpen(true);
+                }}
+                className="btn btn-primary w-full"
+            >
+                Подобрать оборудование
+            </button>
+        ) : undefined;
+
     return (
         <BottomSheetModal
             isOpen={open}
             onClose={() => setOpen(false)}
             title="Прогноз химии воды"
+            footer={footer}
             className="sm:max-w-2xl"
         >
             {isLoading && (
@@ -138,20 +153,6 @@ export function PredictModal() {
                             </details>
                         );
                     })}
-
-                    {/* CTA «Подбери фильтр» */}
-                    <div className="sticky bottom-0 -mb-4 -mx-4 mt-2 px-4 pt-3 pb-4 bg-base-100 border-t border-base-content/10">
-                        <button
-                            type="button"
-                            onClick={() => {
-                                setOpen(false);
-                                setEquipmentOpen(true);
-                            }}
-                            className="btn btn-primary w-full"
-                        >
-                            Подобрать оборудование
-                        </button>
-                    </div>
                 </>
             )}
         </BottomSheetModal>

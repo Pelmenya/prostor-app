@@ -10,6 +10,13 @@ type TBottomSheetModalProps = {
     onClose: () => void;
     title?: string;
     children: ReactNode;
+    /**
+     * Опциональный footer (CTA-кнопка / sticky action) вне scroll area.
+     * Гарантированно не перекрывается scroll'ящимся контентом сверху —
+     * это flex shrink-0 sibling content'а, не sticky. Используется для
+     * «Подобрать оборудование», «Открыть корзину» и т.д.
+     */
+    footer?: ReactNode;
     className?: string;
 };
 
@@ -29,6 +36,7 @@ export function BottomSheetModal({
     onClose,
     title,
     children,
+    footer,
     className,
 }: TBottomSheetModalProps) {
     // Drag-to-dismiss state (только mobile bottom-sheet).
@@ -105,11 +113,23 @@ export function BottomSheetModal({
                         </header>
                     )}
                     <div
-                        className="overflow-y-auto overflow-x-hidden overscroll-contain flex flex-col gap-4 p-4 min-w-0"
-                        style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}
+                        className="flex-1 overflow-y-auto overflow-x-hidden overscroll-contain flex flex-col gap-4 p-4 min-w-0"
+                        style={
+                            footer
+                                ? undefined
+                                : { paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }
+                        }
                     >
                         {children}
                     </div>
+                    {footer && (
+                        <div
+                            className="shrink-0 border-t border-base-300 bg-base-100 px-4 pt-3"
+                            style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}
+                        >
+                            {footer}
+                        </div>
+                    )}
                 </DialogPanel>
             </div>
         </Dialog>

@@ -47,11 +47,19 @@ export function CellPopup({ coords }: TCellPopupProps) {
         setEquipmentOpen(true);
     };
 
+    const footer =
+        data && data.nTotal > 0 ? (
+            <button type="button" onClick={handleEquipment} className="btn btn-primary w-full">
+                Подобрать оборудование для зоны
+            </button>
+        ) : undefined;
+
     return (
         <BottomSheetModal
             isOpen={!!coords}
             onClose={handleClose}
             title="Детали зоны"
+            footer={footer}
             className="sm:max-w-2xl"
         >
             {isLoading && (
@@ -138,17 +146,6 @@ export function CellPopup({ coords }: TCellPopupProps) {
                             </ul>
                         </details>
                     )}
-
-                    {/* CTA */}
-                    <div className="sticky bottom-0 -mb-4 -mx-4 mt-2 px-4 pt-3 pb-4 bg-base-100 border-t border-base-content/10">
-                        <button
-                            type="button"
-                            onClick={handleEquipment}
-                            className="btn btn-primary w-full"
-                        >
-                            Подобрать оборудование для зоны
-                        </button>
-                    </div>
                 </>
             )}
         </BottomSheetModal>

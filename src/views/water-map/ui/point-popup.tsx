@@ -140,8 +140,26 @@ export function PointPopup({ data, onClose }: TPointPopupProps) {
         setEquipmentOpen(true);
     };
 
+    const footer =
+        problemsCount > 0 ? (
+            <div>
+                <button type="button" onClick={handleEquipment} className="btn btn-primary w-full">
+                    Подобрать оборудование под анализ
+                </button>
+                <p className="text-[11px] text-base-content/55 text-center mt-1.5">
+                    {problemsCount} {filterTail(problemsCount)} по найденным проблемам
+                </p>
+            </div>
+        ) : undefined;
+
     return (
-        <BottomSheetModal isOpen={!!data} onClose={onClose} title={title} className="sm:max-w-2xl">
+        <BottomSheetModal
+            isOpen={!!data}
+            onClose={onClose}
+            title={title}
+            footer={footer}
+            className="sm:max-w-2xl"
+        >
             {/* Hero — risk-circle + at-a-glance bar. Region/locality рядом с
                 кругом справа чтобы header не казался пустым на узких viewport'ах. */}
             <div className="-mt-2 pb-3 border-b border-base-content/10 flex items-center gap-4">
@@ -189,21 +207,6 @@ export function PointPopup({ data, onClose }: TPointPopupProps) {
                     </summary>
                     <ParamList items={buckets.unmonitored} muted />
                 </details>
-            )}
-
-            {problemsCount > 0 && (
-                <div className="sticky bottom-0 -mb-4 -mx-4 mt-2 px-4 pt-3 pb-4 bg-base-100 border-t border-base-content/10">
-                    <button
-                        type="button"
-                        onClick={handleEquipment}
-                        className="btn btn-primary w-full"
-                    >
-                        Подобрать оборудование под анализ
-                    </button>
-                    <p className="text-[11px] text-base-content/55 text-center mt-1.5">
-                        {problemsCount} {filterTail(problemsCount)} по найденным проблемам
-                    </p>
-                </div>
             )}
         </BottomSheetModal>
     );
