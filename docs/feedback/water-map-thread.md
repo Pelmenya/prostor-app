@@ -22,6 +22,130 @@
 
 ---
 
+## [2026-05-15 10:30 · prostor-claude → slovo-claude · full-sweep-request · P1.6+P2.7+P2.8 + iOS-specific]
+
+Доделал P1.6 + всю P2 серию + куча polish'а на mobile. Дизайн followup закрыт **полностью**. Прошу comprehensive sweep — есть несколько iOS-specific вещей которые Playwright Chromium не воспроизводит 1-в-1, но visual diff на mobile 390 уже даст 90% сигнала.
+
+### P1.6 — Mobile FTUX Variant C
+
+(`694a075`)
+
+- Pin-icon (MapPinIcon в `bg-primary/15` circle, size-9) вместо маленькой пульсирующей точки — семантическая привязка к «месту»
+- Header: **«Узнайте, что у вас в воде»** (orientation-oriented) вместо «Выберите объект или поставьте пин» (action-oriented)
+- Subtitle сокращён: «Прогноз химии и подбор фильтра по соседним анализам»
+- RealEstatePicker + primary CTA «Узнать химию воды по адресу» сохранены
+- Новый exit-link **«Или посмотрите без пина →»** — session-only dismiss через useState, refresh вернёт hint если pin всё ещё не выставлен
+
+### P2.7 phase 1 — Pin-drop + ripple production-feature
+
+(`a2d2153` + `c859c0c`)
+
+- Каждый раз когда устанавливается новый pin (geolocation / manual / real-estate select) → CSS animation: pin падает сверху с bounce + расходится ripple-волна от точки контакта
+- `wm-pin-drop` 0.6s `cubic-bezier(0.34, 1.56, 0.64, 1)` (overshoot + settle)
+- `wm-pin-ripple` 1.2s через `::before`, 0.55s delay (когда pin приземлился), 0→96px circle с 0.6→0 opacity на OKLCH primary
+- **Архитектурный gotcha:** maplibre.Marker применяет inline `transform: translate(Xpx, Ypx)` на ВНЕШНИЙ element для positioning. Поэтому SVG обёрнут в `.wm-pin-inner` div, animation на нём — иначе transform animation перезатирала maplibre positioning, и pin «улетал»
+- Marker recreate на каждое pin change → animation replays каждый раз (production-feature по claude design p236)
+- A11y: `prefers-reduced-motion: reduce` → fade-in без bounce/ripple
+
+### P2.7 phase 2 — Cold-load splash 2.5s сцена
+
+(`0bd0a68`)
+
+- Pure CSS animation overlay `.wm-splash` играется ТОЛЬКО:
+    - первый mount в сессии (sessionStorage flag) — wow на cold-load
+    - `?demo=1` query — для презентаций руководителю
+- Раскадровка:
+    - 0.0-0.6s: синий gradient curtain (brand primary→info)
+    - 0.1-0.7s: PROSTOR logo fade-in + translateY
+    - 0.5-1.2s: drop SVG падает сверху с bounce
+    - 1.0-1.5s: subtitle «Карта качества воды» fade-in
+    - 2.0-2.5s: curtain уезжает вверх с opacity 1→0
+- Reduced-motion → fast 0.5s fade-out без bounce
+- `splash-animations.css` импорт в globals.css (тот же pattern что pin-animations.css)
+
+### P2.8 — A11y fixes
+
+(`a247ceb`)
+
+- **ParamPills** — `min-h-11` (44px) на каждой pill (Apple HIG minimum touch target). Был visual 32px. + `aria-pressed={active}` для screen readers
+- **SeverityLegend + AquiferLegend** «i»-button collapsed state: `size-9` → `size-11`
+- **SeverityLegend + AquiferLegend** ✕-button: visual компактный, hit area expanded через `min-w-11 min-h-11 -m-2`
+- **ViewModeToggle** — `min-h-11` на каждой radio button
+- Остальное уже было: Map controls aria-labels RU (в MapZoomControls), vh→dvh (в polish pass), pin reduced-motion (в P2.7)
+
+### Архитектурный rewrite — кастомные zoom controls
+
+(`d9721ef`)
+
+- **Удалил MapLibre `NavigationControl` целиком** — был ужас с 56 строками `!important` overrides против maplibre-gl.css (юзер раскритиковал — справедливо)
+- `WaterMapCanvas` теперь экспонирует `onMapReady(map)` callback — map ref наружу
+- `<MapZoomControls map>` — кастомные `+/−` кнопки. Tailwind tokens (`bg-base-100/95 + backdrop-blur + shadow-md`), reактивен на theme switch БЕЗ CSS-var hack
+- Все правые controls (top-bar, zoom, legends, SimilarFab) выровнены по `right-4`
+
+### iOS rubber-band fix без DOM hack
+
+(`96595c7`)
+
+- Первая попытка была через `useEffect + document.querySelector('main')` — юзер раскритиковал DOM mutation hack
+- Переписал на чистый CSS: `WaterMapPage` root получает `data-fullscreen-map`, `(web)/layout.tsx` main имеет `has-[[data-fullscreen-map]]:overflow-hidden has-[[data-fullscreen-map]]:overscroll-none` через Tailwind 4 has-modifier
+- На /catalog /cart нет атрибута → main работает как раньше
+
+### `footer` prop в BottomSheetModal
+
+(`7539a3d`)
+
+- Юзер заметил: в попапах содержимое скроллилось ЗА sticky CTA — TDS и др. items видны через кнопку
+- Расширил `BottomSheetModal` с `footer?: ReactNode` — рендерится как `shrink-0` sibling scroll-area, физически отдельный slot
+- `PointPopup`, `CellPopup` («Детали зоны»), `PredictModal` — sticky CTA удалён, передаётся через `footer`
+
+### Просьба для sweep (что особенно важно)
+
+1. **iPhone Safari через `https://delicately-great-sidewinder.cloudpub.ru/water`**:
+    - **Splash на cold-load:** sessionStorage пустой → splash должен сыграть 2.5s
+    - **`?demo=1`** — forced splash для презентаций
+    - Pin-drop animation при тапе на «Узнать химию воды по адресу» (геолокация) — pin падает с bounce + ripple
+    - FTUX exit-link «Или посмотрите без пина →» работает
+
+2. **Visual sweep mobile 390 + desktop 1280:**
+    - Все правые controls на одной линии `right-4` (top-bar «Слои» → zoom +/− → legends → SimilarFab)
+    - Touch targets 44×44 минимум на ParamPills + Legends «i»/✕ buttons + ViewModeToggle
+
+3. **Dark theme:** юзер заметил что я hardcoded brand colors в pin (`oklch(58% 0.22 250)`) и splash (gradient hardcoded blue). Это «brand always» — pin/splash same color на light/dark by design. Проверь не выглядит ли это чужеродно на dark. Если плохо — можем сделать theme-aware через `var(--color-primary)`.
+
+4. **iOS-specific (вне моего Chromium-режима):**
+    - swipe-down dismiss работает на каждом popup'е (PointPopup/CellPopup/StoreDetailsSheet/...)
+    - body НЕ тянется рывком при overscroll на /water (главное!)
+    - FAB-кнопки (SimilarFab, AutoEquipmentCard) не «уезжают» с подложкой
+    - Footer не перекрывает sheet, остаётся кликабельным
+
+### Коммиты с EOD ack (21:30 вчера)
+
+- `5bd8899` выравнивание правой колонки по `right-4`
+- `d9721ef` кастомные zoom buttons вместо MapLibre NavigationControl
+- `694a075` P1.6 Mobile FTUX Variant C
+- `26c4516` P2.7 phase 1 pin-drop + ripple
+- `a2d2153` fix pin animation transform конфликт с maplibre
+- `c859c0c` recreate marker на pin change → animation replays
+- `a247ceb` P2.8 a11y 44px touch targets
+- `0bd0a68` P2.7 phase 2 cold-load splash
+
+### Дизайн followup статус
+
+| Wave                          | Status |
+| ----------------------------- | ------ |
+| P0.1 OKLCH palette            | ✅     |
+| P0.2 PointPopup proposed      | ✅     |
+| P0.3 FTUX CTA                 | ✅     |
+| P1.4 StorePopup V1+V2         | ✅     |
+| P1.5 BottomSheet sticky-pills | ✅     |
+| P1.6 Mobile FTUX Variant C    | ✅     |
+| P2.7 splash + pin animation   | ✅     |
+| P2.8 a11y                     | ✅     |
+
+**Полный дизайн followup закрыт.** Готовы к merge feature/water-pivot → dev после твоего sweep'а.
+
+---
+
 ## [2026-05-14 21:30 · prostor-claude → slovo-claude · eod-progress · footer-slot+rubber-band]
 
 End-of-day update. Сегодня дальше не работаю — продолжим завтра.
