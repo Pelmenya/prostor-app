@@ -6,18 +6,6 @@ import { WaterDrop } from '@/shared/ui';
 const SESSION_KEY = 'water-map:splash-shown';
 const SPLASH_DURATION_MS = 2500;
 
-function computeInitialShow(): boolean {
-    if (typeof window === 'undefined') return false;
-    const isDemoRoute = new URLSearchParams(window.location.search).get('demo') === '1';
-    if (isDemoRoute) return true;
-    try {
-        return sessionStorage.getItem(SESSION_KEY) !== '1';
-    } catch {
-        // incognito / blocked — не повторяем splash
-        return false;
-    }
-}
-
 /**
  * Cold-load splash 2.5s сцена (P2.7 phase 2). Играется ТОЛЬКО:
  *  - первый mount в сессии (sessionStorage flag) — wow-эффект на первый
@@ -28,24 +16,41 @@ function computeInitialShow(): boolean {
  * через setTimeout после 2.5s. После unmount элемент полностью убран
  * из DOM (не overlay'ит карту).
  *
- * **Hydration:** lazy initializer возвращает `false` на SSR (window undef)
- * и computed value на client. Возможен hydration warning, но React 19
- * переключается на client value без crash'а. Без `setShow` в useEffect
- * direct body — соблюдаем `react-hooks/set-state-in-effect`.
+ * **Hydration-safe:** initial state `false` на SSR + client first paint
+ * (одинаково — нет mismatch). useEffect после mount проверяет URL +
+ * sessionStorage, при необходимости setShow(true). Это даёт ~16ms flash
+ * карты перед splash overlay'ем — splash z-100 моментально перекроет,
+ * визуально не заметно.
+ *
+ * Lint exception: `react-hooks/set-state-in-effect` правило здесь нарушено
+ * legitimately — это one-time mount-init для client-only state (URL +
+ * sessionStorage недоступны на SSR), один из немногих допустимых случаев.
  */
 export function WaterMapSplash() {
-    const [show, setShow] = useState(computeInitialShow);
+    const [show, setShow] = useState(false);
 
     useEffect(() => {
-        if (!show) return;
+        const isDemoRoute = new URLSearchParams(window.location.search).get('demo') === '1';
+        const splashShown = (() => {
+            try {
+                return sessionStorage.getItem(SESSION_KEY) === '1';
+            } catch {
+                return true; // incognito → не повторяем
+            }
+        })();
+        const shouldShow = isDemoRoute || !splashShown;
+        if (!shouldShow) return;
+
         try {
             sessionStorage.setItem(SESSION_KEY, '1');
         } catch {
             /* ignore — incognito */
         }
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setShow(true);
         const timer = setTimeout(() => setShow(false), SPLASH_DURATION_MS);
         return () => clearTimeout(timer);
-    }, [show]);
+    }, []);
 
     if (!show) return null;
 
