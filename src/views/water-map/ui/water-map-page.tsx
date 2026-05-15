@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import dynamic from 'next/dynamic';
+import { MapPinIcon } from '@heroicons/react/24/outline';
 import type { Map as MaplibreMap } from 'maplibre-gl';
 import { useDaisyTheme, useMediaQuery } from '@/shared/lib';
 import { WaterDrop } from '@/shared/ui';
@@ -45,6 +46,9 @@ export function WaterMapPage() {
     const [selectedDepth, setSelectedDepth] = useState<TCanvasSelection | null>(null);
     const [selectedStore, setSelectedStore] = useState<TCanvasSelection | null>(null);
     const [map, setMap] = useState<MaplibreMap | null>(null);
+    // FTUX dismiss — session-only через exit-link «Или посмотрите без пина →».
+    // Не персистим: после refresh юзер ещё не выставил пин → hint снова полезен.
+    const [ftuxDismissed, setFtuxDismissed] = useState(false);
     const selectedCellCoords = useWaterMapStore((s) => s.selectedCellCoords);
     const activeLayers = useWaterMapStore((s) => s.activeLayers);
     const pinPlacementMode = useWaterMapStore((s) => s.pinPlacementMode);
@@ -55,7 +59,7 @@ export function WaterMapPage() {
     const heatmapVisible = activeLayers.has('heatmap');
     const depthVisible = activeLayers.has('depthMap');
 
-    const showPinHint = !pin && !pinPlacementMode;
+    const showPinHint = !pin && !pinPlacementMode && !ftuxDismissed;
 
     const requestGeolocation = () => {
         if (!navigator.geolocation) return;
@@ -143,23 +147,26 @@ export function WaterMapPage() {
             <EquipmentModal />
             <AquiferStatsModal />
 
-            {/* FTUX hint когда пина нет — real-estate picker (если auth + есть
-                объекты) или fallback на геолокацию. Picker и кнопка геолокации
-                идут вместе — если у юзера 1 объект всё равно полезна геолокация
-                чтобы проверить «другой адрес». */}
+            {/* FTUX hint (P1.6 Variant C) — orientation-oriented header
+                «Узнайте, что у вас в воде» вместо action-oriented «Поставьте пин».
+                Иконка-пин — semantic привязка к «месту». Exit-link
+                «Или посмотрите без пина →» для юзеров, кто хочет просто
+                посмотреть карту без обязательств. */}
             {showPinHint && (
                 <div
                     className="pointer-events-auto absolute left-2 right-2 z-10 rounded-xl bg-base-100/95 backdrop-blur-md shadow-md border border-primary/30 px-3 py-3 flex flex-col gap-3 lg:left-[376px] lg:right-auto lg:max-w-sm"
                     style={{ bottom: 'calc(env(safe-area-inset-bottom, 0) + 5.5rem)' }}
                 >
                     <div className="flex items-start gap-3">
-                        <span className="size-2 rounded-full bg-primary mt-1.5 shrink-0 animate-pulse" />
+                        <span className="shrink-0 inline-flex items-center justify-center size-9 rounded-full bg-primary/15 text-primary mt-0.5">
+                            <MapPinIcon className="size-5" />
+                        </span>
                         <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-base-content leading-tight">
-                                Выберите объект или поставьте пин
+                            <p className="text-sm font-semibold text-base-content leading-tight">
+                                Узнайте, что у вас в воде
                             </p>
                             <p className="text-xs text-base-content/60 leading-snug mt-0.5">
-                                Чтобы получить прогноз воды и подбор фильтра по соседям.
+                                Прогноз химии и подбор фильтра по соседним анализам.
                             </p>
                         </div>
                     </div>
@@ -175,6 +182,14 @@ export function WaterMapPage() {
                             <WaterDrop size={16} />
                         </span>
                         Узнать химию воды по адресу
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={() => setFtuxDismissed(true)}
+                        className="text-xs text-base-content/55 hover:text-base-content text-center -mt-1 transition"
+                    >
+                        Или посмотрите без пина →
                     </button>
                 </div>
             )}
