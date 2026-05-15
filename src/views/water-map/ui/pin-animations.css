@@ -2,15 +2,25 @@
  * Water-map pin animations — production-feature (P2.7).
  *
  * Pin-drop + ripple каждый раз когда устанавливается новый pin на карте
- * (geolocation, manual click, real-estate select). Maplibre.Marker создаёт
- * HTML element класса .wm-pin с SVG-пином (см. water-map-canvas), pin
- * height = 40px, anchor 'bottom' — точка контакта с землёй внизу маркера.
+ * (geolocation, manual click, real-estate select).
+ *
+ * **Важно про DOM:** maplibre.Marker применяет inline `transform: translate(...)`
+ * на ВНЕШНИЙ `.wm-pin` element для позиционирования на карте. Поэтому
+ * анимации НЕ могут трогать transform на `.wm-pin` — перезатрёт maplibre
+ * positioning, и pin «улетит» в (0,0). Структура:
+ *   `.wm-pin` — outer (maplibre positioning, ripple через ::before)
+ *     └ `.wm-pin-inner` — inner div (наша animation transform: translateY)
+ *         └ svg pin
  *
  * `prefers-reduced-motion: reduce` → fade-in без bounce/ripple (a11y).
  * ============================================================================ */
 
 .wm-pin {
     position: relative;
+}
+
+.wm-pin-inner {
+    display: block;
     animation: wm-pin-drop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
 
@@ -74,7 +84,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .wm-pin {
+    .wm-pin-inner {
         animation: wm-pin-fade 0.3s ease-out both;
     }
     .wm-pin::before {

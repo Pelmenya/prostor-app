@@ -896,14 +896,21 @@ export function WaterMapCanvas({
         }
 
         if (!pinMarkerRef.current) {
+            // Maplibre.Marker применяет transform: translate(Xpx, Ypx) на
+            // переданный element для позиционирования на карте. Поэтому
+            // animation НЕ может trogать transform на outer .wm-pin element —
+            // перезатрёт maplibre positioning, и pin «улетит». Wrap SVG
+            // в inner div .wm-pin-inner, animation работает на нём.
             const el = document.createElement('div');
             el.className = 'wm-pin';
             el.innerHTML = `
-                <svg width="32" height="40" viewBox="0 0 32 40" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M16 2 C22 10 28 16 28 24 a12 12 0 1 1-24 0 c0-8 6-14 12-22z"
-                        fill="oklch(58% 0.22 250)" stroke="white" stroke-width="2"/>
-                    <circle cx="16" cy="22" r="4" fill="white"/>
-                </svg>
+                <div class="wm-pin-inner">
+                    <svg width="32" height="40" viewBox="0 0 32 40" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M16 2 C22 10 28 16 28 24 a12 12 0 1 1-24 0 c0-8 6-14 12-22z"
+                            fill="oklch(58% 0.22 250)" stroke="white" stroke-width="2"/>
+                        <circle cx="16" cy="22" r="4" fill="white"/>
+                    </svg>
+                </div>
             `;
             el.style.cursor = 'pointer';
             pinMarkerRef.current = new maplibregl.Marker({ element: el, anchor: 'bottom' })
