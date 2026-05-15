@@ -1,5 +1,6 @@
 @import 'tailwindcss';
 @import 'react-datepicker/dist/react-datepicker.css';
+@import '../views/water-map/ui/pin-animations.css';
 @plugin "daisyui" {
     themes:
         light --default,
