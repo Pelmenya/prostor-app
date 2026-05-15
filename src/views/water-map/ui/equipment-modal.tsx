@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useProductThumbnails } from '@/entities/product';
+import { useCartStore } from '@/entities/cart';
 import { BottomSheetModal } from '@/shared/ui';
 import { useEquipmentSourceStore, useWaterMapStore } from '../model';
 import { paramFullLabel, useEquipmentSuggest } from '../lib';
@@ -17,23 +17,19 @@ import { SeverityBadge } from './severity-badge';
  * cell-popup CTA, etc.) обязан выставить source ДО open. EquipmentModal
  * ничего не знает про откуда coords пришли.
  *
- * NB: SKU/orderNumber в каталоге PROSTOR обычно равен sku — но catalog API
- * сейчас живёт на другом backend. После интеграции catalog добавим deep-link.
+ * Slovo handoff 2026-05-15 13:05 (commit `dbf8589`): equipment-suggest
+ * response теперь содержит `externalId` (MoySklad UUID), `imageUrl`
+ * (presigned MinIO, TTL 1ч) и `salePriceKopecks`. Не нужен второй round-trip
+ * через crm-back МойСклад proxy для thumbnails — slovo сам резолвит.
  */
 export function EquipmentModal() {
     const open = useWaterMapStore((s) => s.equipmentOpen);
     const setOpen = useWaterMapStore((s) => s.setEquipmentOpen);
     const source = useEquipmentSourceStore((s) => s.source);
+    const addProduct = useCartStore((s) => s.addProduct);
 
     const body = open && source ? { lat: source.lat, lon: source.lon, topK: 5 } : null;
     const { data, isLoading, isError } = useEquipmentSuggest(body);
-
-    // Thumbnails из МойСклад через crm-back (slovo response даёт sku которое
-    // mapping'ом в МойСклад UUID — uses-product-thumbnails batched useQueries
-    // с дедупом cache). При закрытом modal списка нет — hook idempotent
-    // на пустой массив.
-    const skus = data?.recommendations.map((r) => r.sku) ?? [];
-    const { imageUrls } = useProductThumbnails(skus);
 
     const title =
         source?.source === 'cell' ? 'Подбор по выбранной зоне' : 'Подбор по вашему адресу';
@@ -106,31 +102,52 @@ export function EquipmentModal() {
                             Рекомендованное оборудование
                         </h3>
                         <ul className="space-y-3">
-                            {data.recommendations.map((rec, idx) => {
+                            {data.recommendations.map((rec) => {
                                 const matched = data.problems.find(
                                     (p) => p.paramCode === rec.matchedProblem,
                                 );
-                                // Image priority: МойСклад thumbnail (full
-                                // resolution, через crm-back proxy) → fallback
-                                // на slovo `imageUrl` если есть → placeholder
-                                const imageUrl = imageUrls[rec.sku] ?? rec.imageUrl;
+                                const priceRub =
+                                    rec.salePriceKopecks !== null
+                                        ? rec.salePriceKopecks / 100
+                                        : null;
+                                const handleAddToCart = (e: React.MouseEvent) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    // addProduct internally читает только id/name/description,
+                                    // но TProduct требует `attributes` массив — slovo
+                                    // recommendation не имеет, передаём пустой. cart-sync
+                                    // потом обогатит при authed merge с бэка.
+                                    addProduct(
+                                        {
+                                            id: rec.externalId,
+                                            name: rec.name,
+                                            description: rec.description,
+                                            attributes: [],
+                                        },
+                                        1,
+                                        priceRub ?? 0,
+                                    );
+                                };
                                 return (
-                                    <li key={`${rec.sku}-${idx}`}>
+                                    <li
+                                        key={rec.externalId}
+                                        className="rounded-lg border border-base-content/10 bg-base-100 overflow-hidden"
+                                    >
                                         <Link
-                                            href={`/product/${rec.sku}`}
+                                            href={`/product/${rec.externalId}`}
                                             onClick={() => setOpen(false)}
-                                            className="block rounded-lg border border-base-content/10 bg-base-100 p-3 flex gap-3 hover:border-primary/40 hover:bg-base-200/30 transition"
+                                            className="flex gap-3 p-3 hover:bg-base-200/30 transition"
                                         >
-                                            {imageUrl ? (
+                                            {rec.imageUrl ? (
                                                 // eslint-disable-next-line @next/next/no-img-element
                                                 <img
-                                                    src={imageUrl}
+                                                    src={rec.imageUrl}
                                                     alt={rec.name}
-                                                    className="size-16 rounded-md object-cover bg-base-200 shrink-0"
+                                                    className="size-20 rounded-md object-cover bg-base-200 shrink-0"
                                                     loading="lazy"
                                                 />
                                             ) : (
-                                                <div className="size-16 rounded-md bg-base-200 shrink-0 flex items-center justify-center text-base-content/30 text-xs">
+                                                <div className="size-20 rounded-md bg-base-200 shrink-0 flex items-center justify-center text-base-content/30 text-xs">
                                                     нет фото
                                                 </div>
                                             )}
@@ -151,13 +168,30 @@ export function EquipmentModal() {
                                                 <p className="text-xs text-primary/90 mt-1 leading-snug">
                                                     {rec.reason}
                                                 </p>
-                                                {rec.description && (
-                                                    <p className="text-xs text-base-content/60 mt-1.5 leading-snug line-clamp-2">
-                                                        {rec.description}
+                                                {priceRub !== null && (
+                                                    <p className="text-sm font-bold text-base-content mt-1.5 tabular-nums">
+                                                        {priceRub.toLocaleString('ru-RU')} ₽
                                                     </p>
                                                 )}
                                             </div>
                                         </Link>
+                                        <div className="flex gap-2 px-3 pb-3 -mt-1">
+                                            <Link
+                                                href={`/product/${rec.externalId}`}
+                                                onClick={() => setOpen(false)}
+                                                className="btn btn-sm btn-ghost flex-1 normal-case"
+                                            >
+                                                Подробнее
+                                            </Link>
+                                            <button
+                                                type="button"
+                                                onClick={handleAddToCart}
+                                                className="btn btn-sm btn-primary flex-1 normal-case"
+                                                disabled={priceRub === null}
+                                            >
+                                                В корзину
+                                            </button>
+                                        </div>
                                     </li>
                                 );
                             })}
