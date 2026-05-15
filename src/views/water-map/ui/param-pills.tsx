@@ -22,7 +22,8 @@ export function ParamPills({ selected, onSelect }: TParamPillsProps) {
                         key={p}
                         type="button"
                         onClick={() => onSelect(p)}
-                        className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition ${
+                        aria-pressed={active}
+                        className={`shrink-0 min-h-11 px-3 py-1.5 rounded-full text-xs font-medium border transition flex items-center ${
                             active
                                 ? 'bg-primary text-primary-content border-primary'
                                 : 'bg-base-100 text-base-content/80 border-base-content/15 hover:border-primary/40'

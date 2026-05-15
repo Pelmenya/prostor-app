@@ -22,7 +22,7 @@ export function AquiferLegend() {
                 onClick={() => setOpen(true)}
                 aria-label="Показать легенду горизонтов"
                 title="Показать легенду горизонтов"
-                className="pointer-events-auto self-end size-9 rounded-full bg-base-100/90 backdrop-blur-md shadow-md border border-base-content/10 flex items-center justify-center text-base-content/70 hover:text-primary transition"
+                className="pointer-events-auto self-end size-11 rounded-full bg-base-100/90 backdrop-blur-md shadow-md border border-base-content/10 flex items-center justify-center text-base-content/70 hover:text-primary transition"
             >
                 <InformationCircleIcon className="size-5" />
             </button>
@@ -42,7 +42,7 @@ export function AquiferLegend() {
                     type="button"
                     onClick={() => setOpen(false)}
                     aria-label="Свернуть легенду"
-                    className="text-base-content/40 hover:text-base-content/70 text-base leading-none px-1"
+                    className="text-base-content/40 hover:text-base-content/70 text-base leading-none min-w-11 min-h-11 -m-2 flex items-center justify-center"
                 >
                     ✕
                 </button>

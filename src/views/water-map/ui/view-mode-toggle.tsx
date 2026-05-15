@@ -38,7 +38,7 @@ export function ViewModeToggle({ value, onChange }: TViewModeToggleProps) {
                         aria-checked={active}
                         aria-label={opt.aria}
                         onClick={() => onChange(opt.id)}
-                        className={`px-2.5 py-1 rounded-full font-medium transition flex items-center gap-1 ${
+                        className={`min-h-11 px-2.5 py-1 rounded-full font-medium transition flex items-center gap-1 ${
                             active
                                 ? 'bg-primary text-primary-content shadow-sm'
                                 : 'text-base-content/70 hover:text-base-content'
