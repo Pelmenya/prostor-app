@@ -29,6 +29,8 @@ export type TOrdersQueryFilters = {
     cursor?: string;
     sortDir?: 'asc' | 'desc';
     status?: EOrderStatus[];
+    clientId?: number;
+    executorId?: number;
 };
 
 /** Опции хука — НЕ попадают в query key */

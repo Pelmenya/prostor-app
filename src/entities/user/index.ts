@@ -2,6 +2,7 @@ export { useCurrentUser, useCurrentUserSuspense, useUpdateProfile, userKeys } fr
 export {
     useGetCuratorUsers,
     useGetCuratorUsersCount,
+    useGetCuratorClientById,
     curatorUserKeys,
 } from './api/curator-users.api';
 export type { TCuratorUsersFilters, TCuratorUsersCountFilters } from './api/curator-users.api';

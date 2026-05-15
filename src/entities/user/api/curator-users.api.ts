@@ -1,4 +1,4 @@
-import { useQuery, useSuspenseInfiniteQuery } from '@tanstack/react-query';
+import { useQuery, useSuspenseInfiniteQuery, useSuspenseQuery } from '@tanstack/react-query';
 import { useApi } from '@/shared/api';
 import { buildSearchParams } from '@/shared/lib';
 import type { EUserRole } from '@/shared/model';
@@ -32,6 +32,16 @@ type TCuratorUsersPaginatedResponse = {
 type TCuratorUsersCountResponse = {
     count: number;
 };
+
+export function useGetCuratorClientById(id: number) {
+    const api = useApi();
+
+    return useSuspenseQuery({
+        queryKey: [...curatorUserKeys.all, 'client', id] as const,
+        queryFn: () => api<TCuratorUser>(`/curator/users/${id}/client`),
+        staleTime: 60_000,
+    });
+}
 
 export function useGetCuratorUsers(filters: TCuratorUsersFilters) {
     const api = useApi();
