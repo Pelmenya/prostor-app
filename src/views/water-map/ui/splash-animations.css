@@ -18,7 +18,12 @@
     inset: 0;
     z-index: 100;
     pointer-events: auto;
-    background: linear-gradient(180deg, oklch(54% 0.245 263), oklch(74% 0.16 232));
+    /* Theme-aware: daisyui primary/info меняются на dark theme (на dark
+       primary становится фиолетовым H277, на light синим H263 — splash
+       hardcoded H263 «выпрыгивал» на dark из общей фиолетовой палитры
+       логотипа + CTA). Использование var(--color-*) даёт matching brand
+       gradient на обеих темах. См. slovo-claude sweep 2026-05-15 11:15. */
+    background: linear-gradient(180deg, var(--color-primary), var(--color-info));
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -31,7 +36,9 @@
 .wm-splash-logo {
     font-size: clamp(2rem, 10vw, 4rem);
     font-weight: 900;
-    color: white;
+    /* primary-content — daisyui auto-contrast token (белый на primary в
+       обеих темах) — гарантированный контраст без hardcoded white. */
+    color: var(--color-primary-content);
     letter-spacing: 0.04em;
     opacity: 0;
     transform: translateY(-12px);
@@ -39,13 +46,16 @@
 }
 
 .wm-splash-drop {
-    color: white;
+    color: var(--color-primary-content);
     opacity: 0;
     transform: translateY(-40px);
     animation: wm-splash-drop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) 0.5s forwards;
 }
 
 .wm-splash-subtitle {
+    /* Hardcoded light-blue tint — гарантированно читается поверх любого
+       primary/info gradient'а на light/dark (slovo measured: white стал
+       плохо виден на light violet верхушке). */
     color: oklch(96% 0.02 232);
     font-size: 0.875rem;
     font-weight: 500;
