@@ -28,7 +28,7 @@ export function SeverityLegend() {
                 onClick={() => setOpen(true)}
                 aria-label="Показать легенду уровней"
                 title="Показать легенду уровней"
-                className="pointer-events-auto self-end size-11 rounded-full bg-base-100/90 backdrop-blur-md shadow-md border border-base-content/10 flex items-center justify-center text-base-content/70 hover:text-primary transition"
+                className="pointer-events-auto self-end size-12 rounded-full bg-base-100/90 backdrop-blur-md shadow-md border border-base-content/10 flex items-center justify-center text-base-content/70 hover:text-primary transition"
             >
                 <InformationCircleIcon className="size-5" />
             </button>
