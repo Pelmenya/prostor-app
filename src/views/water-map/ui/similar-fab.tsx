@@ -35,7 +35,7 @@ export function SimilarFab() {
             className={`
                 pointer-events-auto
                 absolute right-4 z-10
-                size-12 rounded-full
+                size-14 rounded-full
                 bg-base-100/90 backdrop-blur-md
                 border border-base-content/10 shadow-md
                 text-primary
@@ -55,7 +55,7 @@ export function SimilarFab() {
                     : 'Прогноз воды для вашего пина'
             }
         >
-            <WaterDrop size={24} animated={!disabled} />
+            <WaterDrop size={28} animated={!disabled} />
         </button>
     );
 }
