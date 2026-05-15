@@ -152,6 +152,8 @@ type TWaterMapCanvasProps = {
     onPointClick?: (coords: [number, number], properties: Record<string, unknown>) => void;
     onDepthClick?: (coords: [number, number], properties: Record<string, unknown>) => void;
     onStoreClick?: (coords: [number, number], properties: Record<string, unknown>) => void;
+    /** Получить ref на MapLibre instance после load — для overlay-кнопок зума. */
+    onMapReady?: (map: MaplibreMap) => void;
 };
 
 /**
@@ -174,6 +176,7 @@ export function WaterMapCanvas({
     onPointClick,
     onDepthClick,
     onStoreClick,
+    onMapReady,
 }: TWaterMapCanvasProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const mapRef = useRef<MaplibreMap | null>(null);
@@ -264,7 +267,9 @@ export function WaterMapCanvas({
             (window as unknown as { __mlmap?: MaplibreMap }).__mlmap = map;
         }
 
-        map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
+        // NavigationControl убран — кастомные кнопки zoomIn/Out рендерятся
+        // в page-overlay через onMapReady callback (без !important hacks
+        // против maplibre-gl.css).
         map.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-left');
 
         // Локализация labels — слушаем `styledata` (fires при загрузке style
@@ -276,6 +281,7 @@ export function WaterMapCanvas({
         map.on('styledata', relocalize);
 
         map.on('load', () => {
+            onMapReady?.(map);
             // ---- CELLS source — общий для heatmap-blobs и circle-dots
             map.addSource(CELLS_SOURCE_ID, { type: 'geojson', data: EMPTY_HEATMAP });
 

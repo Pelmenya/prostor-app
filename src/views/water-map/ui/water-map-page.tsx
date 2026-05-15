@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import dynamic from 'next/dynamic';
+import type { Map as MaplibreMap } from 'maplibre-gl';
 import { useDaisyTheme, useMediaQuery } from '@/shared/lib';
 import { WaterDrop } from '@/shared/ui';
 import { useClientPinStore, useWaterMapStore } from '../model';
@@ -14,6 +15,7 @@ import { CellPopup } from './cell-popup';
 import { DepthPopup } from './depth-popup';
 import { EquipmentModal } from './equipment-modal';
 import { LayerPanel } from './layer-panel';
+import { MapZoomControls } from './map-zoom-controls';
 import { PointPopup } from './point-popup';
 import { PredictModal } from './predict-modal';
 import { SeverityLegend } from './severity-legend';
@@ -42,6 +44,7 @@ export function WaterMapPage() {
     const [selectedPoint, setSelectedPoint] = useState<TCanvasSelection | null>(null);
     const [selectedDepth, setSelectedDepth] = useState<TCanvasSelection | null>(null);
     const [selectedStore, setSelectedStore] = useState<TCanvasSelection | null>(null);
+    const [map, setMap] = useState<MaplibreMap | null>(null);
     const selectedCellCoords = useWaterMapStore((s) => s.selectedCellCoords);
     const activeLayers = useWaterMapStore((s) => s.activeLayers);
     const pinPlacementMode = useWaterMapStore((s) => s.pinPlacementMode);
@@ -80,6 +83,7 @@ export function WaterMapPage() {
                 onPointClick={(coords, properties) => setSelectedPoint({ coords, properties })}
                 onDepthClick={(coords, properties) => setSelectedDepth({ coords, properties })}
                 onStoreClick={(coords, properties) => setSelectedStore({ coords, properties })}
+                onMapReady={setMap}
             />
 
             <WaterMapTopBar
@@ -87,6 +91,8 @@ export function WaterMapPage() {
                 layersOpen={layersOpen}
                 subtitle="Москва и Подмосковье · 15 504 анализа"
             />
+
+            <MapZoomControls map={map} />
 
             {/* Pin placement mode banner — instructs user куда тапать */}
             {pinPlacementMode && (
