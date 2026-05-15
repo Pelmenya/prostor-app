@@ -51,3 +51,4 @@ export type {
 } from './t-detailed-rating';
 export type { TExecutorAverageRating } from './t-executor-average-rating';
 export type { TWorkDay } from './t-work-day';
+export type { TCuratorUser } from './t-curator-user';
