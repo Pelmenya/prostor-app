@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+import { useProductThumbnails } from '@/entities/product';
 import { BottomSheetModal } from '@/shared/ui';
 import { useEquipmentSourceStore, useWaterMapStore } from '../model';
 import { paramFullLabel, useEquipmentSuggest } from '../lib';
@@ -25,6 +27,13 @@ export function EquipmentModal() {
 
     const body = open && source ? { lat: source.lat, lon: source.lon, topK: 5 } : null;
     const { data, isLoading, isError } = useEquipmentSuggest(body);
+
+    // Thumbnails из МойСклад через crm-back (slovo response даёт sku которое
+    // mapping'ом в МойСклад UUID — uses-product-thumbnails batched useQueries
+    // с дедупом cache). При закрытом modal списка нет — hook idempotent
+    // на пустой массив.
+    const skus = data?.recommendations.map((r) => r.sku) ?? [];
+    const { imageUrls } = useProductThumbnails(skus);
 
     const title =
         source?.source === 'cell' ? 'Подбор по выбранной зоне' : 'Подбор по вашему адресу';
@@ -101,47 +110,54 @@ export function EquipmentModal() {
                                 const matched = data.problems.find(
                                     (p) => p.paramCode === rec.matchedProblem,
                                 );
+                                // Image priority: МойСклад thumbnail (full
+                                // resolution, через crm-back proxy) → fallback
+                                // на slovo `imageUrl` если есть → placeholder
+                                const imageUrl = imageUrls[rec.sku] ?? rec.imageUrl;
                                 return (
-                                    <li
-                                        key={`${rec.sku}-${idx}`}
-                                        className="rounded-lg border border-base-content/10 bg-base-100 p-3 flex gap-3"
-                                    >
-                                        {rec.imageUrl ? (
-                                            // eslint-disable-next-line @next/next/no-img-element
-                                            <img
-                                                src={rec.imageUrl}
-                                                alt={rec.name}
-                                                className="size-16 rounded-md object-cover bg-base-200 shrink-0"
-                                                loading="lazy"
-                                            />
-                                        ) : (
-                                            <div className="size-16 rounded-md bg-base-200 shrink-0 flex items-center justify-center text-base-content/30 text-xs">
-                                                no img
-                                            </div>
-                                        )}
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex items-start justify-between gap-2">
-                                                <p className="text-sm font-medium text-base-content leading-tight line-clamp-2">
-                                                    {rec.name}
+                                    <li key={`${rec.sku}-${idx}`}>
+                                        <Link
+                                            href={`/product/${rec.sku}`}
+                                            onClick={() => setOpen(false)}
+                                            className="block rounded-lg border border-base-content/10 bg-base-100 p-3 flex gap-3 hover:border-primary/40 hover:bg-base-200/30 transition"
+                                        >
+                                            {imageUrl ? (
+                                                // eslint-disable-next-line @next/next/no-img-element
+                                                <img
+                                                    src={imageUrl}
+                                                    alt={rec.name}
+                                                    className="size-16 rounded-md object-cover bg-base-200 shrink-0"
+                                                    loading="lazy"
+                                                />
+                                            ) : (
+                                                <div className="size-16 rounded-md bg-base-200 shrink-0 flex items-center justify-center text-base-content/30 text-xs">
+                                                    нет фото
+                                                </div>
+                                            )}
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-start justify-between gap-2">
+                                                    <p className="text-sm font-medium text-base-content leading-tight line-clamp-2">
+                                                        {rec.name}
+                                                    </p>
+                                                    {matched && (
+                                                        <SeverityBadge
+                                                            status={matched.severity}
+                                                            size="sm"
+                                                        >
+                                                            {paramFullLabel(rec.matchedProblem)}
+                                                        </SeverityBadge>
+                                                    )}
+                                                </div>
+                                                <p className="text-xs text-primary/90 mt-1 leading-snug">
+                                                    {rec.reason}
                                                 </p>
-                                                {matched && (
-                                                    <SeverityBadge
-                                                        status={matched.severity}
-                                                        size="sm"
-                                                    >
-                                                        {paramFullLabel(rec.matchedProblem)}
-                                                    </SeverityBadge>
+                                                {rec.description && (
+                                                    <p className="text-xs text-base-content/60 mt-1.5 leading-snug line-clamp-2">
+                                                        {rec.description}
+                                                    </p>
                                                 )}
                                             </div>
-                                            <p className="text-xs text-primary/90 mt-1 leading-snug">
-                                                {rec.reason}
-                                            </p>
-                                            {rec.description && (
-                                                <p className="text-xs text-base-content/60 mt-1.5 leading-snug line-clamp-2">
-                                                    {rec.description}
-                                                </p>
-                                            )}
-                                        </div>
+                                        </Link>
                                     </li>
                                 );
                             })}
