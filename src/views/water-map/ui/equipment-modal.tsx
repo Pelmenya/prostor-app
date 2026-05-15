@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useCartStore } from '@/entities/cart';
 import { BottomSheetModal } from '@/shared/ui';
 import { useEquipmentSourceStore, useWaterMapStore } from '../model';
-import { paramFullLabel, useEquipmentSuggest } from '../lib';
+import { paramFullLabel, paramLabel, useEquipmentSuggest } from '../lib';
 import { SeverityBadge } from './severity-badge';
 
 /**
@@ -157,12 +157,14 @@ export function EquipmentModal() {
                                                         {rec.name}
                                                     </p>
                                                     {matched && (
-                                                        <SeverityBadge
-                                                            status={matched.severity}
-                                                            size="sm"
-                                                        >
-                                                            {paramFullLabel(rec.matchedProblem)}
-                                                        </SeverityBadge>
+                                                        <span className="whitespace-nowrap shrink-0">
+                                                            <SeverityBadge
+                                                                status={matched.severity}
+                                                                size="sm"
+                                                            >
+                                                                {paramLabel(rec.matchedProblem)}
+                                                            </SeverityBadge>
+                                                        </span>
                                                     )}
                                                 </div>
                                                 <p className="text-xs text-primary/90 mt-1 leading-snug">
