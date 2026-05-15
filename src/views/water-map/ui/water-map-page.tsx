@@ -21,6 +21,7 @@ import { PointPopup } from './point-popup';
 import { PredictModal } from './predict-modal';
 import { SeverityLegend } from './severity-legend';
 import { SimilarFab } from './similar-fab';
+import { WaterMapSplash } from './water-map-splash';
 import { WaterMapTopBar } from './water-map-top-bar';
 
 const WaterMapCanvas = dynamic(() => import('./water-map-canvas').then((m) => m.WaterMapCanvas), {
@@ -82,6 +83,7 @@ export function WaterMapPage() {
             data-fullscreen-map
             className="relative size-full bg-base-200 overflow-hidden overscroll-none"
         >
+            <WaterMapSplash />
             <WaterMapCanvas
                 theme={theme}
                 onPointClick={(coords, properties) => setSelectedPoint({ coords, properties })}
