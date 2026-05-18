@@ -96,7 +96,7 @@ export function AutoEquipmentCard() {
 
     return (
         <div
-            className="pointer-events-auto absolute left-2 right-2 z-10 lg:left-[376px] lg:right-auto lg:max-w-sm flex justify-center"
+            className="pointer-events-auto absolute left-4 z-10 lg:left-[24rem]"
             style={{ bottom: 'calc(env(safe-area-inset-bottom, 0) + 5.5rem)' }}
         >
             {/* Slim bar (design uplift 2026-05-18 Artifact 3): компактный pill
@@ -108,7 +108,9 @@ export function AutoEquipmentCard() {
                     onClick={handleOpen}
                     className="flex items-center gap-2 min-w-0 cursor-pointer"
                 >
-                    <span className="size-7 rounded-full bg-primary-content/20 flex items-center justify-center shrink-0 text-xs font-bold tabular-nums">
+                    {/* Counter slot — min-w-9 tabular-nums против CLS при pin drag
+                        на адрес с другим issue count (slovo iter3 vote 16:40 #2). */}
+                    <span className="size-7 min-w-9 rounded-full bg-primary-content/20 flex items-center justify-center shrink-0 text-xs font-bold tabular-nums">
                         {data.problems.length}
                     </span>
                     <span className="text-xs font-medium leading-tight whitespace-nowrap">

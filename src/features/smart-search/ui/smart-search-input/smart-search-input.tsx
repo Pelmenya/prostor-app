@@ -1,6 +1,6 @@
 'use client';
 
-import { CameraIcon, MagnifyingGlassIcon, SparklesIcon } from '@heroicons/react/24/outline';
+import { CameraIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { WaterDrop } from '@/shared/ui';
 import { useSmartSearchStore } from '../../model/smart-search.store';
 
@@ -9,19 +9,24 @@ import { useSmartSearchStore } from '../../model/smart-search.store';
  *
  * Design uplift 2026-05-18 (Artifact 3) — visually dominant:
  *  - gradient border wrapper (subtle OKLCH brand-primary→secondary, p-px)
- *  - inline AI sparkle badge внутри (визуальный AI-маркер)
  *  - gradient circle camera button справа (как в overlay header)
  *
- * Layout: absolute centered on mobile, left-aligned за LayerPanel на desktop
- * (≥lg, lg:left-[24rem]). Top:4rem под slim header pill (которая на top:1rem
- * + h~2rem = 3rem с 1rem gap).
+ * Layout: absolute на mobile с `right-16` чтобы освободить 56px под
+ * `RightSideToolbar` (Слои + Zoom +/− glass panel на right-edge). Без этого
+ * camera button overlap'ает Слои-button (slovo iter3 pre-push блокер
+ * 2026-05-18 16:40). На desktop (≥lg) toolbar не collisidует — LayerPanel
+ * sidebar + SmartSearchInput centered в map area, right-edge свободен.
+ *
+ * AI sparkle badge внутри pill — удалён (slovo iter3 vote 16:40 #3): visual
+ * noise + дубль AI badge в overlay hero card. Юзер тапает pill → overlay
+ * открывается → AI vibe приходит через hero card (single source of brand).
  */
 export function SmartSearchInput() {
     const open = useSmartSearchStore((s) => s.openOverlay);
 
     return (
         <div
-            className="pointer-events-auto absolute left-2 right-2 z-20 lg:left-[24rem] lg:right-4 lg:max-w-md"
+            className="pointer-events-auto absolute left-4 right-16 z-20 lg:left-[24rem] lg:right-4 lg:max-w-md"
             style={{ top: 'calc(env(safe-area-inset-top, 0) + 4rem)' }}
         >
             {/* Gradient border wrapper — outer p-px ring создаёт illusion цветного
@@ -36,15 +41,6 @@ export function SmartSearchInput() {
                     <WaterDrop size={20} />
                     <MagnifyingGlassIcon className="size-4 text-base-content/40 shrink-0" />
                     <span className="flex-1 truncate text-sm">Умный поиск · текст или фото</span>
-                    {/* AI badge — sparkle + label, primary-content на gradient bg. Even smaller
-                        gradient strip но визуально показывает что это AI-feature, не plain поиск. */}
-                    <span
-                        className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider text-primary-content bg-gradient-to-r from-primary to-secondary shrink-0"
-                        aria-hidden="true"
-                    >
-                        <SparklesIcon className="size-2.5" />
-                        AI
-                    </span>
                     {/* Camera button — gradient circle (consistency со overlay camera).
                         Размер совпадает с inputBar height-1 (40px = h-11 - 2*p-0.5). */}
                     <span

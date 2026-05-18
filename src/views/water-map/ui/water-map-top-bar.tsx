@@ -19,7 +19,7 @@ type TWaterMapTopBarProps = {
 export function WaterMapTopBar({ subtitle }: TWaterMapTopBarProps) {
     return (
         <div
-            className="pointer-events-none absolute left-1/2 -translate-x-1/2 z-10 lg:left-4 lg:translate-x-0"
+            className="pointer-events-none absolute left-4 z-10 lg:left-[24rem]"
             style={{ top: 'calc(env(safe-area-inset-top, 0) + 1rem)' }}
         >
             <div className="pointer-events-auto inline-flex items-center gap-2 rounded-full bg-base-100/95 backdrop-blur-md shadow-md border border-base-content/10 px-3 py-1.5">

@@ -180,8 +180,8 @@ export function LayerPanel({ open, onClose }: TLayerPanelProps) {
                     fixed z-30 bg-base-100 shadow-xl border-base-content/10
                     ${dragOffset > 0 ? '' : 'transition-transform duration-300 ease-out'}
                     flex flex-col
-                    lg:top-0 lg:left-0 lg:bottom-0 lg:w-[360px] lg:border-r
-                    inset-x-0 bottom-[calc(env(safe-area-inset-bottom,0)+4rem)] lg:bottom-0
+                    lg:top-0 lg:left-0 lg:w-[360px] lg:border-r
+                    inset-x-0 bottom-[calc(env(safe-area-inset-bottom,0)+4rem)] lg:bottom-16
                     max-h-[calc(80dvh-4rem)] lg:max-h-none
                     rounded-t-2xl border-t lg:rounded-none
                     ${open ? 'translate-y-0 lg:translate-x-0' : 'translate-y-full lg:translate-y-0 lg:-translate-x-full'}
@@ -252,7 +252,14 @@ export function LayerPanel({ open, onClose }: TLayerPanelProps) {
                         </div>
                     )}
 
-                    <div className="px-4 pb-4">
+                    {/* pb с запасом safe-area-inset чтобы last accordion item
+                        не упирался в sheet/sidebar bottom edge — Дима 2026-05-18:
+                        «не возможно все данные просмотреть, прокрутка не до конца»
+                        + повтор 13:20 «если раскрыть все гармошки не видно совсем»
+                        на desktop. Root fix — sidebar `lg:bottom-16` чтобы он
+                        заканчивался над bottom-nav (64px). Этот padding — small
+                        breathing room. */}
+                    <div className="px-4 pt-2 pb-[calc(env(safe-area-inset-bottom,0)+2rem)]">
                         <Accordion
                             sectionKey="layers"
                             title="Слои на карте"
