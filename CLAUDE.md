@@ -10,7 +10,7 @@ Multi-modal smart search (text + photo) в `/water` page. Branch `feature/water-
 
 | Шаг | Описание                                                                                                | Прогресс |
 | --- | ------------------------------------------------------------------------------------------------------- | -------- |
-| 1   | `features/smart-search/` скелет — WaterDropAI + SmartSearchInput + SmartSearchOverlay + Zustand         | ✅ done  |
+| 1   | `features/smart-search/` скелет — SmartSearchInput + SmartSearchOverlay + Zustand                       | ✅ done  |
 | 2   | Idle state — input под top-bar + 4 chip-suggestions + recent searches + 📍 По адресу chip               | ✅ done  |
 | 3   | Loading state — 3-stage AI pipeline (📷 Фото → 👁 Vision → 🔒 pgvector) с simulated timers              | ✅ done  |
 | 4   | Results state — vision badge + matchScore + reuse `EquipmentRecommendationCard`                         | ✅ done  |
@@ -44,7 +44,7 @@ Multi-modal smart search (text + photo) в `/water` page. Branch `feature/water-
 - ❌ Camera FAB right-bottom — занят `SimilarFab «Прогноз»`. В Phase 1 только camera-button **в input**. Brand FAB → Phase 1.5, тогда **left-bottom** (оба сосуществуют)
 - ❌ Voice / follow-up dialogue / bbox image overlay / bundled services / desktop split-pane — Phase 1.5/2
 - ❌ Замена `EquipmentModal v5` — smart-search **дополняет** AutoEquipmentCard (water-context остаётся)
-- ✅ Brand-маркер: `WaterDropAI` SVG gradient OKLCH `(72% 0.16 232) → (58% 0.22 250) → (48% 0.26 270)` + sparkle. Sizes 16/20/26/40/56/72px
+- ✅ Brand-маркер: единственный `WaterDrop` SVG из `@/shared/ui` (тот же что в `SimilarFab`) — gradient OKLCH `(72% 0.16 232) → (58% 0.22 250) → (48% 0.26 270)` + sparkle. Sizes 14-40px. **Не делать дубль `WaterDropAI` или any.ru drop variants** — один компонент везде (Дима 2026-05-18)
 
 ### Фронт: Adapter Pattern — `docs/features/auth/AUTH_ADAPTER.md`
 
