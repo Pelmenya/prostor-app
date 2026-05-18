@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import Link from 'next/link';
 import { ChevronRightIcon, StarIcon } from '@heroicons/react/24/solid';
 import { curatorMasterPath } from '@/shared/config';
@@ -28,11 +29,15 @@ export function CuratorMasterCard({ user }: TCuratorMasterCardProps) {
             href={curatorMasterPath(user.id)}
             className="flex items-center gap-3 bg-base-100 rounded-xl px-4 py-3 hover:bg-base-200 transition-colors active:scale-[0.99]"
         >
-            <div className="avatar avatar-placeholder shrink-0">
+            <div className={`avatar shrink-0 ${!user.photo_url ? 'avatar-placeholder' : ''}`}>
                 <div
-                    className={`size-10 rounded-full ${as?.isEnabled ? 'bg-primary/10 text-primary' : 'bg-base-300 text-base-content/40'}`}
+                    className={`relative size-10 rounded-full overflow-hidden ${!user.photo_url ? (as?.isEnabled ? 'bg-primary/10 text-primary' : 'bg-base-300 text-base-content/40') : ''}`}
                 >
-                    <span className="text-sm font-semibold">{initials}</span>
+                    {user.photo_url ? (
+                        <Image src={user.photo_url} alt={fullName} fill className="object-cover" />
+                    ) : (
+                        <span className="text-sm font-semibold">{initials}</span>
+                    )}
                 </div>
             </div>
 
@@ -45,7 +50,7 @@ export function CuratorMasterCard({ user }: TCuratorMasterCardProps) {
                 </div>
 
                 <div className="flex items-center gap-3 mt-0.5">
-                    {user.avgRating != null && (
+                    {user.avgRating != null && user.avgRating > 0 && (
                         <span className="flex items-center gap-0.5 text-xs text-warning">
                             <StarIcon className="size-3" />
                             {user.avgRating.toFixed(1)}

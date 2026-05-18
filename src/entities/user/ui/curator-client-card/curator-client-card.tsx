@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import Link from 'next/link';
 import { ChevronRightIcon } from '@heroicons/react/24/outline';
 import { curatorClientPath } from '@/shared/config';
@@ -19,9 +20,13 @@ export function CuratorClientCard({ user }: TCuratorClientCardProps) {
             href={curatorClientPath(user.id)}
             className="flex items-center gap-3 bg-base-100 rounded-xl px-4 py-3 hover:bg-base-200 transition-colors active:scale-[0.99]"
         >
-            <div className="avatar avatar-placeholder shrink-0">
-                <div className="size-10 rounded-full bg-primary/10 text-primary">
-                    <span className="text-sm font-semibold">{initials}</span>
+            <div className={`avatar shrink-0 ${!user.photo_url ? 'avatar-placeholder' : ''}`}>
+                <div className="relative size-10 rounded-full overflow-hidden bg-primary/10 text-primary">
+                    {user.photo_url ? (
+                        <Image src={user.photo_url} alt={fullName} fill className="object-cover" />
+                    ) : (
+                        <span className="text-sm font-semibold">{initials}</span>
+                    )}
                 </div>
             </div>
 

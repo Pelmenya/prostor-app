@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { ChevronRightIcon } from '@heroicons/react/24/outline';
 import { useGetCuratorClientById } from '@/entities/user';
@@ -50,9 +51,18 @@ function ProfileCard({ client }: { client: TCuratorUser }) {
 
     return (
         <div className="card bg-base-100 p-4 flex flex-row items-center gap-4">
-            <div className="avatar avatar-placeholder shrink-0">
-                <div className="size-16 rounded-full bg-primary/10 text-primary">
-                    <span className="text-xl font-semibold">{initials}</span>
+            <div className={`avatar shrink-0 ${!client.photo_url ? 'avatar-placeholder' : ''}`}>
+                <div className="relative size-16 rounded-full overflow-hidden bg-primary/10 text-primary">
+                    {client.photo_url ? (
+                        <Image
+                            src={client.photo_url}
+                            alt={fullName}
+                            fill
+                            className="object-cover"
+                        />
+                    ) : (
+                        <span className="text-xl font-semibold">{initials}</span>
+                    )}
                 </div>
             </div>
             <div>

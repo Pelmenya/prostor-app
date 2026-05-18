@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { ChevronRightIcon, StarIcon } from '@heroicons/react/24/solid';
 import { useGetCuratorServiceById, useSetMasterCanEdit } from '@/entities/user';
@@ -57,18 +58,27 @@ function ProfileCard({ master }: { master: TCuratorServiceUser }) {
 
     return (
         <div className="card bg-base-100 p-4 flex flex-row items-center gap-4">
-            <div className="avatar avatar-placeholder shrink-0">
+            <div className={`avatar shrink-0 ${!master.photo_url ? 'avatar-placeholder' : ''}`}>
                 <div
-                    className={`size-16 rounded-full ${as?.isEnabled ? 'bg-primary/10 text-primary' : 'bg-base-300 text-base-content/40'}`}
+                    className={`relative size-16 rounded-full overflow-hidden ${!master.photo_url ? (as?.isEnabled ? 'bg-primary/10 text-primary' : 'bg-base-300 text-base-content/40') : ''}`}
                 >
-                    <span className="text-xl font-semibold">{initials}</span>
+                    {master.photo_url ? (
+                        <Image
+                            src={master.photo_url}
+                            alt={fullName}
+                            fill
+                            className="object-cover"
+                        />
+                    ) : (
+                        <span className="text-xl font-semibold">{initials}</span>
+                    )}
                 </div>
             </div>
             <div>
                 <p className="font-semibold text-base">{fullName}</p>
                 <div className="flex items-center gap-2 mt-0.5">
                     {gradeLabel && <span className="badge badge-sm badge-ghost">{gradeLabel}</span>}
-                    {master.avgRating != null && (
+                    {master.avgRating != null && master.avgRating > 0 && (
                         <span className="flex items-center gap-0.5 text-sm text-warning font-medium">
                             <StarIcon className="size-4" />
                             {master.avgRating.toFixed(1)}
