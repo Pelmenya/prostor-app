@@ -1,11 +1,10 @@
 import { SLOVO_API_URL } from '@/shared/config';
 
 /**
- * Минималистичный fetch для slovo-api. Не используется shared/api/api-client
- * потому что:
+ * Минималистичный fetch для slovo-api (water-analysis + catalog/search). Не
+ * используется shared/api/api-client потому что:
  *  - slovo-api живёт на отдельном origin (NEXT_PUBLIC_SLOVO_API_URL);
- *  - не нуждается в auth refresh / Bearer (water-analysis endpoints — public,
- *    throttle по IP);
+ *  - не нуждается в auth refresh / Bearer (public endpoints, throttle по IP);
  *  - GET с typed query через простой builder без класс-валидации.
  *
  * Ошибка кидается как обычная Error с status в message — TanStack Query сам

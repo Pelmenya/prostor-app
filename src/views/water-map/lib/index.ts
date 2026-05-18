@@ -37,7 +37,7 @@ export {
     useAquiferStats,
 } from './water-analysis.queries';
 
-export { SlovoApiError } from './slovo-api-client';
+export { SlovoApiError } from '@/shared/api';
 
 export {
     WATER_PARAM_META,

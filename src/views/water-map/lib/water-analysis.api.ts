@@ -11,7 +11,7 @@ import type {
     TPredictResponse,
     TWaterParam,
 } from '@/entities/water-analysis';
-import { slovoGet, slovoPost } from './slovo-api-client';
+import { slovoGet, slovoPost } from '@/shared/api';
 
 /**
  * Typed API-обёртки для 7 endpoint'ов slovo water-analysis. Используются
