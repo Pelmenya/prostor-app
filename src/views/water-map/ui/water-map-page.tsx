@@ -67,9 +67,12 @@ export function WaterMapPage() {
                 onMapReady={setMap}
             />
 
-            <WaterMapTopBar subtitle="15 504 анализа · Москва и Подмосковье" />
+            <WaterMapTopBar
+                subtitle="15 504 анализа · Москва и Подмосковье"
+                layersOpen={layersOpen}
+            />
 
-            <SmartSearchInput />
+            <SmartSearchInput layersOpen={layersOpen} />
 
             <RightSideToolbar
                 map={map}
@@ -116,7 +119,7 @@ export function WaterMapPage() {
 
             <SimilarFab />
 
-            <AutoEquipmentCard />
+            <AutoEquipmentCard layersOpen={layersOpen} />
 
             <CellPopup coords={selectedCellCoords} />
 

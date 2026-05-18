@@ -11,22 +11,25 @@ import { useSmartSearchStore } from '../../model/smart-search.store';
  *  - gradient border wrapper (subtle OKLCH brand-primary→secondary, p-px)
  *  - gradient circle camera button справа (как в overlay header)
  *
- * Layout: absolute на mobile с `right-16` чтобы освободить 56px под
- * `RightSideToolbar` (Слои + Zoom +/− glass panel на right-edge). Без этого
- * camera button overlap'ает Слои-button (slovo iter3 pre-push блокер
- * 2026-05-18 16:40). На desktop (≥lg) toolbar не collisidует — LayerPanel
- * sidebar + SmartSearchInput centered в map area, right-edge свободен.
- *
- * AI sparkle badge внутри pill — удалён (slovo iter3 vote 16:40 #3): visual
- * noise + дубль AI badge в overlay hero card. Юзер тапает pill → overlay
- * открывается → AI vibe приходит через hero card (single source of brand).
+ * Layout: absolute mobile `left-4 right-16` (освобождает 56px справа под
+ * `RightSideToolbar`). На desktop reactive к `layersOpen`: panel open →
+ * `lg:left-[24rem]` (за sidebar), panel closed → `lg:left-4` (у viewport
+ * edge). Transition smooth, group с другими left-anchored controls
+ * (WaterMapTopBar pill, AutoEquipmentCard slim bar).
  */
-export function SmartSearchInput() {
+type TProps = {
+    /** LayerPanel open state — на lg сдвигает input за sidebar при open */
+    layersOpen?: boolean;
+};
+
+export function SmartSearchInput({ layersOpen }: TProps) {
     const open = useSmartSearchStore((s) => s.openOverlay);
 
     return (
         <div
-            className="pointer-events-auto absolute left-4 right-16 z-20 lg:left-[24rem] lg:right-4 lg:max-w-md"
+            className={`pointer-events-auto absolute left-4 right-16 z-20 lg:right-4 lg:max-w-md transition-[left] duration-300 ease-out ${
+                layersOpen ? 'lg:left-[24rem]' : 'lg:left-4'
+            }`}
             style={{ top: 'calc(env(safe-area-inset-top, 0) + 4rem)' }}
         >
             {/* Gradient border wrapper — outer p-px ring создаёт illusion цветного

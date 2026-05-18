@@ -8,18 +8,24 @@
  * bottom-nav и съедала viewport карты. Слои-button мигрирован в
  * `RightSideToolbar` (вместе с Zoom +/− grouped).
  *
- * Position: absolute top-left под status-bar, центрировано на mobile,
- * left-aligned на desktop. Glass-style как остальные map controls.
+ * Position: absolute top-left, left-4 везде (mobile) / на desktop —
+ * reactive к `layersOpen`: panel open → отъезжает за sidebar (24rem),
+ * panel closed → у viewport edge (left-4). Transition smooth, group
+ * с другими left-anchored controls (SmartSearchInput, AutoEquipmentCard).
  */
 type TWaterMapTopBarProps = {
     /** Текстовый счётчик «N анализа» (опц.). */
     subtitle?: string;
+    /** LayerPanel open state — на lg сдвигает pill за sidebar при open */
+    layersOpen?: boolean;
 };
 
-export function WaterMapTopBar({ subtitle }: TWaterMapTopBarProps) {
+export function WaterMapTopBar({ subtitle, layersOpen }: TWaterMapTopBarProps) {
     return (
         <div
-            className="pointer-events-none absolute left-4 z-10 lg:left-[24rem]"
+            className={`pointer-events-none absolute left-4 z-10 transition-[left] duration-300 ease-out ${
+                layersOpen ? 'lg:left-[24rem]' : 'lg:left-4'
+            }`}
             style={{ top: 'calc(env(safe-area-inset-top, 0) + 1rem)' }}
         >
             <div className="pointer-events-auto inline-flex items-center gap-2 rounded-full bg-base-100/95 backdrop-blur-md shadow-md border border-base-content/10 px-3 py-1.5">

@@ -57,7 +57,12 @@ function pinKey(pin: { lat: number; lon: number } | null): string | null {
     return `${pin.lat.toFixed(4)},${pin.lon.toFixed(4)}`;
 }
 
-export function AutoEquipmentCard() {
+type TProps = {
+    /** LayerPanel open state — на lg сдвигает bar за sidebar при open */
+    layersOpen?: boolean;
+};
+
+export function AutoEquipmentCard({ layersOpen }: TProps = {}) {
     const pin = useClientPinStore((s) => s.pin);
     const setEquipmentOpen = useWaterMapStore((s) => s.setEquipmentOpen);
     const equipmentOpen = useWaterMapStore((s) => s.equipmentOpen);
@@ -96,7 +101,9 @@ export function AutoEquipmentCard() {
 
     return (
         <div
-            className="pointer-events-auto absolute left-4 z-10 lg:left-[24rem]"
+            className={`pointer-events-auto absolute left-4 z-10 transition-[left] duration-300 ease-out ${
+                layersOpen ? 'lg:left-[24rem]' : 'lg:left-4'
+            }`}
             style={{ bottom: 'calc(env(safe-area-inset-bottom, 0) + 5.5rem)' }}
         >
             {/* Slim bar (design uplift 2026-05-18 Artifact 3): компактный pill
