@@ -4,6 +4,48 @@
 
 ## Текущая задача
 
+### Smart Search Phase 1 — `slovo/docs/features/smart-search-integration.md`
+
+Multi-modal smart search (text + photo) в `/water` page. Branch `feature/water-pivot` (mega-ветка, проект экспериментальный — не дробим на отдельные PR), координация через `docs/feedback/water-map-thread.md`. Полный план — у slovo, фронт делает prostor-claude.
+
+| Шаг | Описание                                                                                                | Прогресс |
+| --- | ------------------------------------------------------------------------------------------------------- | -------- |
+| 1   | `features/smart-search/` скелет — WaterDropAI + SmartSearchInput + SmartSearchOverlay + Zustand         | ✅ done  |
+| 2   | Idle state — input под top-bar + 4 chip-suggestions + recent searches + 📍 По адресу chip               | ✅ done  |
+| 3   | Loading state — 3-stage AI pipeline (📷 Фото → 👁 Vision → 🔒 pgvector) с simulated timers              | ✅ done  |
+| 4   | Results state — vision badge + matchScore + reuse `EquipmentRecommendationCard`                         | ✅ done  |
+| 5   | Backend live на `:3101` (slovo b1a5f28 от 2026-05-16). Dev-mock через `NEXT_PUBLIC_SMART_SEARCH_MOCK=1` | ✅ done  |
+| 6   | Заменить FTUX hint card в `water-map-page.tsx`. Сдвинуть `pin-placement banner` на `top: 8rem`          | ✅ done  |
+
+**Готово к sweep** (slovo Playwright через https tunnel). Открытые вопросы в `docs/feedback/water-map-thread.md` от 2026-05-17 11:00.
+
+**Address-flow:** chip «📍 По адресу» сейчас только prefill'ит query — полноценный `RealEstatePicker` reuse через chip flow перенесён в Phase 1.5 (требует поднять компонент в features/, обновить store).
+
+### Design uplift iter3 — `docs/feedback/water-map-thread.md` от 2026-05-18 11:35 (slovo) + 14:20 (prostor)
+
+3 artifact'а от claude.ai design — реализуем **по очереди** (Дима's instruction).
+
+| Artifact | Описание                                                                                            | Прогресс |
+| -------- | --------------------------------------------------------------------------------------------------- | -------- |
+| 1        | Smart-search overlay polish (hero card, gradient camera, AI vision pill, `MatchScoreRing`, sidebar) | ✅ done  |
+| 2        | LayerPanel radio 3-glyph SVG set (Сплайн blob / Точки 8-dot / Оба combined) вместо Unicode ✨ ● ⊙   | ⬜ 0%    |
+| 3        | Map layout: slim header pill + dominant SmartSearchInput + glass right toolbar + slim AutoEquipment | ⬜ 0%    |
+
+**3 уточнения slovo applied as voted (Artifact 1):**
+
+- Footer метаданные → user-facing «✨ AI распознал за X с» (no LLM-model leak)
+- Throttle counter → hide unless `<3 remaining` (client-side rolling 60s window, `model/throttle-tracker.ts`)
+- Hashtag icon → custom `ArticleDotsIcon` (6-dot grid, извлечён из mockup HTML через Playwright `browser_evaluate`)
+
+**401 noise** — отложено в `docs/backlog/401-auth-refresh-console-noise.md` (Дима's call 2026-05-17, не блокер).
+
+**Ключевое (НЕ путать с Phase 1.5/2):**
+
+- ❌ Camera FAB right-bottom — занят `SimilarFab «Прогноз»`. В Phase 1 только camera-button **в input**. Brand FAB → Phase 1.5, тогда **left-bottom** (оба сосуществуют)
+- ❌ Voice / follow-up dialogue / bbox image overlay / bundled services / desktop split-pane — Phase 1.5/2
+- ❌ Замена `EquipmentModal v5` — smart-search **дополняет** AutoEquipmentCard (water-context остаётся)
+- ✅ Brand-маркер: `WaterDropAI` SVG gradient OKLCH `(72% 0.16 232) → (58% 0.22 250) → (48% 0.26 270)` + sparkle. Sizes 16/20/26/40/56/72px
+
 ### Фронт: Adapter Pattern — `docs/features/auth/AUTH_ADAPTER.md`
 
 | Шаг                  | Описание                                       | Прогресс |
