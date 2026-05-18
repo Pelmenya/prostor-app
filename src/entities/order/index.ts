@@ -5,6 +5,8 @@ export {
     useGetOrdersCount,
     useGetOrderById,
     useUpdateOrderStatus,
+    useUpdateOrderSchedule,
+    useUpdateOrderExecutor,
     orderKeys,
 } from './api/order.api';
 export type {

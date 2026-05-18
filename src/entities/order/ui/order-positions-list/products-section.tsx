@@ -28,6 +28,7 @@ export function ProductsSection({ items, imageUrls, loadingIds }: TProductsSecti
                     isLast={idx === filtered.length - 1}
                     imageUrl={imageUrls?.[item.product?.id]}
                     isImageLoading={loadingIds?.has(item.product?.id) ?? false}
+                    price={item.price}
                 />
             ))}
         </div>

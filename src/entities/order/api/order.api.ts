@@ -155,3 +155,42 @@ export function useUpdateOrderStatus() {
         },
     });
 }
+
+/**
+ * Обновление даты/времени заказа куратором
+ */
+export function useUpdateOrderSchedule() {
+    const api = useApi();
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: ({ orderId, scheduledDate }: { orderId: number; scheduledDate: TWorkDay }) =>
+            api<TOrder>(`/order/${orderId}/schedule`, {
+                method: 'PATCH',
+                body: { scheduledDate },
+            }),
+        onSuccess: (_data, variables) => {
+            void queryClient.invalidateQueries({ queryKey: orderKeys.detail(variables.orderId) });
+        },
+    });
+}
+
+/**
+ * Назначение/смена мастера куратором
+ */
+export function useUpdateOrderExecutor() {
+    const api = useApi();
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: ({ orderId, executorId }: { orderId: number; executorId: number }) =>
+            api<TOrder>(`/order/${orderId}/executor`, {
+                method: 'PATCH',
+                body: { executorId },
+            }),
+        onSuccess: (_data, variables) => {
+            void queryClient.invalidateQueries({ queryKey: orderKeys.detail(variables.orderId) });
+            void queryClient.invalidateQueries({ queryKey: orderKeys.all });
+        },
+    });
+}

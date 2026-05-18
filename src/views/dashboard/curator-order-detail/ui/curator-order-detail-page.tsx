@@ -1,11 +1,27 @@
 'use client';
 
+import { Suspense, useState } from 'react';
 import Image from 'next/image';
-import { PhoneIcon } from '@heroicons/react/24/outline';
+import Link from 'next/link';
+import { PhoneIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import { HomeIcon, MapPinIcon, CalendarDaysIcon, ClockIcon } from '@heroicons/react/24/outline';
-import { useGetOrderById, OrderPositionsList, STATUS_LABEL } from '@/entities/order';
-import { CURATOR_ORDERS_PATH } from '@/shared/config';
-import { formatDateRu, formatUserInitials } from '@/shared/lib';
+import {
+    useGetOrderById,
+    useUpdateOrderStatus,
+    useUpdateOrderSchedule,
+    useUpdateOrderExecutor,
+    OrderPositionsList,
+    STATUS_LABEL,
+    EOrderStatus,
+} from '@/entities/order';
+import { useGetCuratorMasters } from '@/entities/user';
+import {
+    CURATOR_ORDERS_PATH,
+    COMMISSION_PERCENTS,
+    curatorClientPath,
+    curatorMasterPath,
+} from '@/shared/config';
+import { formatDateRu, formatUserInitials, formatPrice } from '@/shared/lib';
 import { PageContainer, DashboardBackHeader, QueryBoundary } from '@/shared/ui';
 import type { TOrder } from '@/entities/order';
 
@@ -29,13 +45,26 @@ function CuratorOrderDetailContent({ orderId }: { orderId: number }) {
             <DashboardBackHeader title={`Заказ #${orderId}`} fallbackHref={CURATOR_ORDERS_PATH} />
             <div className="flex flex-col gap-3 max-w-lg mx-auto py-4">
                 <StatusCard order={order} />
-                {order.client && <PersonCard label="Клиент" user={order.client} />}
-                {order.executor && <PersonCard label="Мастер" user={order.executor} />}
+                {order.client && (
+                    <PersonCard
+                        label="Клиент"
+                        user={order.client}
+                        href={curatorClientPath(order.client.id)}
+                    />
+                )}
+                {order.executor && (
+                    <PersonCard
+                        label="Мастер"
+                        user={order.executor}
+                        href={curatorMasterPath(order.executor.id)}
+                    />
+                )}
                 {!order.executor && <NoExecutorCard />}
                 {order.realEstate && <AddressCard realEstate={order.realEstate} />}
                 <ScheduleCard scheduledDate={order.scheduledDate} />
                 {hasItems && <ItemsCard order={order} />}
                 <PaymentCard order={order} />
+                <ManagementCard order={order} />
             </div>
         </PageContainer>
     );
@@ -61,38 +90,62 @@ type TPersonCardUser = {
     photo_url?: string;
 };
 
-function PersonCard({ label, user }: { label: string; user: TPersonCardUser }) {
+function PersonCard({
+    label,
+    user,
+    href,
+}: {
+    label: string;
+    user: TPersonCardUser;
+    href?: string;
+}) {
     const name = [user.first_name, user.last_name].filter(Boolean).join(' ') || `ID ${user.id}`;
     const initials = formatUserInitials(user.first_name, user.last_name);
+
+    const avatar = (
+        <div className={`avatar shrink-0 ${!user.photo_url ? 'avatar-placeholder' : ''}`}>
+            <div className="relative size-10 rounded-full overflow-hidden bg-primary/10 text-primary">
+                {user.photo_url ? (
+                    <Image src={user.photo_url} alt={name} fill className="object-cover" />
+                ) : (
+                    <span className="text-sm font-semibold">{initials}</span>
+                )}
+            </div>
+        </div>
+    );
+
+    const content = (
+        <div className="flex items-center gap-3">
+            {avatar}
+            <div className="flex flex-col gap-0.5 min-w-0 flex-1">
+                <span className="font-medium text-sm leading-tight">{name}</span>
+                {user.phone && (
+                    <a
+                        href={`tel:${user.phone}`}
+                        className="flex items-center gap-1 text-primary text-sm"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <PhoneIcon className="size-3.5" />
+                        {user.phone}
+                    </a>
+                )}
+            </div>
+            {href && <ChevronRightIcon className="size-4 text-base-content/30 shrink-0" />}
+        </div>
+    );
 
     return (
         <div className="card bg-base-100 p-4 flex flex-col gap-3">
             <p className="text-xs text-base-content/50 font-medium uppercase tracking-wide">
                 {label}
             </p>
-            <div className="flex items-center gap-3">
-                <div className={`avatar shrink-0 ${!user.photo_url ? 'avatar-placeholder' : ''}`}>
-                    <div className="relative size-10 rounded-full overflow-hidden bg-primary/10 text-primary">
-                        {user.photo_url ? (
-                            <Image src={user.photo_url} alt={name} fill className="object-cover" />
-                        ) : (
-                            <span className="text-sm font-semibold">{initials}</span>
-                        )}
-                    </div>
-                </div>
-                <div className="flex flex-col gap-0.5 min-w-0">
-                    <span className="font-medium text-sm leading-tight">{name}</span>
-                    {user.phone && (
-                        <a
-                            href={`tel:${user.phone}`}
-                            className="flex items-center gap-1 text-primary text-sm"
-                        >
-                            <PhoneIcon className="size-3.5" />
-                            {user.phone}
-                        </a>
-                    )}
-                </div>
-            </div>
+            {href ? (
+                <Link href={href} className="hover:opacity-70 transition-opacity">
+                    {content}
+                </Link>
+            ) : (
+                content
+            )}
         </div>
     );
 }
@@ -175,6 +228,8 @@ function ItemsCard({ order }: { order: TOrder }) {
 }
 
 function PaymentCard({ order }: { order: TOrder }) {
+    const masterEarnings = Math.round(order.totalAmount * (1 - COMMISSION_PERCENTS / 100));
+
     return (
         <div className="card bg-base-100 p-4 flex flex-col gap-3">
             <p className="text-xs text-base-content/50 font-medium uppercase tracking-wide">
@@ -182,18 +237,25 @@ function PaymentCard({ order }: { order: TOrder }) {
             </p>
             <div className="flex items-center justify-between">
                 <span className="text-sm text-base-content/60">Итого</span>
-                <span className="text-sm font-semibold">
-                    {order.totalAmount.toLocaleString('ru-RU')} {order.currency}
-                </span>
+                <span className="text-sm font-semibold">{formatPrice(order.totalAmount)}</span>
             </div>
             {order.deliveryCost != null && order.deliveryCost > 0 && (
                 <div className="flex items-center justify-between">
                     <span className="text-sm text-base-content/60">Доставка</span>
-                    <span className="text-sm">
-                        {order.deliveryCost.toLocaleString('ru-RU')} {order.currency}
-                    </span>
+                    <span className="text-sm">{formatPrice(order.deliveryCost)}</span>
                 </div>
             )}
+            <div className="flex items-center justify-between">
+                <div className="flex flex-col">
+                    <span className="text-sm text-base-content/60">Мастер получит</span>
+                    <span className="text-xs text-base-content/40">
+                        После комиссии {COMMISSION_PERCENTS}%
+                    </span>
+                </div>
+                <span className="text-sm font-medium text-success">
+                    {formatPrice(masterEarnings)}
+                </span>
+            </div>
             <div className="flex items-center justify-between">
                 <span className="text-sm text-base-content/60">Статус оплаты</span>
                 <span className="badge badge-sm badge-ghost">{order.paymentStatus}</span>
@@ -204,6 +266,181 @@ function PaymentCard({ order }: { order: TOrder }) {
                     <span className="text-sm">{formatDateRu(order.paidAt)}</span>
                 </div>
             )}
+        </div>
+    );
+}
+
+// ---- Управление заказом ----
+
+function ManagementCard({ order }: { order: TOrder }) {
+    return (
+        <div className="card bg-base-100 p-4 flex flex-col gap-4">
+            <p className="text-xs text-base-content/50 font-medium uppercase tracking-wide">
+                Управление
+            </p>
+            <StatusControl key={order.updatedAt} order={order} />
+            <div className="divider my-0" />
+            <ScheduleControl key={order.updatedAt} order={order} />
+            <div className="divider my-0" />
+            <Suspense
+                fallback={
+                    <div className="flex justify-center py-2">
+                        <span className="loading loading-spinner loading-sm" />
+                    </div>
+                }
+            >
+                <ExecutorControl key={order.updatedAt} order={order} />
+            </Suspense>
+        </div>
+    );
+}
+
+function StatusControl({ order }: { order: TOrder }) {
+    const [value, setValue] = useState<EOrderStatus>(order.status);
+
+    const { mutate, isPending } = useUpdateOrderStatus();
+    const isDirty = value !== order.status;
+
+    return (
+        <div className="flex flex-col gap-2">
+            <span className="text-sm font-medium">Статус</span>
+            <div className="flex gap-2">
+                <select
+                    className="select select-sm flex-1"
+                    value={value}
+                    onChange={(e) => setValue(e.target.value as EOrderStatus)}
+                >
+                    {Object.values(EOrderStatus).map((s) => (
+                        <option key={s} value={s}>
+                            {STATUS_LABEL[s].text}
+                        </option>
+                    ))}
+                </select>
+                <button
+                    className="btn btn-sm btn-primary"
+                    disabled={!isDirty || isPending}
+                    onClick={() => mutate({ orderId: order.id, status: value })}
+                >
+                    {isPending ? (
+                        <span className="loading loading-spinner loading-xs" />
+                    ) : (
+                        'Сохранить'
+                    )}
+                </button>
+            </div>
+        </div>
+    );
+}
+
+const pad = (n: number) => String(n).padStart(2, '0');
+
+function ScheduleControl({ order }: { order: TOrder }) {
+    const sd = order.scheduledDate;
+    const [date, setDate] = useState(sd?.date ?? '');
+    const [startTime, setStartTime] = useState(
+        sd ? `${pad(sd.startHour)}:${pad(sd.startMinute)}` : '09:00',
+    );
+    const [endTime, setEndTime] = useState(
+        sd ? `${pad(sd.endHour)}:${pad(sd.endMinute)}` : '18:00',
+    );
+
+    const { mutate, isPending } = useUpdateOrderSchedule();
+
+    const handleSave = () => {
+        const [sh, sm] = startTime.split(':').map(Number);
+        const [eh, em] = endTime.split(':').map(Number);
+        mutate({
+            orderId: order.id,
+            scheduledDate: {
+                date: date || null,
+                startHour: sh,
+                startMinute: sm,
+                endHour: eh,
+                endMinute: em,
+            },
+        });
+    };
+
+    return (
+        <div className="flex flex-col gap-2">
+            <span className="text-sm font-medium">Дата и время</span>
+            <input
+                type="date"
+                className="input input-sm w-full"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+            />
+            <div className="flex items-center gap-2">
+                <input
+                    type="time"
+                    className="input input-sm flex-1"
+                    value={startTime}
+                    onChange={(e) => setStartTime(e.target.value)}
+                />
+                <span className="text-sm text-base-content/50">–</span>
+                <input
+                    type="time"
+                    className="input input-sm flex-1"
+                    value={endTime}
+                    onChange={(e) => setEndTime(e.target.value)}
+                />
+            </div>
+            <button
+                className="btn btn-sm btn-primary w-full"
+                disabled={isPending}
+                onClick={handleSave}
+            >
+                {isPending ? (
+                    <span className="loading loading-spinner loading-xs" />
+                ) : (
+                    'Сохранить дату'
+                )}
+            </button>
+        </div>
+    );
+}
+
+function ExecutorControl({ order }: { order: TOrder }) {
+    const { data } = useGetCuratorMasters({ limit: 100 });
+    const masters = data.pages.flatMap((p) => p.items);
+
+    const [executorId, setExecutorId] = useState(order.executor?.id ?? 0);
+
+    const { mutate, isPending } = useUpdateOrderExecutor();
+    const isDirty = executorId !== (order.executor?.id ?? 0);
+
+    return (
+        <div className="flex flex-col gap-2">
+            <span className="text-sm font-medium">Мастер</span>
+            <div className="flex gap-2">
+                <select
+                    className="select select-sm flex-1"
+                    value={executorId}
+                    onChange={(e) => setExecutorId(Number(e.target.value))}
+                >
+                    <option value={0}>Не назначен</option>
+                    {masters.map((m) => {
+                        const name =
+                            [m.first_name, m.last_name].filter(Boolean).join(' ') || `ID ${m.id}`;
+                        return (
+                            <option key={m.id} value={m.id}>
+                                {name}
+                            </option>
+                        );
+                    })}
+                </select>
+                <button
+                    className="btn btn-sm btn-primary"
+                    disabled={!isDirty || isPending || executorId === 0}
+                    onClick={() => mutate({ orderId: order.id, executorId })}
+                >
+                    {isPending ? (
+                        <span className="loading loading-spinner loading-xs" />
+                    ) : (
+                        'Сохранить'
+                    )}
+                </button>
+            </div>
         </div>
     );
 }

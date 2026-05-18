@@ -3,6 +3,7 @@ export { API_URL } from './api';
 export { PRIVATE_PATHS } from './private-paths';
 export { MAP_STYLE } from './maps';
 export const APP_NAME = 'PROSTOR';
+export const COMMISSION_PERCENTS = Number(process.env.NEXT_PUBLIC_COMMISSION_PERCENTS ?? 35);
 export { MASTER_PATH, MASTER_SETTINGS_PATH, MASTER_ORDERS_PATH, masterOrderPath } from './routes';
 export {
     CURATOR_PATH,
