@@ -155,6 +155,20 @@ export function SmartSearchOverlay() {
     const throttleRemaining = useThrottleRemaining();
     const showThrottleWarn = throttleRemaining > 0 && throttleRemaining < 3;
 
+    // Frontend dedupe по externalId — idempotent safety net поверх backend
+    // dedupe (slovo Phase 1.5 Slice 1 `eab20c9` 2026-05-17 уже dedups chunks
+    // на бэке + over-fetch multiplier 5). Backend explicitly спроектировал
+    // двух-слойную защиту («Frontend dedupe остаётся (idempotent safety net)
+    // — не coupled change»). Если backend regression / edge case — frontend
+    // не упадёт с React key collision.
+    const seenIds = new Set<string>();
+    const dedupedResults = results.filter((doc) => {
+        const key = doc.metadata.externalId;
+        if (seenIds.has(key)) return false;
+        seenIds.add(key);
+        return true;
+    });
+
     return (
         <BottomSheetModal
             isOpen={isOpen}
@@ -202,10 +216,10 @@ export function SmartSearchOverlay() {
                     </span>
                     {showResults && timeTakenMs !== undefined && (
                         <span className="text-xs text-base-content/55 ml-2 hidden sm:inline">
-                            {results.length}{' '}
-                            {results.length === 1
+                            {dedupedResults.length}{' '}
+                            {dedupedResults.length === 1
                                 ? 'результат'
-                                : results.length < 5
+                                : dedupedResults.length < 5
                                   ? 'результата'
                                   : 'результатов'}{' '}
                             · {(timeTakenMs / 1000).toFixed(1)} с
@@ -396,7 +410,7 @@ export function SmartSearchOverlay() {
                         <section aria-label="Найденные товары" className="flex-1 min-w-0">
                             <div className="flex items-center justify-between mb-2">
                                 <h3 className="text-xs font-bold uppercase tracking-wider text-base-content/50">
-                                    Подходящие товары · {results.length}
+                                    Подходящие товары · {dedupedResults.length}
                                 </h3>
                                 {/* «Фильтр · все» — Phase 2 placeholder per design uplift mockup */}
                                 <button
@@ -410,7 +424,7 @@ export function SmartSearchOverlay() {
                             </div>
                             {/* 1-column mobile / 2-column lg desktop */}
                             <ul className="flex flex-col gap-3 lg:grid lg:grid-cols-2 lg:gap-3">
-                                {results.map((doc) => {
+                                {dedupedResults.map((doc) => {
                                     const priceRub =
                                         doc.metadata.salePriceKopecks !== null
                                             ? doc.metadata.salePriceKopecks / 100
@@ -438,7 +452,7 @@ export function SmartSearchOverlay() {
                                     const subtitle = doc.metadata.description?.trim() || null;
                                     return (
                                         <li
-                                            key={doc.id}
+                                            key={doc.metadata.externalId}
                                             className="rounded-xl border border-base-content/10 bg-base-100 overflow-hidden flex flex-col"
                                         >
                                             <Link
