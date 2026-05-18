@@ -1,8 +1,8 @@
 import { useQuery, useSuspenseInfiniteQuery, useSuspenseQuery } from '@tanstack/react-query';
 import { useApi } from '@/shared/api';
 import { buildSearchParams } from '@/shared/lib';
-import type { EUserRole } from '@/shared/model';
-import type { TCuratorUser } from '@/shared/model';
+import type { TCuratorUser, TCuratorServiceUser } from '@/shared/model';
+import { EUserRole } from '@/shared/model';
 
 export const curatorUserKeys = {
     all: ['curator-users'] as const,
@@ -24,6 +24,13 @@ export type TCuratorUsersCountFilters = Omit<TCuratorUsersFilters, 'limit' | 'so
 
 type TCuratorUsersPaginatedResponse = {
     items: TCuratorUser[];
+    nextCursor?: string | null;
+    hasMore: boolean;
+    count: number;
+};
+
+type TCuratorMastersPaginatedResponse = {
+    items: TCuratorServiceUser[];
     nextCursor?: string | null;
     hasMore: boolean;
     count: number;
@@ -51,6 +58,28 @@ export function useGetCuratorUsers(filters: TCuratorUsersFilters) {
         queryFn: ({ pageParam }: { pageParam: string | undefined }) => {
             const queryString = buildSearchParams({ ...filters, cursor: pageParam });
             return api<TCuratorUsersPaginatedResponse>(`/curator/users/all/filters?${queryString}`);
+        },
+        initialPageParam: undefined as string | undefined,
+        getNextPageParam: (lastPage) =>
+            lastPage.hasMore ? (lastPage.nextCursor ?? undefined) : undefined,
+        staleTime: 30_000,
+    });
+}
+
+export function useGetCuratorMasters(filters: Omit<TCuratorUsersFilters, 'role'>) {
+    const api = useApi();
+
+    return useSuspenseInfiniteQuery({
+        queryKey: curatorUserKeys.list({ ...filters, role: [EUserRole.SERVICE] }),
+        queryFn: ({ pageParam }: { pageParam: string | undefined }) => {
+            const queryString = buildSearchParams({
+                ...filters,
+                role: [EUserRole.SERVICE],
+                cursor: pageParam,
+            });
+            return api<TCuratorMastersPaginatedResponse>(
+                `/curator/users/all/filters?${queryString}`,
+            );
         },
         initialPageParam: undefined as string | undefined,
         getNextPageParam: (lastPage) =>

@@ -17,3 +17,21 @@ export type TCuratorUser = {
     created_at: string;
     updated_at: string;
 };
+
+export type TCuratorMasterAccountService = {
+    id: string;
+    canEdit: boolean;
+    isEnabled: boolean;
+    coordinates: { type: 'Point'; coordinates: [number, number] } | null;
+    address: string | null;
+    carNumber: string | null;
+    carModel: string | null;
+    storeId: string | null;
+    projectId: string | null;
+    grade: string | null;
+};
+
+export type TCuratorServiceUser = TCuratorUser & {
+    accountService: TCuratorMasterAccountService | null;
+    avgRating: number | null;
+};
