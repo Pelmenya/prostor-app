@@ -83,10 +83,11 @@ export function ChipSuggestions({ onPick }: TProps) {
             <ul className="flex flex-wrap gap-2">
                 {CHIPS.map(({ kind, label, Icon, placeholder }) => (
                     <li key={kind}>
+                        {/* min-h-11 (44px) — WCAG 2.5.5 touch target + P2.8 правило. */}
                         <button
                             type="button"
                             onClick={() => onPick({ kind, placeholder })}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-base-200 hover:bg-base-300 text-sm text-base-content/85 transition cursor-pointer"
+                            className="inline-flex items-center gap-1.5 min-h-11 px-3 py-1.5 rounded-full bg-base-200 hover:bg-base-300 text-sm text-base-content/85 transition cursor-pointer"
                         >
                             <Icon className="size-4 text-primary shrink-0" aria-hidden="true" />
                             <span>{label}</span>

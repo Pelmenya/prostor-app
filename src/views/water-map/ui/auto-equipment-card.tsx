@@ -125,11 +125,14 @@ export function AutoEquipmentCard({ layersOpen }: TProps = {}) {
                     </span>
                     <ChevronRightIcon className="size-4 shrink-0 opacity-80" />
                 </button>
+                {/* Touch area 44px (min-w-11/min-h-11) — visually pill stays 28px,
+                    но -m-2 расширяет hitbox без визуального сдвига. WCAG 2.5.5 +
+                    P2.8 правило (44px touch). */}
                 <button
                     type="button"
                     onClick={handleDismiss}
                     aria-label="Скрыть"
-                    className="size-7 rounded-full flex items-center justify-center hover:bg-primary-content/20 shrink-0"
+                    className="size-7 min-w-11 min-h-11 -m-2 rounded-full flex items-center justify-center hover:bg-primary-content/20 shrink-0"
                 >
                     <XMarkIcon className="size-3.5" />
                 </button>

@@ -195,15 +195,16 @@ export function LayerPanel({ open, onClose }: TLayerPanelProps) {
             >
                 {/* Drag handle — drag-to-dismiss swipe вниз. Touch area
                     расширена через py-3 (cumulative ~32px touchable region)
-                    для удобства попадания пальцем. Visual line остаётся тонкой. */}
+                    для удобства попадания пальцем. Visual line остаётся тонкой.
+                    aria-hidden + без role=button — drag это input-modality
+                    affordance, для keyboard есть X в header / Esc / backdrop tap. */}
                 <div
                     className="lg:hidden flex justify-center py-3 cursor-grab active:cursor-grabbing touch-none"
                     onPointerDown={handleDragStart}
                     onPointerMove={handleDragMove}
                     onPointerUp={handleDragEnd}
                     onPointerCancel={handleDragEnd}
-                    aria-label="Свайп вниз — закрыть"
-                    role="button"
+                    aria-hidden="true"
                 >
                     <span className="block w-12 h-1 rounded-full bg-base-content/30" />
                 </div>

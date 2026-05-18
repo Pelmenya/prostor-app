@@ -81,15 +81,17 @@ export function BottomSheetModal({
                 >
                     {/* Drag handle — mobile only. Touch area расширена через py-2.5
                         (~28px tappable region) — тонкая визуальная полоска
-                        остаётся, но пальцем удобно попасть. */}
+                        остаётся, но пальцем удобно попасть.
+                        aria-hidden + без role=button — drag это input-modality
+                        affordance; для keyboard есть X в header / Esc / backdrop tap
+                        (Headless UI Dialog). */}
                     <div
                         className="sm:hidden flex justify-center py-2.5 cursor-grab active:cursor-grabbing touch-none shrink-0"
                         onPointerDown={handleDragStart}
                         onPointerMove={handleDragMove}
                         onPointerUp={handleDragEnd}
                         onPointerCancel={handleDragEnd}
-                        aria-label="Свайп вниз — закрыть"
-                        role="button"
+                        aria-hidden="true"
                     >
                         <span className="block w-12 h-1 rounded-full bg-base-content/30" />
                     </div>
