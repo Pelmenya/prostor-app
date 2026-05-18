@@ -2,10 +2,10 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { ChevronRightIcon, StarIcon } from '@heroicons/react/24/solid';
+import { ChevronRightIcon, StarIcon, Cog6ToothIcon } from '@heroicons/react/24/solid';
 import { useGetCuratorServiceById, useSetMasterCanEdit } from '@/entities/user';
 import { useGetOrders, OrderStatus } from '@/entities/order';
-import { curatorOrderPath, CURATOR_MASTERS_PATH } from '@/shared/config';
+import { curatorOrderPath, curatorMasterEditPath, CURATOR_MASTERS_PATH } from '@/shared/config';
 import { formatUserInitials, formatDateRu, formatRuPhoneForView } from '@/shared/lib';
 import { PageContainer, DashboardBackHeader, QueryBoundary } from '@/shared/ui';
 import type { TCuratorServiceUser, TCuratorMasterAccountService } from '@/shared/model';
@@ -173,6 +173,14 @@ function ManagementCard({ master, userId }: { master: TCuratorServiceUser; userI
                     onChange={(e) => setCanEdit({ userId, canEdit: e.target.checked })}
                 />
             </div>
+
+            <Link
+                href={curatorMasterEditPath(userId)}
+                className="btn btn-outline btn-sm w-full gap-2"
+            >
+                <Cog6ToothIcon className="size-4" />
+                Настройки мастера
+            </Link>
         </div>
     );
 }

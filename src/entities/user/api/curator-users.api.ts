@@ -7,8 +7,40 @@ import {
 } from '@tanstack/react-query';
 import { useApi } from '@/shared/api';
 import { buildSearchParams } from '@/shared/lib';
-import type { TCuratorUser, TCuratorServiceUser } from '@/shared/model';
+import type { TCuratorUser, TCuratorServiceUser, TWorkDay } from '@/shared/model';
 import { EUserRole } from '@/shared/model';
+
+// ---- Типы тел запросов для редактирования мастера куратором ----
+
+export type TUpdateMasterProfileBody = {
+    first_name?: string;
+    last_name?: string;
+    phone?: string;
+};
+
+export type TUpdateMasterLocationBody = {
+    address?: string;
+    coordinates?: { type: 'Point'; coordinates: [number, number] };
+    suggestion?: unknown;
+    geoData?: unknown;
+    departureBasis?: 'OWN_ADDRESS' | 'NEAREST_STORE';
+    storeId?: string | null;
+};
+
+export type TUpdateMasterVehicleBody = {
+    grade?: 'courier' | 'specialist' | 'senior_specialist' | 'master';
+    carModel?: string;
+    carNumber?: string;
+    maxCargoLength?: number;
+    maxCargoWidth?: number;
+    maxCargoHeight?: number;
+    maxCargoWeight?: number;
+};
+
+export type TUpdateMasterScheduleBody = {
+    workDays?: TWorkDay[];
+    calendarMonths?: number;
+};
 
 export const curatorUserKeys = {
     all: ['curator-users'] as const,
@@ -134,5 +166,73 @@ export function useGetCuratorUsersCount(
         },
         staleTime: 30_000,
         enabled,
+    });
+}
+
+// ---- Редактирование мастера куратором ----
+
+function invalidateMaster(queryClient: ReturnType<typeof useQueryClient>, userId: number) {
+    void queryClient.invalidateQueries({ queryKey: [...curatorUserKeys.all, 'service', userId] });
+}
+
+export function useUpdateMasterProfile() {
+    const api = useApi();
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ userId, ...body }: { userId: number } & TUpdateMasterProfileBody) =>
+            api(`/curator/users/${userId}/profile`, { method: 'PATCH', body }),
+        onSuccess: (_data, { userId }) => invalidateMaster(queryClient, userId),
+    });
+}
+
+export function useUpdateMasterLocation() {
+    const api = useApi();
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ userId, ...body }: { userId: number } & TUpdateMasterLocationBody) =>
+            api(`/curator/users/${userId}/account-service/location`, { method: 'PATCH', body }),
+        onSuccess: (_data, { userId }) => invalidateMaster(queryClient, userId),
+    });
+}
+
+export function useUpdateMasterVehicle() {
+    const api = useApi();
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ userId, ...body }: { userId: number } & TUpdateMasterVehicleBody) =>
+            api(`/curator/users/${userId}/account-service/vehicle`, { method: 'PATCH', body }),
+        onSuccess: (_data, { userId }) => invalidateMaster(queryClient, userId),
+    });
+}
+
+export function useUpdateMasterSchedule() {
+    const api = useApi();
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ userId, ...body }: { userId: number } & TUpdateMasterScheduleBody) =>
+            api(`/curator/users/${userId}/account-service/schedule`, { method: 'PATCH', body }),
+        onSuccess: (_data, { userId }) => invalidateMaster(queryClient, userId),
+    });
+}
+
+export function useFillMasterCalendar() {
+    const api = useApi();
+    return useMutation({
+        mutationFn: (userId: number) =>
+            api(`/curator/users/${userId}/fill-calendar`, { method: 'POST', body: {} }),
+    });
+}
+
+export function useUpdateMasterZones() {
+    const api = useApi();
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ userId, zoneIds }: { userId: number; zoneIds: number[] }) =>
+            api(`/curator/users/${userId}/zones`, { method: 'PUT', body: { zoneIds } }),
+        onSuccess: (_data, { userId }) => {
+            void queryClient.invalidateQueries({
+                queryKey: [...curatorUserKeys.all, 'zones', userId],
+            });
+        },
     });
 }

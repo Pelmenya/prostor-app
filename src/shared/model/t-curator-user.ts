@@ -1,4 +1,5 @@
 import type { EUserRole } from './t-user';
+import type { TWorkDay } from './t-work-day';
 
 export type TCuratorUser = {
     id: number;
@@ -29,6 +30,13 @@ export type TCuratorMasterAccountService = {
     storeId: string | null;
     projectId: string | null;
     grade: string | null;
+    departureBasis: 'OWN_ADDRESS' | 'NEAREST_STORE' | null;
+    maxCargoLength: number | null;
+    maxCargoWidth: number | null;
+    maxCargoHeight: number | null;
+    maxCargoWeight: number | null;
+    workDays: TWorkDay[] | null;
+    calendarMonths: number | null;
 };
 
 export type TCuratorServiceUser = TCuratorUser & {

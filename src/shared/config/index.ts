@@ -11,6 +11,7 @@ export {
     curatorClientPath,
     CURATOR_MASTERS_PATH,
     curatorMasterPath,
+    curatorMasterEditPath,
     CURATOR_ORDERS_PATH,
     curatorOrderPath,
     CURATOR_ZONES_PATH,

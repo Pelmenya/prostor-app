@@ -49,3 +49,15 @@ export function useUpdateMyZones() {
         },
     });
 }
+
+export function useGetMasterZonesByCurator(userId: number) {
+    const api = useApi();
+    return useSuspenseQuery<TServiceZone[]>({
+        queryKey: ['curator-users', 'zones', userId] as const,
+        queryFn: async () => {
+            const data = await api<TServiceZone[]>(`/zones/my?userId=${userId}`);
+            return data ?? [];
+        },
+        staleTime: 30_000,
+    });
+}

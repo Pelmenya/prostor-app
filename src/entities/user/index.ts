@@ -6,9 +6,22 @@ export {
     useGetCuratorClientById,
     useGetCuratorServiceById,
     useSetMasterCanEdit,
+    useUpdateMasterProfile,
+    useUpdateMasterLocation,
+    useUpdateMasterVehicle,
+    useUpdateMasterSchedule,
+    useFillMasterCalendar,
+    useUpdateMasterZones,
     curatorUserKeys,
 } from './api/curator-users.api';
-export type { TCuratorUsersFilters, TCuratorUsersCountFilters } from './api/curator-users.api';
+export type {
+    TCuratorUsersFilters,
+    TCuratorUsersCountFilters,
+    TUpdateMasterProfileBody,
+    TUpdateMasterLocationBody,
+    TUpdateMasterVehicleBody,
+    TUpdateMasterScheduleBody,
+} from './api/curator-users.api';
 export type { TUser } from '@/shared/model';
 export type { TCuratorUser, TCuratorServiceUser } from '@/shared/model';
 export { ProfileForm } from './ui/profile-form';
