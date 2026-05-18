@@ -96,44 +96,37 @@ export function AutoEquipmentCard() {
 
     return (
         <div
-            className="pointer-events-auto absolute left-2 right-2 z-10 rounded-xl bg-primary text-primary-content shadow-lg p-3 flex items-center gap-3 lg:left-[376px] lg:right-auto lg:max-w-md"
+            className="pointer-events-auto absolute left-2 right-2 z-10 lg:left-[376px] lg:right-auto lg:max-w-sm flex justify-center"
             style={{ bottom: 'calc(env(safe-area-inset-bottom, 0) + 5.5rem)' }}
         >
-            <button
-                type="button"
-                onClick={handleOpen}
-                className="flex-1 text-left flex items-center gap-3 cursor-pointer"
-            >
-                <div className="size-9 rounded-full bg-primary-content/20 flex items-center justify-center shrink-0">
-                    <span className="text-base font-bold">{data.problems.length}</span>
-                </div>
-                <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold leading-tight">
-                        По вашему адресу{problemsTail(data.problems.length)}
-                    </p>
-                    <p className="text-xs opacity-80 leading-tight mt-0.5">
-                        {data.recommendations.length} {recsTail(data.recommendations.length)} — тап
-                        для деталей
-                    </p>
-                </div>
-                <ChevronRightIcon className="size-5 shrink-0 opacity-80" />
-            </button>
-            <button
-                type="button"
-                onClick={handleDismiss}
-                aria-label="Скрыть"
-                className="rounded-full p-1 hover:bg-primary-content/20 shrink-0"
-            >
-                <XMarkIcon className="size-4" />
-            </button>
+            {/* Slim bar (design uplift 2026-05-18 Artifact 3): компактный pill
+                с counter slot слева + краткая summary + chevron right. Не съедает
+                viewport центр heatmap. */}
+            <div className="inline-flex items-center gap-2 rounded-full bg-primary text-primary-content shadow-md pl-1.5 pr-1 py-1 max-w-full">
+                <button
+                    type="button"
+                    onClick={handleOpen}
+                    className="flex items-center gap-2 min-w-0 cursor-pointer"
+                >
+                    <span className="size-7 rounded-full bg-primary-content/20 flex items-center justify-center shrink-0 text-xs font-bold tabular-nums">
+                        {data.problems.length}
+                    </span>
+                    <span className="text-xs font-medium leading-tight whitespace-nowrap">
+                        {data.recommendations.length} {recsTail(data.recommendations.length)}
+                    </span>
+                    <ChevronRightIcon className="size-4 shrink-0 opacity-80" />
+                </button>
+                <button
+                    type="button"
+                    onClick={handleDismiss}
+                    aria-label="Скрыть"
+                    className="size-7 rounded-full flex items-center justify-center hover:bg-primary-content/20 shrink-0"
+                >
+                    <XMarkIcon className="size-3.5" />
+                </button>
+            </div>
         </div>
     );
-}
-
-function problemsTail(n: number): string {
-    if (n === 1) return ': 1 проблема';
-    if (n >= 2 && n <= 4) return `: ${n} проблемы`;
-    return `: ${n} проблем`;
 }
 
 function recsTail(n: number): string {

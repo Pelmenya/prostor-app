@@ -1,46 +1,33 @@
 'use client';
 
-import { Squares2X2Icon } from '@heroicons/react/24/outline';
-
+/**
+ * Slim header pill «● 15 504 анализа · Москва и Подмосковье».
+ *
+ * Design uplift 2026-05-18 (Artifact 3): заменяет большую title-card с
+ * подписью «Карта качества воды» — она дублировала вкладку «Вода» в
+ * bottom-nav и съедала viewport карты. Слои-button мигрирован в
+ * `RightSideToolbar` (вместе с Zoom +/− grouped).
+ *
+ * Position: absolute top-left под status-bar, центрировано на mobile,
+ * left-aligned на desktop. Glass-style как остальные map controls.
+ */
 type TWaterMapTopBarProps = {
-    onToggleLayers: () => void;
-    /** Текстовый счётчик «N анализов» (опц., передаётся из page если нужен). */
+    /** Текстовый счётчик «N анализа» (опц.). */
     subtitle?: string;
-    /** Активна ли панель layers — для toggle-icon highlight. */
-    layersOpen?: boolean;
 };
 
-/**
- * Полоса поверх карты: title + кнопка layers (toggle bottom-sheet/sidebar).
- * Back arrow убрали — на /water нет родительской страницы (3-я вкладка нав-бара).
- *
- * Position: absolute поверх map (карта — full screen). Pointer-events: auto
- * только на самом баре, чтобы клики проходили на карту вне него.
- */
-export function WaterMapTopBar({ onToggleLayers, subtitle, layersOpen }: TWaterMapTopBarProps) {
+export function WaterMapTopBar({ subtitle }: TWaterMapTopBarProps) {
     return (
-        <div className="pointer-events-none absolute top-4 left-4 right-4 z-10 flex items-start gap-2">
-            <div className="pointer-events-auto flex-1 rounded-xl bg-base-100/95 backdrop-blur-md shadow-md border border-base-content/10 px-3 py-2 flex flex-col">
-                <span className="text-sm font-bold text-base-content leading-tight">
-                    Карта качества воды
+        <div
+            className="pointer-events-none absolute left-1/2 -translate-x-1/2 z-10 lg:left-4 lg:translate-x-0"
+            style={{ top: 'calc(env(safe-area-inset-top, 0) + 1rem)' }}
+        >
+            <div className="pointer-events-auto inline-flex items-center gap-2 rounded-full bg-base-100/95 backdrop-blur-md shadow-md border border-base-content/10 px-3 py-1.5">
+                <span className="size-1.5 rounded-full bg-success animate-pulse" aria-hidden />
+                <span className="text-xs font-medium text-base-content/85 whitespace-nowrap">
+                    {subtitle ?? '15 504 анализа'}
                 </span>
-                {subtitle && (
-                    <span className="text-xs text-base-content/60 leading-tight mt-0.5">
-                        {subtitle}
-                    </span>
-                )}
             </div>
-            <button
-                type="button"
-                onClick={onToggleLayers}
-                aria-label="Слои"
-                aria-pressed={layersOpen}
-                className={`pointer-events-auto rounded-xl bg-base-100/95 backdrop-blur-md shadow-md border border-base-content/10 size-12 flex items-center justify-center transition ${
-                    layersOpen ? 'text-primary ring-1 ring-primary/40' : 'text-base-content/80'
-                }`}
-            >
-                <Squares2X2Icon className="size-5" />
-            </button>
         </div>
     );
 }

@@ -14,8 +14,8 @@ import { CellPopup } from './cell-popup';
 import { DepthPopup } from './depth-popup';
 import { EquipmentModal } from './equipment-modal';
 import { LayerPanel } from './layer-panel';
-import { MapZoomControls } from './map-zoom-controls';
 import { PointPopup } from './point-popup';
+import { RightSideToolbar } from './right-side-toolbar';
 import { PredictModal } from './predict-modal';
 import { SeverityLegend } from './severity-legend';
 import { SimilarFab } from './similar-fab';
@@ -67,15 +67,15 @@ export function WaterMapPage() {
                 onMapReady={setMap}
             />
 
-            <WaterMapTopBar
-                onToggleLayers={() => setUserOverride(!layersOpen)}
-                layersOpen={layersOpen}
-                subtitle="Москва и Подмосковье · 15 504 анализа"
-            />
+            <WaterMapTopBar subtitle="15 504 анализа · Москва и Подмосковье" />
 
             <SmartSearchInput />
 
-            <MapZoomControls map={map} />
+            <RightSideToolbar
+                map={map}
+                onToggleLayers={() => setUserOverride(!layersOpen)}
+                layersOpen={layersOpen}
+            />
 
             {/* Pin placement mode banner — instructs user куда тапать.
                 top:8rem (под top-bar + SmartSearchInput sticky) — sticky-input

@@ -29,7 +29,7 @@ Multi-modal smart search (text + photo) в `/water` page. Branch `feature/water-
 | -------- | --------------------------------------------------------------------------------------------------- | -------- |
 | 1        | Smart-search overlay polish (hero card, gradient camera, AI vision pill, `MatchScoreRing`, sidebar) | ✅ done  |
 | 2        | LayerPanel radio 3-glyph SVG set (Сплайн blob / Точки 8-dot / Оба combined) вместо Unicode ✨ ● ⊙   | ✅ done  |
-| 3        | Map layout: slim header pill + dominant SmartSearchInput + glass right toolbar + slim AutoEquipment | ⬜ 0%    |
+| 3        | Map layout: slim header pill + dominant SmartSearchInput + glass right toolbar + slim AutoEquipment | ✅ done  |
 
 **3 уточнения slovo applied as voted (Artifact 1):**
 
