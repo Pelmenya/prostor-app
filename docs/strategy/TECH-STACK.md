@@ -45,11 +45,20 @@
 
 ### State & Data
 
-| Пакет           | Версия | Зачем                          | Заменяет                             |
-| --------------- | ------ | ------------------------------ | ------------------------------------ |
-| **RTK Query**   | 2.11.x | API-слой, кэширование, мутации | RTK 2.5.1 (переезжает без изменений) |
-| **React Redux** | 9.x    | Привязка Redux к React         | Без изменений                        |
-| **date-fns**    | 4.x    | Работа с датами                | Без изменений                        |
+| Пакет               | Версия | Зачем                                                 | Заменяет                    |
+| ------------------- | ------ | ----------------------------------------------------- | --------------------------- |
+| **TanStack Query**  | 5.90.x | API-слой, кэширование, мутации, refetch on focus, SWR | RTK Query 2.5.1             |
+| **Zustand**         | 5.0.x  | Клиентский UI state + persist (localStorage)          | Redux Toolkit + React Redux |
+| **React Hook Form** | 7.x    | Управляемые формы                                     | Без изменений               |
+| **Zod**             | 3.x    | Runtime validation (TS-инференс типов из схем)        | Без изменений               |
+| **date-fns**        | 4.x    | Работа с датами                                       | Без изменений               |
+
+**Решение пересмотрено** в Phase 1 (Web MVP): после оценки RTK Query vs TanStack
+Query на реальных кейсах (каталог, корзина, water-analysis) — TanStack даёт
+лучше DX (queryKey-based кэш, suspense-режим, infinite queries встроены),
+плюс Zustand для UI-state легче чем Redux store с slices. Если в будущем понадобится
+shared business state между фичами с time-travel debugging — можно вернуть RTK,
+но пока TanStack + Zustand покрывают все use cases.
 
 ### Аутентификация
 
@@ -149,14 +158,13 @@ app/
 
 - **(web)** layout — серверный, SSR, `NextAuth` сессии, стандартная навигация
 - **(miniapp)** layout — клиентский (`'use client'`), авторизация через `initDataRaw` (Telegram) или `initData` (MAX)
-- **shared/** — бизнес-логика, UI-компоненты, RTK Query слайсы — общие для обоих layout'ов
+- **shared/** — бизнес-логика, UI-компоненты, TanStack Query hooks, общие для обоих layout'ов
 - Один деплой, один домен, разные точки входа
 
 ---
 
 ## Что переезжает без изменений
 
-- RTK Query слайсы (API endpoints)
 - DaisyUI компоненты + Tailwind стили
 - Бизнес-логика (хуки, утилиты, типы)
 - date-fns форматирование
@@ -164,6 +172,7 @@ app/
 ## Что нужно переписать
 
 - React Router → App Router (маршрутизация)
+- RTK Query (старый фронт) → TanStack Query + Zustand (PROSTOR)
 - `useMemo` / `useCallback` / `React.memo` → убрать (React Compiler)
 - Telegram SDK прямые вызовы → Platform Adapter
 - Аутентификация → мульти-auth (NextAuth + initData)
@@ -176,7 +185,7 @@ app/
 
 - Создать Next.js 16 проект
 - Настроить Tailwind 4 + DaisyUI 5
-- Настроить RTK Query (провайдеры)
+- Настроить TanStack Query (QueryProvider в layout) + Zustand stores
 - Два layout'а: (web) и (miniapp)
 
 ### Этап 2: Перенос компонентов (1-2 недели)
