@@ -27,7 +27,7 @@ export function SmartSearchInput({ layersOpen }: TProps) {
 
     return (
         <div
-            className={`pointer-events-auto absolute left-4 right-16 z-20 lg:right-4 lg:max-w-md transition-[left] duration-300 ease-out ${
+            className={`pointer-events-auto absolute left-4 right-[4.25rem] z-20 lg:right-4 lg:max-w-md transition-[left] duration-300 ease-out ${
                 layersOpen ? 'lg:left-[24rem]' : 'lg:left-4'
             }`}
             style={{ top: 'calc(env(safe-area-inset-top, 0) + 4rem)' }}

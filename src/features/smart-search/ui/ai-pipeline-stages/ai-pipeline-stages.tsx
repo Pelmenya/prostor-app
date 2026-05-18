@@ -37,14 +37,22 @@ export function AiPipelineStages() {
     const stages = image ? STAGES_WITH_PHOTO : STAGES_TEXT_ONLY;
 
     const [elapsedMs, setElapsedMs] = useState(0);
+    const lastStageStartMs = stages[stages.length - 1].startMs;
 
     useEffect(() => {
         const start = performance.now();
         const interval = setInterval(() => {
-            setElapsedMs(performance.now() - start);
+            const elapsed = performance.now() - start;
+            setElapsedMs(elapsed);
+            // Stop polling после last stage start — все стейджи уже стабилизировались
+            // (done/active не меняются). Mutation резолвится onSuccess и компонент
+            // unmount'ится, но если задержался — экономим re-renders.
+            if (elapsed >= lastStageStartMs) {
+                clearInterval(interval);
+            }
         }, 80);
         return () => clearInterval(interval);
-    }, []);
+    }, [lastStageStartMs]);
 
     return (
         <div className="flex flex-col gap-4">

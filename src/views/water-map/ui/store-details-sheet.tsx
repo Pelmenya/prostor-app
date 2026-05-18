@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { useCartStore, useCartHydrated, selectTotalItems } from '@/entities/cart';
 import { useInventoryCheck } from '@/entities/real-estate';
 import { BottomSheetModal } from '@/shared/ui';
@@ -60,17 +60,17 @@ export function StoreDetailsSheet({
     const selectedRouteTo = useWaterMapStore((s) => s.selectedRouteTo);
 
     // Маппим cart → bones для inventory-check API. Скипаем zero-count items
-    // (там только services). Хешем `Object.values` чтобы query key стабильный.
-    const checkItems = useMemo(() => {
-        if (!hydrated) return [];
-        return Object.values(cartItems)
-            .filter((it) => it.count > 0)
-            .map((it) => ({
-                productId: it.product.id,
-                count: it.count,
-                productName: it.product.name,
-            }));
-    }, [cartItems, hydrated]);
+    // (там только services). React Compiler сам мемоизирует это derivation
+    // — useMemo не нужен (CLAUDE.md: React 19 правило).
+    const checkItems = hydrated
+        ? Object.values(cartItems)
+              .filter((it) => it.count > 0)
+              .map((it) => ({
+                  productId: it.product.id,
+                  count: it.count,
+                  productName: it.product.name,
+              }))
+        : [];
 
     const totalCartItems = hydrated ? selectTotalItems(cartItems) : 0;
     const hasCart = checkItems.length > 0;
