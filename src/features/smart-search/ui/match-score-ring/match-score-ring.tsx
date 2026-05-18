@@ -23,11 +23,11 @@ const CIRCUMFERENCE = 2 * Math.PI * 22;
 
 function colorFor(score: number): { stroke: string; text: string } {
     if (score >= 80) {
-        // Brand primary blue (middle stop WaterDropAI gradient)
+        // Brand primary blue (middle stop WaterDrop gradient)
         return { stroke: 'oklch(58% 0.22 250)', text: 'text-primary' };
     }
     if (score >= 60) {
-        // Lighter primary (top stop WaterDropAI gradient)
+        // Lighter primary (top stop WaterDrop gradient)
         return { stroke: 'oklch(72% 0.16 232)', text: 'text-primary/85' };
     }
     // Warning — low-relevance, attention orange (daisyui warning token)

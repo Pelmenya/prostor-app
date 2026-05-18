@@ -40,11 +40,11 @@ Chrome логирует каждый fetch с status >= 400 как красну�
 
 Все 3 endpoint'а уже правильно guarded:
 
-| Endpoint       | Где                                                                 | Guard                                  |
-| -------------- | ------------------------------------------------------------------- | -------------------------------------- | --- | ------------------------- |
-| `/cart`        | `src/features/cart/lib/use-cart-backend-sync.ts:218`                | `enabled: isAuthenticated && !isGuest` |
-| `/push/status` | `src/features/push-notifications/lib/use-push-notifications.ts:93`  | `if (!IS_SUPPORTED                     |     | !isAuthenticated) return` |
-| `/real-estate` | `src/views/water-map/ui/real-estate-picker.tsx` (mounted+auth gate) | external wrapper                       |
+| Endpoint       | Где                                                                 | Guard                                              |
+| -------------- | ------------------------------------------------------------------- | -------------------------------------------------- |
+| `/cart`        | `src/features/cart/lib/use-cart-backend-sync.ts:218`                | `enabled: isAuthenticated && !isGuest`             |
+| `/push/status` | `src/features/push-notifications/lib/use-push-notifications.ts:93`  | `if (!IS_SUPPORTED \|\| !isAuthenticated) return;` |
+| `/real-estate` | `src/views/water-map/ui/real-estate-picker.tsx` (mounted+auth gate) | external wrapper                                   |
 
 Guards проверяют **наличие** token, не **валидность**. Если token expired —
 guards его всё равно считают «authenticated», и запрос летит → 401.

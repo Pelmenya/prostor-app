@@ -3,7 +3,7 @@
 // Phase 1 (slovo handoff 2026-05-15..16):
 //  - SmartSearchInput — sticky entry-point под top-bar
 //  - SmartSearchOverlay — BottomSheetModal с 3 states (idle/loading/results)
-//  - WaterDropAI — brand-маркер фичи (SVG gradient + sparkle)
+//  - WaterDrop из @/shared/ui — brand-маркер фичи (единый, не дубль)
 //  - useSmartSearchStore — Zustand с recentQueries persist
 //
 // API hook + types — для интеграции из других features (Phase 1.5+).
