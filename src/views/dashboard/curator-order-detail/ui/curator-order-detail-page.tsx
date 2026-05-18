@@ -15,6 +15,7 @@ import {
     EOrderStatus,
 } from '@/entities/order';
 import { useGetCuratorMasters } from '@/entities/user';
+import { useSingleOrderThumbnails } from '@/features/orders';
 import {
     CURATOR_ORDERS_PATH,
     COMMISSION_PERCENTS,
@@ -38,6 +39,7 @@ export function CuratorOrderDetailPage({ id }: TProps) {
 
 function CuratorOrderDetailContent({ orderId }: { orderId: number }) {
     const { data: order } = useGetOrderById(orderId);
+    const { imageUrls, loadingIds } = useSingleOrderThumbnails(order);
     const hasItems = Object.keys(order.cartState.items ?? {}).length > 0;
 
     return (
@@ -62,7 +64,9 @@ function CuratorOrderDetailContent({ orderId }: { orderId: number }) {
                 {!order.executor && <NoExecutorCard />}
                 {order.realEstate && <AddressCard realEstate={order.realEstate} />}
                 <ScheduleCard scheduledDate={order.scheduledDate} />
-                {hasItems && <ItemsCard order={order} />}
+                {hasItems && (
+                    <ItemsCard order={order} imageUrls={imageUrls} loadingIds={loadingIds} />
+                )}
                 <PaymentCard order={order} />
                 <ManagementCard order={order} />
             </div>
@@ -102,50 +106,44 @@ function PersonCard({
     const name = [user.first_name, user.last_name].filter(Boolean).join(' ') || `ID ${user.id}`;
     const initials = formatUserInitials(user.first_name, user.last_name);
 
-    const avatar = (
-        <div className={`avatar shrink-0 ${!user.photo_url ? 'avatar-placeholder' : ''}`}>
-            <div className="relative size-10 rounded-full overflow-hidden bg-primary/10 text-primary">
-                {user.photo_url ? (
-                    <Image src={user.photo_url} alt={name} fill className="object-cover" />
-                ) : (
-                    <span className="text-sm font-semibold">{initials}</span>
-                )}
-            </div>
-        </div>
-    );
-
-    const content = (
-        <div className="flex items-center gap-3">
-            {avatar}
-            <div className="flex flex-col gap-0.5 min-w-0 flex-1">
-                <span className="font-medium text-sm leading-tight">{name}</span>
-                {user.phone && (
-                    <a
-                        href={`tel:${user.phone}`}
-                        className="flex items-center gap-1 text-primary text-sm"
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <PhoneIcon className="size-3.5" />
-                        {user.phone}
-                    </a>
-                )}
-            </div>
-            {href && <ChevronRightIcon className="size-4 text-base-content/30 shrink-0" />}
-        </div>
-    );
-
     return (
         <div className="card bg-base-100 p-4 flex flex-col gap-3">
             <p className="text-xs text-base-content/50 font-medium uppercase tracking-wide">
                 {label}
             </p>
-            {href ? (
-                <Link href={href} className="hover:opacity-70 transition-opacity">
-                    {content}
-                </Link>
-            ) : (
-                content
-            )}
+            <div className="flex items-center gap-3">
+                <div className={`avatar shrink-0 ${!user.photo_url ? 'avatar-placeholder' : ''}`}>
+                    <div className="relative size-10 rounded-full overflow-hidden bg-primary/10 text-primary">
+                        {user.photo_url ? (
+                            <Image src={user.photo_url} alt={name} fill className="object-cover" />
+                        ) : (
+                            <span className="text-sm font-semibold">{initials}</span>
+                        )}
+                    </div>
+                </div>
+                <div className="flex flex-col gap-0.5 min-w-0 flex-1">
+                    {href ? (
+                        <Link
+                            href={href}
+                            className="font-medium text-sm leading-tight hover:opacity-70 transition-opacity"
+                        >
+                            {name}
+                        </Link>
+                    ) : (
+                        <span className="font-medium text-sm leading-tight">{name}</span>
+                    )}
+                    {user.phone && (
+                        <a
+                            href={`tel:${user.phone}`}
+                            className="flex items-center gap-1 text-primary text-sm"
+                        >
+                            <PhoneIcon className="size-3.5" />
+                            {user.phone}
+                        </a>
+                    )}
+                </div>
+                {href && <ChevronRightIcon className="size-4 text-base-content/30 shrink-0" />}
+            </div>
         </div>
     );
 }
@@ -208,13 +206,23 @@ function ScheduleCard({ scheduledDate }: { scheduledDate: TOrder['scheduledDate'
     );
 }
 
-function ItemsCard({ order }: { order: TOrder }) {
+type TItemsCardProps = {
+    order: TOrder;
+    imageUrls: Record<string, string | undefined>;
+    loadingIds: Set<string>;
+};
+
+function ItemsCard({ order, imageUrls, loadingIds }: TItemsCardProps) {
     return (
         <div className="card bg-base-100 p-4 flex flex-col gap-3">
             <p className="text-xs text-base-content/50 font-medium uppercase tracking-wide">
                 Состав заказа
             </p>
-            <OrderPositionsList cartState={order.cartState} imageUrls={{}} loadingIds={new Set()} />
+            <OrderPositionsList
+                cartState={order.cartState}
+                imageUrls={imageUrls}
+                loadingIds={loadingIds}
+            />
             {order.cartState.totalRateOfHours != null && (
                 <div className="flex items-center justify-between pt-1 border-t border-base-content/5">
                     <span className="text-sm text-base-content/60">Нормо-часы</span>
@@ -278,9 +286,9 @@ function ManagementCard({ order }: { order: TOrder }) {
             <p className="text-xs text-base-content/50 font-medium uppercase tracking-wide">
                 Управление
             </p>
-            <StatusControl key={order.updatedAt} order={order} />
+            <StatusControl key={`status-${order.updatedAt}`} order={order} />
             <div className="divider my-0" />
-            <ScheduleControl key={order.updatedAt} order={order} />
+            <ScheduleControl key={`schedule-${order.updatedAt}`} order={order} />
             <div className="divider my-0" />
             <Suspense
                 fallback={
@@ -289,7 +297,7 @@ function ManagementCard({ order }: { order: TOrder }) {
                     </div>
                 }
             >
-                <ExecutorControl key={order.updatedAt} order={order} />
+                <ExecutorControl key={`executor-${order.updatedAt}`} order={order} />
             </Suspense>
         </div>
     );
