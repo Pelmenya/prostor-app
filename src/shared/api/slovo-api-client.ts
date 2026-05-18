@@ -40,7 +40,10 @@ export async function slovoGet<T>(
     signal?: AbortSignal,
 ): Promise<T> {
     const url = `${SLOVO_API_URL}${path}${buildQueryString(query)}`;
-    const res = await fetch(url, { signal });
+    // credentials: 'omit' — slovo public endpoints throttled by IP, не должны
+    // получать prostor auth cookies даже когда оба на одном eTLD+1 (security
+    // posture, code-reviewer agent 2026-05-18).
+    const res = await fetch(url, { signal, credentials: 'omit' });
     if (!res.ok) {
         const body: unknown = await res.json().catch(() => null);
         throw new SlovoApiError(res.status, res.statusText, body);
@@ -55,6 +58,7 @@ export async function slovoPost<T>(path: string, body: unknown, signal?: AbortSi
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
         signal,
+        credentials: 'omit',
     });
     if (!res.ok) {
         const errBody: unknown = await res.json().catch(() => null);

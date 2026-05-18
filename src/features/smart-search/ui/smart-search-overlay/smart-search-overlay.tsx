@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, type ChangeEvent, type FormEvent } from 'react';
+import { useRef, useState, type ChangeEvent, type FormEvent } from 'react';
 import Link from 'next/link';
 import {
     ArrowRightIcon,
@@ -90,13 +90,26 @@ export function SmartSearchOverlay() {
     const resetSearch = useSmartSearchStore((s) => s.resetSearch);
     const addProduct = useCartStore((s) => s.addProduct);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    // Локальный fileError — для validation / FileReader ошибок при upload'е.
+    // НЕ через store.setError (которая переключает status='error' и заменит
+    // idle/results на error-state — это side-effect нужен только для mutation).
+    const [fileError, setFileError] = useState<string | null>(null);
     const mutation = useSmartSearch();
 
     const handleFile = (e: ChangeEvent<HTMLInputElement>) => {
         const f = e.target.files?.[0];
+        // Сброс input value в любой ветке — иначе re-pick того же файла после
+        // отказа/ошибки не триггерит onChange (input «помнит» предыдущий выбор).
+        e.target.value = '';
+        setFileError(null);
         if (!f) return;
+        // Mime allowlist в дополнение к `accept` (accept можно bypass).
+        if (!['image/jpeg', 'image/png', 'image/webp'].includes(f.type)) {
+            setFileError('Поддерживаются только JPEG, PNG и WebP');
+            return;
+        }
         if (f.size > MAX_IMAGE_BYTES) {
-            alert('Фото больше 5MB — выберите поменьше');
+            setFileError(`Фото больше ${MAX_IMAGE_BYTES / 1024 / 1024} МБ — выберите поменьше`);
             return;
         }
         const reader = new FileReader();
@@ -104,8 +117,9 @@ export function SmartSearchOverlay() {
             const dataUrl = reader.result as string;
             setImage({ dataUrl, mime: f.type, sizeBytes: f.size });
         };
+        reader.onerror = () => setFileError('Не удалось прочитать фото');
+        reader.onabort = () => setFileError('Чтение фото прервано');
         reader.readAsDataURL(f);
-        e.target.value = '';
     };
 
     const handleSubmit = (e: FormEvent) => {
@@ -269,6 +283,23 @@ export function SmartSearchOverlay() {
                     />
                 </div>
 
+                {fileError && (
+                    <div
+                        role="alert"
+                        className="flex items-center gap-2 px-2 py-1.5 rounded-md bg-error/10 border border-error/30 text-xs text-error"
+                    >
+                        <span className="flex-1">{fileError}</span>
+                        <button
+                            type="button"
+                            onClick={() => setFileError(null)}
+                            className="text-error/70 hover:text-error cursor-pointer"
+                            aria-label="Скрыть ошибку"
+                        >
+                            <XMarkIcon className="size-4" />
+                        </button>
+                    </div>
+                )}
+
                 {image && (
                     <div className="flex items-center gap-2 px-2 py-1.5 rounded-md bg-base-200 text-xs text-base-content/80">
                         <span aria-hidden="true">📷</span>
@@ -429,9 +460,13 @@ export function SmartSearchOverlay() {
                                         doc.metadata.salePriceKopecks !== null
                                             ? doc.metadata.salePriceKopecks / 100
                                             : null;
+                                    // Guard: товары без цены НЕ добавляем в корзину —
+                                    // priceRub ?? 0 раньше пропускал null-цену как 0 ₽
+                                    // (free-price cart bug, code-reviewer 2026-05-18).
                                     const handleAddToCart = (e: React.MouseEvent) => {
                                         e.preventDefault();
                                         e.stopPropagation();
+                                        if (priceRub === null) return;
                                         addProduct(
                                             {
                                                 id: doc.metadata.externalId,
@@ -440,7 +475,7 @@ export function SmartSearchOverlay() {
                                                 attributes: [],
                                             },
                                             1,
-                                            priceRub ?? 0,
+                                            priceRub,
                                         );
                                     };
                                     const imageUrl = doc.imageUrls[0];
@@ -507,11 +542,20 @@ export function SmartSearchOverlay() {
                                                 >
                                                     Подробнее
                                                 </Link>
-                                                {/* «В корзину →» gradient bold — primary CTA (design uplift) */}
+                                                {/* «В корзину →» gradient bold — primary CTA (design uplift).
+                                                    Disabled когда priceRub === null — нельзя добавить товар без
+                                                    цены (защита от free-cart bug). */}
                                                 <button
                                                     type="button"
                                                     onClick={handleAddToCart}
-                                                    className="flex-1 inline-flex items-center justify-center gap-1.5 h-8 px-3 rounded-lg text-sm font-bold text-primary-content bg-gradient-to-r from-primary to-secondary shadow-sm hover:shadow-md active:scale-95 transition cursor-pointer normal-case"
+                                                    disabled={priceRub === null}
+                                                    aria-disabled={priceRub === null}
+                                                    title={
+                                                        priceRub === null
+                                                            ? 'Цена не указана — обратитесь в магазин'
+                                                            : undefined
+                                                    }
+                                                    className="flex-1 inline-flex items-center justify-center gap-1.5 h-8 px-3 rounded-lg text-sm font-bold text-primary-content bg-gradient-to-r from-primary to-secondary shadow-sm hover:shadow-md active:scale-95 transition cursor-pointer normal-case disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
                                                 >
                                                     В корзину
                                                     <ArrowRightIcon className="size-3.5" />
