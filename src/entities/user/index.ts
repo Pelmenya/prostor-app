@@ -4,6 +4,8 @@ export {
     useGetCuratorMasters,
     useGetCuratorUsersCount,
     useGetCuratorClientById,
+    useGetCuratorServiceById,
+    useSetMasterCanEdit,
     curatorUserKeys,
 } from './api/curator-users.api';
 export type { TCuratorUsersFilters, TCuratorUsersCountFilters } from './api/curator-users.api';

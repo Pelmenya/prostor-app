@@ -1,4 +1,10 @@
-import { useQuery, useSuspenseInfiniteQuery, useSuspenseQuery } from '@tanstack/react-query';
+import {
+    useMutation,
+    useQuery,
+    useQueryClient,
+    useSuspenseInfiniteQuery,
+    useSuspenseQuery,
+} from '@tanstack/react-query';
 import { useApi } from '@/shared/api';
 import { buildSearchParams } from '@/shared/lib';
 import type { TCuratorUser, TCuratorServiceUser } from '@/shared/model';
@@ -85,6 +91,32 @@ export function useGetCuratorMasters(filters: Omit<TCuratorUsersFilters, 'role'>
         getNextPageParam: (lastPage) =>
             lastPage.hasMore ? (lastPage.nextCursor ?? undefined) : undefined,
         staleTime: 30_000,
+    });
+}
+
+export function useGetCuratorServiceById(id: number) {
+    const api = useApi();
+
+    return useSuspenseQuery({
+        queryKey: [...curatorUserKeys.all, 'service', id] as const,
+        queryFn: () => api<TCuratorServiceUser>(`/curator/users/${id}/service`),
+        staleTime: 60_000,
+    });
+}
+
+export function useSetMasterCanEdit() {
+    const api = useApi();
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: ({ userId, canEdit }: { userId: number; canEdit: boolean }) =>
+            api(`/curator/users/${userId}/can-edit`, { method: 'PATCH', body: { canEdit } }),
+        onSuccess: (_data, { userId }) => {
+            void queryClient.invalidateQueries({
+                queryKey: [...curatorUserKeys.all, 'service', userId],
+            });
+            void queryClient.invalidateQueries({ queryKey: curatorUserKeys.all });
+        },
     });
 }
 
