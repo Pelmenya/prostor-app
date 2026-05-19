@@ -33,7 +33,7 @@ export function ServiceSettingsWizard({ onBeforeNext, children }: TServiceSettin
 
         if (isLastStep) {
             try {
-                const updated = await updateSetup({ completed: true });
+                const updated = await updateSetup({ completed: true, currentStep });
                 queryClient.setQueryData(accountServiceKeys.my(), updated);
                 router.replace(MASTER_PATH);
             } catch {

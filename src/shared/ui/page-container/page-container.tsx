@@ -17,12 +17,12 @@ export function PageContainer({
 }: TPageContainerProps) {
     if (footer) {
         return (
-            <div className={cn('flex flex-col min-h-full', bg)}>
+            <div className={cn('flex flex-col grow', bg)}>
                 <div className={cn('flex-1 page-container', className)}>{children}</div>
                 {footer}
             </div>
         );
     }
 
-    return <div className={cn('min-h-full page-container', bg, className)}>{children}</div>;
+    return <div className={cn('grow page-container', bg, className)}>{children}</div>;
 }

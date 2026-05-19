@@ -1,19 +1,17 @@
 'use client';
 
-import { useState, useRef, useSyncExternalStore } from 'react';
+import { useState, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { ArrowLeftIcon, Bars3Icon } from '@heroicons/react/24/outline';
 import { useAuth } from '@/shared/lib/platform';
 import { useLogout } from '@/features/auth';
 import { flushCartSync } from '@/features/cart';
-import { formatUserInitials, useAuthStore } from '@/shared/lib';
+import { formatUserInitials, useAuthStore, useIsClient } from '@/shared/lib';
 import { IconButton } from '@/shared/ui';
 import { SearchButton, isCatalogRoute } from '@/features/product-search';
 import { BurgerMenu } from './burger-menu';
 import { getBackDestination } from '../lib/get-back-destination';
-
-const NOOP_SUBSCRIBE = () => () => {};
 
 type THeaderProps = {
     back?: boolean;
@@ -32,12 +30,7 @@ export function Header({ back: backProp, backTo: backToProp }: THeaderProps) {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const burgerRef = useRef<HTMLButtonElement>(null);
 
-    // Предотвращение hydration mismatch: SSR = false, клиент = true
-    const mounted = useSyncExternalStore(
-        NOOP_SUBSCRIBE,
-        () => true,
-        () => false,
-    );
+    const mounted = useIsClient();
 
     const showAuth = mounted && isAuthenticated;
     const showUser = mounted && isAuthenticated && user;

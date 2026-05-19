@@ -6,6 +6,7 @@ import { useAccountService } from '@/entities/account-service';
 import { RouteMap, useGetWorkDayRoute, useGetOrdersByDate } from '@/features/master-work-days';
 import { PageContainer, QueryBoundary, DashboardBackHeader } from '@/shared/ui';
 import { formatDateRu, formatDuration } from '@/shared/lib';
+import { masterOrderPath } from '@/shared/config';
 
 type TProps = { date: string };
 
@@ -105,7 +106,7 @@ function MasterWorkDayContent({ date }: TProps) {
                                             <span>{(leg.distance / 1000).toFixed(1)} км</span>
                                         </div>
                                     )}
-                                    <Link href={`/master/orders/${order.id}`}>
+                                    <Link href={masterOrderPath(order.id)}>
                                         <div className="card bg-base-100 p-4 flex flex-row items-start gap-3 hover:bg-base-200 transition-colors">
                                             <div className="flex items-center justify-center size-7 rounded-full bg-error/10 text-error text-xs font-bold shrink-0 mt-0.5">
                                                 {i + 1}

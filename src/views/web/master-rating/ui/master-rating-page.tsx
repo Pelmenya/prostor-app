@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useSyncExternalStore } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { StarIcon, ArrowLeftIcon } from '@heroicons/react/20/solid';
@@ -13,7 +13,7 @@ import {
 import { UserIcon } from '@heroicons/react/24/outline';
 import { PageContainer, PageTitle, PageSpinner, QueryBoundary } from '@/shared/ui';
 import { useAuth } from '@/shared/lib/platform';
-import { clamp, pluralizeRu } from '@/shared/lib';
+import { clamp, pluralizeRu, useIsClient } from '@/shared/lib';
 import type { TReviewItem } from '@/shared/model';
 
 type TSortOption = 'new' | 'old' | 'high' | 'low';
@@ -23,11 +23,7 @@ type TMasterRatingPageProps = {
 };
 
 export function MasterRatingPage({ masterId }: TMasterRatingPageProps) {
-    const isClient = useSyncExternalStore(
-        () => () => {},
-        () => true,
-        () => false,
-    );
+    const isClient = useIsClient();
     const { isAuthenticated } = useAuth();
 
     if (!isClient) return <PageSpinner />;

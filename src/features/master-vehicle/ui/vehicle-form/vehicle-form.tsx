@@ -4,20 +4,11 @@ import { forwardRef, useImperativeHandle } from 'react';
 import { useSafeBack } from '@/shared/lib';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { useUpdateAccountService } from '@/entities/account-service';
 import { FormField } from '@/shared/ui';
+import { vehicleSchema, type TVehicleFormValues } from '../../lib/vehicle-schema';
 
-const vehicleSchema = z.object({
-    carModel: z.string().trim(),
-    carNumber: z.string().trim(),
-    maxCargoLength: z.string(),
-    maxCargoWidth: z.string(),
-    maxCargoHeight: z.string(),
-    maxCargoWeight: z.string(),
-});
-
-type TVehicleForm = z.infer<typeof vehicleSchema>;
+type TVehicleForm = TVehicleFormValues;
 
 export type TVehicleFormHandle = {
     submit: () => Promise<boolean>;

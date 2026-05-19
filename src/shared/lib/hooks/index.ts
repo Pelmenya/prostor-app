@@ -4,3 +4,4 @@ export { useDebouncedValue } from './use-debounced-value';
 export { useSafeBack } from './use-safe-back';
 export { useDaisyTheme } from './use-daisy-theme';
 export { useMediaQuery } from './use-media-query';
+export { useIsClient } from './use-is-client';
