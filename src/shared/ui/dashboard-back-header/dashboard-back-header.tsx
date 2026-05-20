@@ -8,12 +8,14 @@ type TDashboardBackHeaderProps = {
     title: string;
     fallbackHref?: string;
     onBack?: () => void;
+    right?: React.ReactNode;
 };
 
 export function DashboardBackHeader({
     title,
     fallbackHref = '/master',
     onBack,
+    right,
 }: TDashboardBackHeaderProps) {
     const router = useRouter();
 
@@ -36,7 +38,8 @@ export function DashboardBackHeader({
             >
                 <ArrowLeftIcon className="size-5" />
             </button>
-            <PageTitle>{title}</PageTitle>
+            <PageTitle className="flex-1">{title}</PageTitle>
+            {right}
         </div>
     );
 }
