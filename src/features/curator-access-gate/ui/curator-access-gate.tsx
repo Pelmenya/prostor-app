@@ -1,7 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import { useCurrentUser } from '@/entities/user';
 import { EUserRole } from '@/shared/model';
 
@@ -10,17 +9,7 @@ type TCuratorAccessGateProps = {
 };
 
 export function CuratorAccessGate({ children }: TCuratorAccessGateProps) {
-    const router = useRouter();
     const { data: user, isLoading } = useCurrentUser();
-
-    const isCurator = user?.role === EUserRole.CURATOR;
-
-    useEffect(() => {
-        if (isLoading) return;
-        if (!user || !isCurator) {
-            router.replace('/');
-        }
-    }, [user, isCurator, isLoading, router]);
 
     if (isLoading) {
         return (
@@ -30,7 +19,9 @@ export function CuratorAccessGate({ children }: TCuratorAccessGateProps) {
         );
     }
 
-    if (!user || !isCurator) return null;
+    if (!user || user.role !== EUserRole.CURATOR) {
+        notFound();
+    }
 
     return <>{children}</>;
 }
