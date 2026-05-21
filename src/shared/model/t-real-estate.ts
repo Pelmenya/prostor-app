@@ -58,3 +58,25 @@ export type TRetailStoreWithRouteInfo = {
     organizationName?: string;
     availability?: 'full' | 'partial';
 };
+
+/**
+ * Ответ POST /retail-stores/:id/inventory-check.
+ * `available` — позиции которые есть в нужном количестве; `outOfStock` —
+ * отсутствуют или есть в недостаточном. `summary` — for hero «N из M в наличии».
+ */
+export type TInventoryCheckItem = {
+    productId: string;
+    productName?: string;
+    requiredCount: number;
+    availableCount: number;
+};
+
+export type TInventoryCheckResponse = {
+    available: TInventoryCheckItem[];
+    outOfStock: TInventoryCheckItem[];
+    summary: {
+        availableCount: number;
+        totalCount: number;
+        allAvailable: boolean;
+    };
+};

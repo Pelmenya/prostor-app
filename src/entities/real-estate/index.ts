@@ -6,7 +6,12 @@ export {
     useUpdateRealEstate,
     useDeleteRealEstate,
     useNearestRetailStores,
+    useNearestRetailStoresByCoords,
+    useRoutePolyline,
+    useRoutePolylineByCoords,
+    useInventoryCheck,
 } from './api/real-estate.api';
+export type { TRoutePolylineResponse } from './api/real-estate.api';
 
 export { RealEstateCard } from './ui/real-estate-card/real-estate-card';
 

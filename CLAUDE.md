@@ -4,6 +4,48 @@
 
 ## Текущая задача
 
+### Smart Search Phase 1 — `slovo/docs/features/smart-search-integration.md`
+
+Multi-modal smart search (text + photo) в `/water` page. Branch `feature/water-pivot` (mega-ветка, проект экспериментальный — не дробим на отдельные PR), координация через `docs/feedback/water-map-thread.md`. Полный план — у slovo, фронт делает prostor-claude.
+
+| Шаг | Описание                                                                                                | Прогресс |
+| --- | ------------------------------------------------------------------------------------------------------- | -------- |
+| 1   | `features/smart-search/` скелет — SmartSearchInput + SmartSearchOverlay + Zustand                       | ✅ done  |
+| 2   | Idle state — input под top-bar + 4 chip-suggestions + recent searches + 📍 По адресу chip               | ✅ done  |
+| 3   | Loading state — 3-stage AI pipeline (📷 Фото → 👁 Vision → 🔒 pgvector) с simulated timers              | ✅ done  |
+| 4   | Results state — vision badge + matchScore + reuse `EquipmentRecommendationCard`                         | ✅ done  |
+| 5   | Backend live на `:3101` (slovo b1a5f28 от 2026-05-16). Dev-mock через `NEXT_PUBLIC_SMART_SEARCH_MOCK=1` | ✅ done  |
+| 6   | Заменить FTUX hint card в `water-map-page.tsx`. Сдвинуть `pin-placement banner` на `top: 8rem`          | ✅ done  |
+
+**Готово к sweep** (slovo Playwright через https tunnel). Открытые вопросы в `docs/feedback/water-map-thread.md` от 2026-05-17 11:00.
+
+**Address-flow:** chip «📍 По адресу» сейчас только prefill'ит query — полноценный `RealEstatePicker` reuse через chip flow перенесён в Phase 1.5 (требует поднять компонент в features/, обновить store).
+
+### Design uplift iter3 — `docs/feedback/water-map-thread.md` от 2026-05-18 11:35 (slovo) + 14:20 (prostor)
+
+3 artifact'а от claude.ai design — реализуем **по очереди** (Дима's instruction).
+
+| Artifact | Описание                                                                                            | Прогресс |
+| -------- | --------------------------------------------------------------------------------------------------- | -------- |
+| 1        | Smart-search overlay polish (hero card, gradient camera, AI vision pill, `MatchScoreRing`, sidebar) | ✅ done  |
+| 2        | LayerPanel radio 3-glyph SVG set (Сплайн blob / Точки 8-dot / Оба combined) вместо Unicode ✨ ● ⊙   | ✅ done  |
+| 3        | Map layout: slim header pill + dominant SmartSearchInput + glass right toolbar + slim AutoEquipment | ✅ done  |
+
+**3 уточнения slovo applied as voted (Artifact 1):**
+
+- Footer метаданные → user-facing «✨ AI распознал за X с» (no LLM-model leak)
+- Throttle counter → hide unless `<3 remaining` (client-side rolling 60s window, `model/throttle-tracker.ts`)
+- Hashtag icon → custom `ArticleDotsIcon` (6-dot grid, извлечён из mockup HTML через Playwright `browser_evaluate`)
+
+**401 noise** — отложено в `docs/backlog/401-auth-refresh-console-noise.md` (Дима's call 2026-05-17, не блокер).
+
+**Ключевое (НЕ путать с Phase 1.5/2):**
+
+- ❌ Camera FAB right-bottom — занят `SimilarFab «Прогноз»`. В Phase 1 только camera-button **в input**. Brand FAB → Phase 1.5, тогда **left-bottom** (оба сосуществуют)
+- ❌ Voice / follow-up dialogue / bbox image overlay / bundled services / desktop split-pane — Phase 1.5/2
+- ❌ Замена `EquipmentModal v5` — smart-search **дополняет** AutoEquipmentCard (water-context остаётся)
+- ✅ Brand-маркер: единственный `WaterDrop` SVG из `@/shared/ui` (тот же что в `SimilarFab`) — gradient OKLCH `(72% 0.16 232) → (58% 0.22 250) → (48% 0.26 270)` + sparkle. Sizes 14-40px. **Не делать дубль `WaterDropAI` или any.ru drop variants** — один компонент везде (Дима 2026-05-18)
+
 ### Фронт: Adapter Pattern — `docs/features/auth/AUTH_ADAPTER.md`
 
 | Шаг                  | Описание                                       | Прогресс |
@@ -44,6 +86,41 @@
 | **crm-aqua-kinetics-back**  | `C:\Users\Diamond\Desktop\crm-aqua-kinetics-back`  | Backend (NestJS) — см. `docs/references/BACKEND.md`                                                          |
 | **crm-aqua-kinetics-front** | `C:\Users\Diamond\Desktop\crm-aqua-kinetics-front` | Старый фронт (Vite + React 18, Telegram-only) — референс для переноса, см. `docs/references/LEGACY-FRONT.md` |
 | **crm-aqua-kinetics-osm**   | `C:\Users\Diamond\Desktop\crm-aqua-kinetics-osm`   | OSRM маршрутизация                                                                                           |
+| **slovo**                   | `C:\Users\Diamond\Desktop\slovo`                   | NestJS monorepo для water-analysis (heatmap/predict/depth-map endpoints — потребляются на карте PROSTOR)     |
+| **slovo-llm**               | `C:\Users\Diamond\Desktop\slovo-llm`               | Локальный Ollama runtime для LLM-фичей slovo                                                                 |
+
+## Co-agents coordination (Layer 1)
+
+Ты — агент **prostor-frontend**. Параллельно в смежных репах могут идти другие Claude Code сессии.
+
+**Shared board:** `C:\Users\Diamond\.claude\AGENT-STATUS.md` — единая точка координации.
+**Setup doc:** `C:\Users\Diamond\Desktop\multi-agent-setup\multi-agent-setup.md`.
+
+### Sibling agents
+
+| Агент                 | Репо                       | Точки касания с prostor-frontend                                                                                  |
+| --------------------- | -------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| **crm-back**          | `crm-aqua-kinetics-back/`  | основной API (Auth, Order, Cart, Catalog, RealEstate, Payment)                                                    |
+| **crm-front**         | `crm-aqua-kinetics-front/` | legacy-фронт — референс при переносе компонентов / поведения                                                      |
+| **slovo-backend**     | `slovo/`                   | water-analysis API: `GET /heatmap`, `GET /predict`, `GET /depth-map`, `POST /equipment-suggest` для карты PROSTOR |
+| **slovo-llm-runtime** | `slovo-llm/`               | косвенно — через slovo-backend                                                                                    |
+
+### Protocol
+
+**Перед задачей:**
+
+1. Прочитать `~/.claude/AGENT-STATUS.md`
+2. Если slovo-backend / crm-back прямо сейчас правит API, который ты собираешься потреблять → **спросить у пользователя**, не запускаться
+3. Добавить строку про себя в `## Active` (Agent / Repo / Started / Intent / Touching / ETA / Notes)
+
+**Во время работы:** обновлять intent при milestone'ах.
+
+**После задачи:**
+
+- Перенести строку из `## Active` в `## Completed`
+- Если запрашиваешь у бэка новый endpoint / поле / shape — оформить как handoff в `## Recent handoffs` (`prostor-frontend → crm-back` или `→ slovo-backend`) с примером запроса/ответа и use-case'ом
+
+**User (Дмитрий) = mediator on conflicts. Auto-merge cross-repo запрещён.**
 
 ## Технологический стек
 
@@ -363,7 +440,7 @@ FSD 2.1 — **строгое архитектурное требование**. 
 
 ### Playwright MCP — **must-have для фронт-разработки**
 
-Без Playwright MCP я работаю с фронтом «вслепую» — пишу код, прошу скриншот у разработчика, жду, итерируюсь. С Playwright MCP я сам открываю dev-сервер (`http://localhost:3000`) или прод (https://aquaphor-pro.store/), вижу страницу, кликаю, заполняю формы, читаю консоль и network — петля обратной связи в секундах, не минутах.
+Без Playwright MCP я работаю с фронтом «вслепую» — пишу код, прошу скриншот у разработчика, жду, итерируюсь. С Playwright MCP я сам открываю dev-сервер (`http://localhost:3050`) или прод (https://aquaphor-pro.store/), вижу страницу, кликаю, заполняю формы, читаю консоль и network — петля обратной связи в секундах, не минутах.
 
 **Почему именно Playwright MCP, а не BrowserMCP:**
 
@@ -402,6 +479,8 @@ claude mcp list
 
 **Когда обновлять:** MCP-сервер сам подтягивается через `@latest` при старте Claude Code. Browser binary — раз в 2-3 месяца или при логе «browser not found»: `npx playwright install chromium` ещё раз.
 
+**ОБЯЗАТЕЛЬНОЕ правило для Claude Code:** для просмотра и тестирования любых UI-изменений (новые страницы, компоненты, баги вёрстки, проверка тёмной темы, адаптива, behavior'а на iPad/desktop viewport) использовать **Playwright MCP** — не просить у пользователя скриншот, не «допущать что работает». Стандартный цикл: запустить dev (`npm run dev`) → `mcp__playwright__browser_navigate` на нужный URL → `browser_snapshot` или `browser_take_screenshot` → `browser_console_messages` для проверки ошибок → итерировать. Это ускоряет петлю обратной связи в десятки раз.
+
 ### Что ещё в `.mcp.json` (project-scope)
 
 Здесь лежат сервера специфичные для prostor-app — например, MCP к локальному dev-серверу backend'а или YouGile. Глобальные (`playwright`, `flowise-slovo`, `pencil`) живут в `~/.claude.json` и не дублируются здесь.
@@ -410,23 +489,25 @@ claude mcp list
 
 В `.claude/agents/` установлены кастомные субагенты. **При вызове Agent tool использовать `subagent_type` из таблицы ниже, а не `general-purpose`.**
 
-| Агент                    | Когда использовать                                               | subagent_type          |
-| ------------------------ | ---------------------------------------------------------------- | ---------------------- |
-| **code-reviewer**        | Ревью кода: качество, безопасность, дублирование, best practices | `code-reviewer`        |
-| **architect-reviewer**   | Архитектурные решения: FSD, паттерны, слои, зависимости          | `architect-reviewer`   |
-| **test-automator**       | Генерация тестов, покрытие, стратегия тестирования               | `test-automator`       |
-| **performance-engineer** | Оптимизация: бандл, рендер, SSR/ISR, lazy loading                | `performance-engineer` |
-| **frontend-developer**   | React, Next.js, Tailwind — реализация UI компонентов             | `frontend-developer`   |
+| Агент                    | Когда использовать                                                                                                                                                                                                                                        | subagent_type          |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- |
+| **code-reviewer**        | Ревью кода: качество, безопасность, дублирование, best practices                                                                                                                                                                                          | `code-reviewer`        |
+| **architect-reviewer**   | Архитектурные решения: FSD, паттерны, слои, зависимости                                                                                                                                                                                                   | `architect-reviewer`   |
+| **test-automator**       | Генерация тестов, покрытие, стратегия тестирования                                                                                                                                                                                                        | `test-automator`       |
+| **performance-engineer** | Оптимизация: бандл, рендер, SSR/ISR, lazy loading                                                                                                                                                                                                         | `performance-engineer` |
+| **frontend-developer**   | React, Next.js, Tailwind — реализация UI компонентов                                                                                                                                                                                                      | `frontend-developer`   |
+| **docs-reviewer**        | Дрейф документации: CLAUDE.md vs `package.json`/`TECH-STACK.md`, прогресс «Текущая задача» (auth adapter, strangle fig) vs git log, FSD структура, layout groups, ссылки на десятки docs/\* файлов. **Особо следит за CLAUDE.md** — его читают все агенты | `docs-reviewer`        |
 
-| Команда пользователя         | subagent_type          |
-| ---------------------------- | ---------------------- |
-| «запусти code-reviewer»      | `code-reviewer`        |
-| «проверь архитектуру»        | `architect-reviewer`   |
-| «проверь производительность» | `performance-engineer` |
-| «сгенерируй тесты»           | `test-automator`       |
-| «сделай фронтенд»            | `frontend-developer`   |
+| Команда пользователя                       | subagent_type          |
+| ------------------------------------------ | ---------------------- |
+| «запусти code-reviewer»                    | `code-reviewer`        |
+| «проверь архитектуру»                      | `architect-reviewer`   |
+| «проверь производительность»               | `performance-engineer` |
+| «сгенерируй тесты»                         | `test-automator`       |
+| «сделай фронтенд»                          | `frontend-developer`   |
+| «проверь документацию» / «доки актуальны?» | `docs-reviewer`        |
 
-Все агенты используют модель `opus`. Рекомендуется запускать `code-reviewer` и `architect-reviewer` **перед каждым PR**.
+Все агенты используют модель `opus`. Рекомендуется запускать `code-reviewer` и `architect-reviewer` **перед каждым PR**. **При изменениях в `CLAUDE.md` / `docs/**/\*.md`/`package.json`/ FSD-структуре / прогрессе текущих задач** — обязательно`docs-reviewer` (он флагает дрейф который code-ревьюеры пропустят).
 
 **Автоматический pre-commit hook** на `git commit` в `.claude/settings.json` проверяет FSD violations, дублирование, cross-slice импорты, бизнес-логику в `app/`, лишний `'use client'`. Если найдены проблемы — коммит блокируется.
 

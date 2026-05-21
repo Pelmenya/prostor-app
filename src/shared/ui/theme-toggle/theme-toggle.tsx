@@ -1,29 +1,14 @@
 'use client';
 
-import { useSyncExternalStore } from 'react';
-
-function getTheme(): boolean {
-    return document.documentElement.getAttribute('data-theme') === 'dark';
-}
+import { useDaisyTheme } from '@/shared/lib';
 
 /**
  * Переключатель темы light/dark.
- * useSyncExternalStore гарантирует отсутствие hydration mismatch:
- * SSR всегда рендерит light, клиент подхватывает реальную тему.
+ * `useDaisyTheme` — общий хук подписки на data-theme через
+ * useSyncExternalStore (без hydration mismatch).
  */
 export function ThemeToggle() {
-    const isDark = useSyncExternalStore(
-        (onStoreChange) => {
-            const observer = new MutationObserver(onStoreChange);
-            observer.observe(document.documentElement, {
-                attributes: true,
-                attributeFilter: ['data-theme'],
-            });
-            return () => observer.disconnect();
-        },
-        () => getTheme(),
-        () => false, // SSR — всегда light
-    );
+    const isDark = useDaisyTheme() === 'dark';
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const dark = e.target.checked;

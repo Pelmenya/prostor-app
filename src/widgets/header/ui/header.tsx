@@ -36,7 +36,7 @@ export function Header({ back: backProp, backTo: backToProp }: THeaderProps) {
     const showUser = mounted && isAuthenticated && user;
 
     return (
-        <header className="relative z-10 shrink-0 bg-base-100 border-b border-base-content/10 shadow-sm">
+        <header className="relative z-50 shrink-0 bg-base-100 border-b border-base-content/10 shadow-sm">
             <div className="navbar px-4 py-2">
                 <div className="navbar-start gap-2 w-auto flex-1 min-w-0">
                     {back && (

@@ -1,5 +1,7 @@
 @import 'tailwindcss';
 @import 'react-datepicker/dist/react-datepicker.css';
+@import '../views/water-map/ui/pin-animations.css';
+@import '../views/water-map/ui/splash-animations.css';
 @plugin "daisyui" {
     themes:
         light --default,
@@ -127,4 +129,99 @@
     text-box-edge: cap alphabetic;
     margin-top: -0.165em;
     margin-bottom: -0.165em;
+}
+
+/* ============================================================================
+ * PROSTOR brand animations — капля + sparkle.
+ * Источник: claude design Smart-Search mockup (май 2026).
+ * Точная копия CSS из оригинала (verified через runtime CSSStyleSheet).
+ * ========================================================================= */
+
+/* Sparkle «дыхание» внутри капли. Активируется только когда у SVG
+ * есть класс `waterdrop-anim` (opt-in через WaterDrop animated prop).
+ * Без `.waterdrop-anim` — sparkle отрисован статично, без движения. */
+@keyframes wdspark {
+    0%,
+    100% {
+        opacity: 0.7;
+        transform: scale(0.95) rotate(0deg);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.05) rotate(8deg);
+    }
+}
+
+.waterdrop-anim .wd-spark {
+    transform-origin: 24px 28px;
+    animation: wdspark 2.4s ease-in-out infinite;
+}
+
+/* Map area placeholder — radial gradient skeleton (имитация heatmap до подключения
+ * реальной maplibre карты в Phase 4). Light / Dark варианты через [data-theme]
+ * чтобы корректно работать в обеих темах daisyui. */
+.water-map-skeleton-bg {
+    background:
+        radial-gradient(ellipse at 30% 30%, oklch(72% 0.16 232 / 0.15) 0%, transparent 50%),
+        radial-gradient(ellipse at 70% 60%, oklch(58% 0.22 250 / 0.12) 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 80%, oklch(48% 0.26 270 / 0.1) 0%, transparent 50%),
+        oklch(96% 0.02 232);
+}
+
+[data-theme='dark'] .water-map-skeleton-bg {
+    background:
+        radial-gradient(ellipse at 30% 30%, oklch(72% 0.16 232 / 0.2) 0%, transparent 50%),
+        radial-gradient(ellipse at 70% 60%, oklch(58% 0.22 250 / 0.18) 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 80%, oklch(48% 0.26 270 / 0.15) 0%, transparent 50%),
+        oklch(20% 0.02 240);
+}
+
+/* ============================================================================
+ * Water-map palette tokens — OKLCH refresh от claude design 2026-05-14.
+ *
+ * A11y fix (deuteranopia / ΔE):
+ *   - aquifer-Песчаный сдвинут с H150 (green) в H95 (khaki) — раньше совпадал
+ *     с severity-safe (H150) при включённых одновременно Качество + Глубина
+ *   - severity-borderline получит 1.5px тёмный stroke на CARTO basemap (низкий
+ *     contrast на #F8F5EF без обводки)
+ *
+ * Используется в `views/water-map/lib/color-scale.ts` + `aquifer-layers.ts`
+ * + paint expressions maplibre. Vars читаются через getComputedStyle для
+ * canvas-context (maplibre paint не реактивен к CSS vars напрямую).
+ * ========================================================================= */
+:root {
+    /* Severity — 4 уровня + tone-stroke для basemap-контраста */
+    --wm-severity-safe: oklch(72% 0.16 150);
+    --wm-severity-borderline: oklch(82% 0.16 95);
+    --wm-severity-concerning: oklch(72% 0.18 50);
+    --wm-severity-unsafe: oklch(62% 0.22 25);
+    --wm-severity-stroke: oklch(40% 0.005 285 / 0.3);
+
+    /* Aquifer — 5 горизонтов (Песчаный → khaki вместо green) */
+    --wm-aquifer-vrkh: oklch(50% 0.09 55);
+    --wm-aquifer-pesch: oklch(68% 0.12 95);
+    --wm-aquifer-pesch-izv: oklch(70% 0.1 195);
+    --wm-aquifer-izv: oklch(55% 0.18 250);
+    --wm-aquifer-artez: oklch(48% 0.2 305);
+
+    /* Store availability — 4 состояния (closed/nodata reserve) */
+    --wm-avail-full: oklch(76% 0.18 163);
+    --wm-avail-partial: oklch(82% 0.19 84);
+    --wm-avail-closed: oklch(71% 0.19 13);
+    --wm-avail-nodata: oklch(85% 0 0);
+
+    /* Brand — CTA, gradient, selection tint */
+    --wm-brand-primary: oklch(54% 0.245 263);
+    --wm-brand-info: oklch(74% 0.16 232);
+    --wm-brand-tint: oklch(96% 0.02 232);
+}
+
+/* ============================================================================
+ * iOS Safari overscroll bounce — отключаем «резинку» на скролле края html/body
+ * чтобы карта /water и другие fullscreen-страницы не съезжали вверх/вниз
+ * рывком. Pull-to-refresh тоже отключается (в PWA-стиле — не нужно).
+ * ============================================================================ */
+html,
+body {
+    overscroll-behavior-y: none;
 }

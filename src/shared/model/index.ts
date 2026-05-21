@@ -39,6 +39,8 @@ export type {
     TCreateRealEstate,
     TUpdateRealEstate,
     TRetailStoreWithRouteInfo,
+    TInventoryCheckItem,
+    TInventoryCheckResponse,
 } from './t-real-estate';
 
 export type { TOrderFeedbackParameters } from './t-order-feedback-parameters';
