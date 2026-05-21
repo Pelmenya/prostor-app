@@ -41,6 +41,10 @@ const nextConfig: NextConfig = {
             },
             {
                 protocol: 'https',
+                hostname: 't.me',
+            },
+            {
+                protocol: 'https',
                 hostname: '**.t.me',
             },
         ],

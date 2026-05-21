@@ -1,13 +1,21 @@
 'use client';
 
 import { forwardRef, useImperativeHandle, useState } from 'react';
+import dynamic from 'next/dynamic';
 import {
     useGetZones,
     useGetMyZones,
     useUpdateMyZones,
     ZoneListItem,
-    ZoneMap,
 } from '@/entities/service-zone';
+
+const ZoneMap = dynamic(
+    () => import('@/entities/service-zone').then((m) => ({ default: m.ZoneMap })),
+    {
+        ssr: false,
+        loading: () => <div className="skeleton h-48 w-full rounded-2xl" />,
+    },
+);
 
 export type TZoneSelectorHandle = {
     submit: () => Promise<boolean>;

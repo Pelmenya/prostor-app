@@ -13,6 +13,7 @@ import {
     ArrowRightOnRectangleIcon,
     UserPlusIcon,
     WrenchScrewdriverIcon,
+    BuildingOffice2Icon,
 } from '@heroicons/react/24/outline';
 import { ThemeToggle } from '@/shared/ui';
 import { usePushNotifications } from '@/features/push-notifications';
@@ -107,6 +108,17 @@ export function BurgerMenu({
                                     href="/master"
                                     icon={WrenchScrewdriverIcon}
                                     label="Кабинет мастера"
+                                    onClick={onClose}
+                                />
+                            </>
+                        )}
+                        {isAuthenticated && role === EUserRole.CURATOR && (
+                            <>
+                                <hr className="border-base-content/10" />
+                                <MenuLink
+                                    href="/curator"
+                                    icon={BuildingOffice2Icon}
+                                    label="Кабинет куратора"
                                     onClick={onClose}
                                 />
                             </>

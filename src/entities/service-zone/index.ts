@@ -3,6 +3,7 @@ export {
     useGetMyZones,
     useMyZonesCount,
     useUpdateMyZones,
+    useGetMasterZonesByCurator,
     zoneKeys,
 } from './api/zone.api';
 export type { TServiceZone } from './model/t-service-zone';
