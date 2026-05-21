@@ -27,3 +27,7 @@ export const MASTER_STATUS_TRANSITIONS: Partial<Record<EOrderStatus, TStatusTran
 export function getMasterTransition(status: EOrderStatus): TStatusTransition | null {
     return MASTER_STATUS_TRANSITIONS[status] ?? null;
 }
+
+export function isDangerousTransition(from: EOrderStatus): boolean {
+    return from === EOrderStatus.COMPLETED || from === EOrderStatus.CANCELLED;
+}

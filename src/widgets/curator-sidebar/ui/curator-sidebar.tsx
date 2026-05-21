@@ -44,7 +44,9 @@ export function CuratorSidebar() {
             <nav className="flex-1 p-2">
                 <ul className="menu menu-sm gap-0.5 p-0">
                     {NAV_ITEMS.map(({ href, icon: Icon, label, exact }) => {
-                        const isActive = exact ? pathname === href : pathname.startsWith(href);
+                        const isActive = exact
+                            ? pathname === href
+                            : pathname === href || pathname.startsWith(href + '/');
                         return (
                             <li key={href}>
                                 <Link href={href} className={isActive ? 'active' : ''}>

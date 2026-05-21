@@ -22,7 +22,7 @@ import {
     curatorOrderPath,
 } from '@/shared/config';
 import { formatDateRu } from '@/shared/lib';
-import { PageContainer, PageTitle, QueryBoundary } from '@/shared/ui';
+import { PageContainer, PageTitle, QueryBoundary, SectionLabel } from '@/shared/ui';
 import type { TOrder } from '@/entities/order';
 
 export function CuratorAccountPage() {
@@ -96,9 +96,7 @@ function AttentionBlock() {
     return (
         <div className="card bg-base-100 flex flex-col">
             <div className="flex items-center justify-between px-4 pt-4 pb-2">
-                <p className="text-xs text-base-content/50 font-medium uppercase tracking-wide">
-                    Требуют внимания
-                </p>
+                <SectionLabel>Требуют внимания</SectionLabel>
                 <Link
                     href={`${CURATOR_ORDERS_PATH}?status=pending`}
                     className="text-xs text-primary"

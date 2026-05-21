@@ -1,8 +1,18 @@
 'use client';
 
 import { useState } from 'react';
-import { useGetZones, ZoneMap, type TServiceZone } from '@/entities/service-zone';
+import dynamic from 'next/dynamic';
+import { useGetZones } from '@/entities/service-zone';
+import type { TServiceZone } from '@/entities/service-zone';
 import { PageContainer, PageTitle, QueryBoundary } from '@/shared/ui';
+
+const ZoneMap = dynamic(
+    () => import('@/entities/service-zone').then((m) => ({ default: m.ZoneMap })),
+    {
+        ssr: false,
+        loading: () => <div className="skeleton h-64 w-full rounded-2xl" />,
+    },
+);
 
 export function CuratorZonesPage() {
     return (

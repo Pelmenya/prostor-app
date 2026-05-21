@@ -13,6 +13,7 @@ import {
     OrderPositionsList,
     STATUS_LABEL,
     EOrderStatus,
+    isDangerousTransition,
 } from '@/entities/order';
 import { useGetCuratorMasters } from '@/entities/user';
 import { useSingleOrderThumbnails } from '@/features/orders';
@@ -23,7 +24,13 @@ import {
     curatorMasterPath,
 } from '@/shared/config';
 import { formatDateRu, formatUserInitials, formatPrice } from '@/shared/lib';
-import { PageContainer, DashboardBackHeader, QueryBoundary } from '@/shared/ui';
+import {
+    PageContainer,
+    DashboardBackHeader,
+    QueryBoundary,
+    ConfirmDialog,
+    SectionLabel,
+} from '@/shared/ui';
 import type { TOrder } from '@/entities/order';
 
 type TProps = { id: string };
@@ -108,14 +115,18 @@ function PersonCard({
 
     return (
         <div className="card bg-base-100 p-4 flex flex-col gap-3">
-            <p className="text-xs text-base-content/50 font-medium uppercase tracking-wide">
-                {label}
-            </p>
+            <SectionLabel>{label}</SectionLabel>
             <div className="flex items-center gap-3">
                 <div className={`avatar shrink-0 ${!user.photo_url ? 'avatar-placeholder' : ''}`}>
                     <div className="relative size-10 rounded-full overflow-hidden bg-primary/10 text-primary">
                         {user.photo_url ? (
-                            <Image src={user.photo_url} alt={name} fill className="object-cover" />
+                            <Image
+                                src={user.photo_url}
+                                alt={name}
+                                fill
+                                sizes="40px"
+                                className="object-cover"
+                            />
                         ) : (
                             <span className="text-sm font-semibold">{initials}</span>
                         )}
@@ -151,9 +162,7 @@ function PersonCard({
 function NoExecutorCard() {
     return (
         <div className="card bg-base-100 p-4 flex flex-row items-center justify-between">
-            <span className="text-xs text-base-content/50 font-medium uppercase tracking-wide">
-                Мастер
-            </span>
+            <SectionLabel>Мастер</SectionLabel>
             <span className="badge badge-sm badge-ghost">Не назначен</span>
         </div>
     );
@@ -162,9 +171,7 @@ function NoExecutorCard() {
 function AddressCard({ realEstate }: { realEstate: NonNullable<TOrder['realEstate']> }) {
     return (
         <div className="card bg-base-100 p-4 flex flex-col gap-2">
-            <p className="text-xs text-base-content/50 font-medium uppercase tracking-wide">
-                Адрес
-            </p>
+            <SectionLabel>Адрес</SectionLabel>
             <div className="flex items-start gap-2">
                 <HomeIcon className="size-5 shrink-0 text-base-content/40 mt-0.5" />
                 <span className="text-sm">{realEstate.address}</span>
@@ -182,9 +189,7 @@ function AddressCard({ realEstate }: { realEstate: NonNullable<TOrder['realEstat
 function ScheduleCard({ scheduledDate }: { scheduledDate: TOrder['scheduledDate'] }) {
     return (
         <div className="card bg-base-100 p-4 flex flex-col gap-2">
-            <p className="text-xs text-base-content/50 font-medium uppercase tracking-wide">
-                Расписание
-            </p>
+            <SectionLabel>Расписание</SectionLabel>
             <div className="flex items-center gap-2">
                 <CalendarDaysIcon className="size-5 shrink-0 text-base-content/40" />
                 <span className="text-sm">
@@ -215,9 +220,7 @@ type TItemsCardProps = {
 function ItemsCard({ order, imageUrls, loadingIds }: TItemsCardProps) {
     return (
         <div className="card bg-base-100 p-4 flex flex-col gap-3">
-            <p className="text-xs text-base-content/50 font-medium uppercase tracking-wide">
-                Состав заказа
-            </p>
+            <SectionLabel>Состав заказа</SectionLabel>
             <OrderPositionsList
                 cartState={order.cartState}
                 imageUrls={imageUrls}
@@ -240,9 +243,7 @@ function PaymentCard({ order }: { order: TOrder }) {
 
     return (
         <div className="card bg-base-100 p-4 flex flex-col gap-3">
-            <p className="text-xs text-base-content/50 font-medium uppercase tracking-wide">
-                Оплата
-            </p>
+            <SectionLabel>Оплата</SectionLabel>
             <div className="flex items-center justify-between">
                 <span className="text-sm text-base-content/60">Итого</span>
                 <span className="text-sm font-semibold">{formatPrice(order.totalAmount)}</span>
@@ -283,12 +284,10 @@ function PaymentCard({ order }: { order: TOrder }) {
 function ManagementCard({ order }: { order: TOrder }) {
     return (
         <div className="card bg-base-100 p-4 flex flex-col gap-4">
-            <p className="text-xs text-base-content/50 font-medium uppercase tracking-wide">
-                Управление
-            </p>
-            <StatusControl key={`status-${order.updatedAt}`} order={order} />
+            <SectionLabel>Управление</SectionLabel>
+            <StatusControl order={order} />
             <div className="divider my-0" />
-            <ScheduleControl key={`schedule-${order.updatedAt}`} order={order} />
+            <ScheduleControl order={order} />
             <div className="divider my-0" />
             <Suspense
                 fallback={
@@ -297,7 +296,7 @@ function ManagementCard({ order }: { order: TOrder }) {
                     </div>
                 }
             >
-                <ExecutorControl key={`executor-${order.updatedAt}`} order={order} />
+                <ExecutorControl order={order} />
             </Suspense>
         </div>
     );
@@ -305,38 +304,77 @@ function ManagementCard({ order }: { order: TOrder }) {
 
 function StatusControl({ order }: { order: TOrder }) {
     const [value, setValue] = useState<EOrderStatus>(order.status);
+    const [confirmOpen, setConfirmOpen] = useState(false);
 
     const { mutate, isPending } = useUpdateOrderStatus();
+    // isDirty computed: user changed if value differs from current server status
     const isDirty = value !== order.status;
 
+    // Sync from server when not dirty: if value still equals last synced status,
+    // server changed, so update (adjusting state during render — React docs pattern)
+    const [prevStatus, setPrevStatus] = useState(order.status);
+    if (order.status !== prevStatus && !isDirty) {
+        setPrevStatus(order.status);
+        setValue(order.status);
+    }
+
+    function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
+        setValue(e.target.value as EOrderStatus);
+    }
+
+    function handleSaveClick() {
+        if (isDangerousTransition(order.status)) {
+            setConfirmOpen(true);
+        } else {
+            doSave();
+        }
+    }
+
+    function doSave() {
+        mutate({ orderId: order.id, status: value });
+        setConfirmOpen(false);
+    }
+
     return (
-        <div className="flex flex-col gap-2">
-            <span className="text-sm font-medium">Статус</span>
-            <div className="flex gap-2">
-                <select
-                    className="select select-sm flex-1"
-                    value={value}
-                    onChange={(e) => setValue(e.target.value as EOrderStatus)}
-                >
-                    {Object.values(EOrderStatus).map((s) => (
-                        <option key={s} value={s}>
-                            {STATUS_LABEL[s].text}
-                        </option>
-                    ))}
-                </select>
-                <button
-                    className="btn btn-sm btn-primary"
-                    disabled={!isDirty || isPending}
-                    onClick={() => mutate({ orderId: order.id, status: value })}
-                >
-                    {isPending ? (
-                        <span className="loading loading-spinner loading-xs" />
-                    ) : (
-                        'Сохранить'
-                    )}
-                </button>
+        <>
+            <div className="flex flex-col gap-2">
+                <span className="text-sm font-medium">Статус</span>
+                <div className="flex gap-2">
+                    <select
+                        className="select select-sm flex-1"
+                        value={value}
+                        onChange={handleChange}
+                    >
+                        {Object.values(EOrderStatus).map((s) => (
+                            <option key={s} value={s}>
+                                {STATUS_LABEL[s].text}
+                            </option>
+                        ))}
+                    </select>
+                    <button
+                        className="btn btn-sm btn-primary"
+                        disabled={!isDirty || isPending}
+                        onClick={handleSaveClick}
+                    >
+                        {isPending ? (
+                            <span className="loading loading-spinner loading-xs" />
+                        ) : (
+                            'Сохранить'
+                        )}
+                    </button>
+                </div>
             </div>
-        </div>
+            <ConfirmDialog
+                isOpen={confirmOpen}
+                onClose={() => setConfirmOpen(false)}
+                onConfirm={doSave}
+                title="Изменение завершённого заказа"
+                message={`Статус «${STATUS_LABEL[order.status]?.text ?? order.status}» — изменение может повлиять на выплаты и отчётность. Продолжить?`}
+                confirmText="Изменить"
+                cancelText="Отмена"
+                isBusy={isPending}
+            />
+        </>
     );
 }
 
@@ -351,22 +389,42 @@ function ScheduleControl({ order }: { order: TOrder }) {
     const [endTime, setEndTime] = useState(
         sd ? `${pad(sd.endHour)}:${pad(sd.endMinute)}` : '18:00',
     );
+    const [isDirty, setIsDirty] = useState(false);
 
     const { mutate, isPending } = useUpdateOrderSchedule();
+
+    // Sync from server when not dirty (adjusting state during render)
+    const serverKey = `${sd?.date}|${sd?.startHour}|${sd?.startMinute}|${sd?.endHour}|${sd?.endMinute}`;
+    const [prevServerKey, setPrevServerKey] = useState(serverKey);
+    if (!isDirty && serverKey !== prevServerKey) {
+        setPrevServerKey(serverKey);
+        setDate(sd?.date ?? '');
+        setStartTime(sd ? `${pad(sd.startHour)}:${pad(sd.startMinute)}` : '09:00');
+        setEndTime(sd ? `${pad(sd.endHour)}:${pad(sd.endMinute)}` : '18:00');
+    }
+
+    function markDirty() {
+        setIsDirty(true);
+    }
 
     const handleSave = () => {
         const [sh, sm] = startTime.split(':').map(Number);
         const [eh, em] = endTime.split(':').map(Number);
-        mutate({
-            orderId: order.id,
-            scheduledDate: {
-                date: date || null,
-                startHour: sh,
-                startMinute: sm,
-                endHour: eh,
-                endMinute: em,
+        mutate(
+            {
+                orderId: order.id,
+                scheduledDate: {
+                    date: date || null,
+                    startHour: sh,
+                    startMinute: sm,
+                    endHour: eh,
+                    endMinute: em,
+                },
             },
-        });
+            {
+                onSuccess: () => setIsDirty(false),
+            },
+        );
     };
 
     return (
@@ -376,21 +434,30 @@ function ScheduleControl({ order }: { order: TOrder }) {
                 type="date"
                 className="input input-sm w-full"
                 value={date}
-                onChange={(e) => setDate(e.target.value)}
+                onChange={(e) => {
+                    setDate(e.target.value);
+                    markDirty();
+                }}
             />
             <div className="flex items-center gap-2">
                 <input
                     type="time"
                     className="input input-sm flex-1"
                     value={startTime}
-                    onChange={(e) => setStartTime(e.target.value)}
+                    onChange={(e) => {
+                        setStartTime(e.target.value);
+                        markDirty();
+                    }}
                 />
                 <span className="text-sm text-base-content/50">–</span>
                 <input
                     type="time"
                     className="input input-sm flex-1"
                     value={endTime}
-                    onChange={(e) => setEndTime(e.target.value)}
+                    onChange={(e) => {
+                        setEndTime(e.target.value);
+                        markDirty();
+                    }}
                 />
             </div>
             <button
@@ -415,7 +482,16 @@ function ExecutorControl({ order }: { order: TOrder }) {
     const [executorId, setExecutorId] = useState(order.executor?.id ?? 0);
 
     const { mutate, isPending } = useUpdateOrderExecutor();
+    // isDirty computed: user changed selection
     const isDirty = executorId !== (order.executor?.id ?? 0);
+
+    // Sync from server when not dirty (adjusting state during render)
+    const serverExecutorId = order.executor?.id ?? 0;
+    const [prevExecutorId, setPrevExecutorId] = useState(serverExecutorId);
+    if (!isDirty && serverExecutorId !== prevExecutorId) {
+        setPrevExecutorId(serverExecutorId);
+        setExecutorId(serverExecutorId);
+    }
 
     return (
         <div className="flex flex-col gap-2">

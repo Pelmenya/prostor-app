@@ -7,7 +7,7 @@ import { useGetCuratorClientById } from '@/entities/user';
 import { useGetOrders, OrderStatus } from '@/entities/order';
 import { curatorOrderPath, CURATOR_CLIENTS_PATH } from '@/shared/config';
 import { formatUserInitials, formatDateRu, formatRuPhoneForView } from '@/shared/lib';
-import { PageContainer, DashboardBackHeader, QueryBoundary } from '@/shared/ui';
+import { PageContainer, DashboardBackHeader, QueryBoundary, SectionLabel } from '@/shared/ui';
 import type { TCuratorUser } from '@/shared/model';
 import type { TOrder } from '@/entities/order';
 
@@ -58,6 +58,7 @@ function ProfileCard({ client }: { client: TCuratorUser }) {
                             src={client.photo_url}
                             alt={fullName}
                             fill
+                            sizes="64px"
                             className="object-cover"
                         />
                     ) : (
@@ -79,9 +80,7 @@ function ContactsCard({ client }: { client: TCuratorUser }) {
 
     return (
         <div className="card bg-base-100 p-4 flex flex-col gap-3">
-            <p className="text-xs text-base-content/50 font-medium uppercase tracking-wide">
-                Контакты
-            </p>
+            <SectionLabel>Контакты</SectionLabel>
             {phone && (
                 <ContactRow label="Телефон" value={phone} verified={client.phone_is_confirm} />
             )}
@@ -125,9 +124,7 @@ function ContactRow({
 function AccountCard({ client }: { client: TCuratorUser }) {
     return (
         <div className="card bg-base-100 p-4 flex flex-col gap-3">
-            <p className="text-xs text-base-content/50 font-medium uppercase tracking-wide">
-                Аккаунт
-            </p>
+            <SectionLabel>Аккаунт</SectionLabel>
             <div className="flex items-center justify-between">
                 <span className="text-sm text-base-content/60">Авторизован</span>
                 <span
@@ -155,9 +152,7 @@ function OrdersCard({ userId }: { userId: number }) {
     if (orders.length === 0) {
         return (
             <div className="card bg-base-100 p-4">
-                <p className="text-xs text-base-content/50 font-medium uppercase tracking-wide mb-3">
-                    Заказы
-                </p>
+                <SectionLabel className="mb-3">Заказы</SectionLabel>
                 <p className="text-sm text-base-content/40">Заказов нет</p>
             </div>
         );
@@ -165,9 +160,7 @@ function OrdersCard({ userId }: { userId: number }) {
 
     return (
         <div className="card bg-base-100 p-4 flex flex-col gap-3">
-            <p className="text-xs text-base-content/50 font-medium uppercase tracking-wide">
-                Заказы
-            </p>
+            <SectionLabel>Заказы</SectionLabel>
             <ul className="flex flex-col divide-y divide-base-content/5">
                 {orders.map((order) => (
                     <OrderRow key={order.id} order={order} />

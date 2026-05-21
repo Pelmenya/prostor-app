@@ -112,7 +112,7 @@ export function BurgerMenu({
                                 />
                             </>
                         )}
-                        {role === EUserRole.CURATOR && (
+                        {isAuthenticated && role === EUserRole.CURATOR && (
                             <>
                                 <hr className="border-base-content/10" />
                                 <MenuLink

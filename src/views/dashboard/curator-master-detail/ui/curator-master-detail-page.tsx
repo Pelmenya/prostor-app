@@ -7,7 +7,7 @@ import { useGetCuratorServiceById, useSetMasterCanEdit } from '@/entities/user';
 import { useGetOrders, OrderStatus } from '@/entities/order';
 import { curatorOrderPath, curatorMasterEditPath, CURATOR_MASTERS_PATH } from '@/shared/config';
 import { formatUserInitials, formatDateRu, formatRuPhoneForView } from '@/shared/lib';
-import { PageContainer, DashboardBackHeader, QueryBoundary } from '@/shared/ui';
+import { PageContainer, DashboardBackHeader, QueryBoundary, SectionLabel } from '@/shared/ui';
 import type { TCuratorServiceUser, TCuratorMasterAccountService } from '@/shared/model';
 import type { TOrder } from '@/entities/order';
 
@@ -67,6 +67,7 @@ function ProfileCard({ master }: { master: TCuratorServiceUser }) {
                             src={master.photo_url}
                             alt={fullName}
                             fill
+                            sizes="64px"
                             className="object-cover"
                         />
                     ) : (
@@ -96,9 +97,7 @@ function ContactsCard({ master }: { master: TCuratorServiceUser }) {
 
     return (
         <div className="card bg-base-100 p-4 flex flex-col gap-3">
-            <p className="text-xs text-base-content/50 font-medium uppercase tracking-wide">
-                Контакты
-            </p>
+            <SectionLabel>Контакты</SectionLabel>
             {phone && (
                 <ContactRow label="Телефон" value={phone} verified={master.phone_is_confirm} />
             )}
@@ -145,9 +144,7 @@ function ManagementCard({ master, userId }: { master: TCuratorServiceUser; userI
 
     return (
         <div className="card bg-base-100 p-4 flex flex-col gap-3">
-            <p className="text-xs text-base-content/50 font-medium uppercase tracking-wide">
-                Управление
-            </p>
+            <SectionLabel>Управление</SectionLabel>
 
             <div className="flex items-center justify-between">
                 <span className="text-sm text-base-content/60">Статус</span>
@@ -191,9 +188,7 @@ function TransportCard({ as }: { as: TCuratorMasterAccountService }) {
 
     return (
         <div className="card bg-base-100 p-4 flex flex-col gap-3">
-            <p className="text-xs text-base-content/50 font-medium uppercase tracking-wide">
-                Транспорт и адрес
-            </p>
+            <SectionLabel>Транспорт и адрес</SectionLabel>
             {as.carModel && (
                 <div className="flex items-center justify-between gap-2">
                     <span className="text-sm text-base-content/60 shrink-0">Автомобиль</span>
@@ -223,9 +218,7 @@ function OrdersCard({ userId }: { userId: number }) {
     if (orders.length === 0) {
         return (
             <div className="card bg-base-100 p-4">
-                <p className="text-xs text-base-content/50 font-medium uppercase tracking-wide mb-3">
-                    Заказы
-                </p>
+                <SectionLabel className="mb-3">Заказы</SectionLabel>
                 <p className="text-sm text-base-content/40">Заказов нет</p>
             </div>
         );
@@ -233,9 +226,7 @@ function OrdersCard({ userId }: { userId: number }) {
 
     return (
         <div className="card bg-base-100 p-4 flex flex-col gap-3">
-            <p className="text-xs text-base-content/50 font-medium uppercase tracking-wide">
-                Заказы
-            </p>
+            <SectionLabel>Заказы</SectionLabel>
             <ul className="flex flex-col divide-y divide-base-content/5">
                 {orders.map((order) => (
                     <OrderRow key={order.id} order={order} />

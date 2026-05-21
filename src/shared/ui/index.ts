@@ -37,3 +37,4 @@ export { PageError } from './page-error/page-error';
 export type { TPageErrorProps } from './page-error/page-error';
 export { QueryBoundary } from './query-boundary/query-boundary';
 export { DashboardBackHeader } from './dashboard-back-header/dashboard-back-header';
+export { SectionLabel } from './section-label/section-label';

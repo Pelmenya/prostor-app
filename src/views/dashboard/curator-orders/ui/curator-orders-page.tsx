@@ -90,7 +90,9 @@ function CuratorOrdersContent() {
     });
 
     const { data: countData } = useGetOrdersCount({ status: effectiveStatuses });
+    const { data: mastersData } = useGetCuratorMasters({ limit: 100 });
     const orders = data.pages.flatMap((p) => p.items);
+    const masters = mastersData.pages.flatMap((p) => p.items);
     const activeFilterCount = countActiveFilters(filters);
 
     function handleTabChange(tab: TTabType) {
@@ -148,7 +150,11 @@ function CuratorOrdersContent() {
                 )}
 
                 {/* Активные фильтры-чипы */}
-                <ActiveFilterChips filters={filters} onRemove={handleRemoveFilter} />
+                <ActiveFilterChips
+                    filters={filters}
+                    masters={masters}
+                    onRemove={handleRemoveFilter}
+                />
 
                 {/* Счётчик результатов */}
                 {countData?.count !== undefined && (
@@ -188,9 +194,11 @@ function CuratorOrdersContent() {
 
 function ActiveFilterChips({
     filters,
+    masters,
     onRemove,
 }: {
     filters: TActiveFilters;
+    masters: { id: number; first_name: string; last_name: string }[];
     onRemove: (key: keyof TActiveFilters) => void;
 }) {
     const chips: { key: keyof TActiveFilters; label: string }[] = [];
@@ -198,6 +206,13 @@ function ActiveFilterChips({
     if (filters.statusOverride !== null) {
         const labels = filters.statusOverride.map((s) => STATUS_LABEL[s]?.text ?? s);
         chips.push({ key: 'statusOverride', label: `Статус: ${labels.join(', ')}` });
+    }
+    if (filters.executorId !== null) {
+        const master = masters.find((m) => m.id === filters.executorId);
+        const name = master
+            ? [master.first_name, master.last_name].filter(Boolean).join(' ') || `ID ${master.id}`
+            : `ID ${filters.executorId}`;
+        chips.push({ key: 'executorId', label: `Мастер: ${name}` });
     }
     if (filters.sortDir !== 'desc') {
         chips.push({ key: 'sortDir', label: 'Сначала старые' });
@@ -212,7 +227,7 @@ function ActiveFilterChips({
                     key={key}
                     type="button"
                     onClick={() => onRemove(key)}
-                    className="badge badge-outline gap-1 cursor-pointer"
+                    className="btn btn-xs btn-outline gap-1 min-h-[44px]"
                 >
                     {label}
                     <XMarkIcon className="size-3" />

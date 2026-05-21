@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, Suspense } from 'react';
+import { useState, useId, Suspense } from 'react';
+import React from 'react';
 import { CompactModal } from '@/shared/ui';
 import {
     useGetCuratorServiceById,
@@ -66,7 +67,7 @@ function EditContent({ userId }: { userId: number }) {
                         </div>
                     }
                 >
-                    <ZonesSection userId={userId} as={as} />
+                    <ZonesSection userId={userId} />
                 </Suspense>
             </div>
         </PageContainer>
@@ -121,10 +122,13 @@ function SaveRow({
 }
 
 function FieldRow({ label, children }: { label: string; children: React.ReactNode }) {
+    const id = useId();
     return (
         <div className="flex flex-col gap-1">
-            <label className="text-xs text-base-content/50">{label}</label>
-            {children}
+            <label htmlFor={id} className="text-xs text-base-content/50">
+                {label}
+            </label>
+            {React.cloneElement(children as React.ReactElement<{ id?: string }>, { id })}
         </div>
     );
 }
@@ -142,10 +146,21 @@ function NoAccountService() {
 function ProfileSection({ master, userId }: { master: TCuratorServiceUser; userId: number }) {
     const { mutate, isPending, isSuccess, error, reset } = useUpdateMasterProfile();
 
+    const [isDirty, setIsDirty] = useState(false);
     const [firstName, setFirstName] = useState(master.first_name ?? '');
     const [lastName, setLastName] = useState(master.last_name ?? '');
     const [phone, setPhone] = useState(master.phone ? formatRuPhoneForView(master.phone) : '');
     const [phoneError, setPhoneError] = useState('');
+
+    // Sync from server when not dirty (adjusting state during render — React docs pattern)
+    const serverKey = `${master.first_name}|${master.last_name}|${master.phone}`;
+    const [prevServerKey, setPrevServerKey] = useState(serverKey);
+    if (!isDirty && serverKey !== prevServerKey) {
+        setPrevServerKey(serverKey);
+        setFirstName(master.first_name ?? '');
+        setLastName(master.last_name ?? '');
+        setPhone(master.phone ? formatRuPhoneForView(master.phone) : '');
+    }
 
     function handleSave() {
         setPhoneError('');
@@ -162,7 +177,12 @@ function ProfileSection({ master, userId }: { master: TCuratorServiceUser; userI
                 last_name: lastName.trim() || undefined,
                 phone: e164 || undefined,
             },
-            { onSuccess: reset },
+            {
+                onSuccess: () => {
+                    setIsDirty(false);
+                    setTimeout(() => reset(), 2000);
+                },
+            },
         );
     }
 
@@ -173,7 +193,10 @@ function ProfileSection({ master, userId }: { master: TCuratorServiceUser; userI
                     <input
                         type="text"
                         value={firstName}
-                        onChange={(e) => setFirstName(e.target.value)}
+                        onChange={(e) => {
+                            setFirstName(e.target.value);
+                            setIsDirty(true);
+                        }}
                         className="input input-bordered input-sm w-full"
                         placeholder="Иван"
                     />
@@ -182,7 +205,10 @@ function ProfileSection({ master, userId }: { master: TCuratorServiceUser; userI
                     <input
                         type="text"
                         value={lastName}
-                        onChange={(e) => setLastName(e.target.value)}
+                        onChange={(e) => {
+                            setLastName(e.target.value);
+                            setIsDirty(true);
+                        }}
                         className="input input-bordered input-sm w-full"
                         placeholder="Иванов"
                     />
@@ -191,12 +217,15 @@ function ProfileSection({ master, userId }: { master: TCuratorServiceUser; userI
                     <input
                         type="tel"
                         value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
+                        onChange={(e) => {
+                            setPhone(e.target.value);
+                            setIsDirty(true);
+                        }}
                         className={`input input-bordered input-sm w-full ${phoneError ? 'input-error' : ''}`}
                         placeholder="+7 999 999-99-99"
                     />
-                    {phoneError && <p className="text-error text-xs">{phoneError}</p>}
                 </FieldRow>
+                {phoneError && <p className="text-error text-xs">{phoneError}</p>}
                 <div className="flex items-center gap-2">
                     <span className="text-xs text-base-content/40">Email:</span>
                     <span className="text-xs">{master.email ?? 'не указан'}</span>
@@ -224,10 +253,19 @@ function LocationSection({
 }) {
     const { mutate, isPending, isSuccess, error, reset } = useUpdateMasterLocation();
 
+    const [isDirty, setIsDirty] = useState(false);
     const [address, setAddress] = useState(as?.address ?? '');
     const [departureBasis, setDepartureBasis] = useState<'OWN_ADDRESS' | 'NEAREST_STORE'>(
         as?.departureBasis ?? 'OWN_ADDRESS',
     );
+
+    const serverKey = `${as?.address}|${as?.departureBasis}`;
+    const [prevServerKey, setPrevServerKey] = useState(serverKey);
+    if (!isDirty && serverKey !== prevServerKey) {
+        setPrevServerKey(serverKey);
+        setAddress(as?.address ?? '');
+        setDepartureBasis(as?.departureBasis ?? 'OWN_ADDRESS');
+    }
 
     function handleSave() {
         mutate(
@@ -237,7 +275,12 @@ function LocationSection({
                 departureBasis,
                 coordinates: as?.coordinates ?? undefined,
             },
-            { onSuccess: reset },
+            {
+                onSuccess: () => {
+                    setIsDirty(false);
+                    setTimeout(() => reset(), 2000);
+                },
+            },
         );
     }
 
@@ -251,7 +294,10 @@ function LocationSection({
                         <input
                             type="text"
                             value={address}
-                            onChange={(e) => setAddress(e.target.value)}
+                            onChange={(e) => {
+                                setAddress(e.target.value);
+                                setIsDirty(true);
+                            }}
                             className="input input-bordered input-sm w-full"
                             placeholder="Москва, ул. Ленина, 1"
                         />
@@ -259,9 +305,12 @@ function LocationSection({
                     <FieldRow label="Откуда выезжает">
                         <select
                             value={departureBasis}
-                            onChange={(e) =>
-                                setDepartureBasis(e.target.value as 'OWN_ADDRESS' | 'NEAREST_STORE')
-                            }
+                            onChange={(e) => {
+                                setDepartureBasis(
+                                    e.target.value as 'OWN_ADDRESS' | 'NEAREST_STORE',
+                                );
+                                setIsDirty(true);
+                            }}
                             className="select select-bordered select-sm w-full"
                         >
                             {DEPARTURE_OPTIONS.map((opt) => (
@@ -294,6 +343,7 @@ function VehicleSection({
 }) {
     const { mutate, isPending, isSuccess, error, reset } = useUpdateMasterVehicle();
 
+    const [isDirty, setIsDirty] = useState(false);
     const [grade, setGrade] = useState(as?.grade ?? '');
     const [carModel, setCarModel] = useState(as?.carModel ?? '');
     const [carNumber, setCarNumber] = useState(as?.carNumber ?? '');
@@ -302,9 +352,22 @@ function VehicleSection({
     const [height, setHeight] = useState(as?.maxCargoHeight?.toString() ?? '');
     const [weight, setWeight] = useState(as?.maxCargoWeight?.toString() ?? '');
 
+    const serverKey = `${as?.grade}|${as?.carModel}|${as?.carNumber}|${as?.maxCargoLength}|${as?.maxCargoWidth}|${as?.maxCargoHeight}|${as?.maxCargoWeight}`;
+    const [prevServerKey, setPrevServerKey] = useState(serverKey);
+    if (!isDirty && serverKey !== prevServerKey) {
+        setPrevServerKey(serverKey);
+        setGrade(as?.grade ?? '');
+        setCarModel(as?.carModel ?? '');
+        setCarNumber(as?.carNumber ?? '');
+        setLength(as?.maxCargoLength?.toString() ?? '');
+        setWidth(as?.maxCargoWidth?.toString() ?? '');
+        setHeight(as?.maxCargoHeight?.toString() ?? '');
+        setWeight(as?.maxCargoWeight?.toString() ?? '');
+    }
+
     function toNum(val: string): number | undefined {
         const n = parseInt(val, 10);
-        return isNaN(n) || n < 0 ? undefined : n;
+        return isNaN(n) || n <= 0 ? undefined : n;
     }
 
     function handleSave() {
@@ -324,9 +387,16 @@ function VehicleSection({
                 maxCargoHeight: toNum(height),
                 maxCargoWeight: toNum(weight),
             },
-            { onSuccess: reset },
+            {
+                onSuccess: () => {
+                    setIsDirty(false);
+                    setTimeout(() => reset(), 2000);
+                },
+            },
         );
     }
+
+    const markDirty = () => setIsDirty(true);
 
     return (
         <SectionCollapse title="Автомобиль">
@@ -337,7 +407,10 @@ function VehicleSection({
                     <FieldRow label="Грейд">
                         <select
                             value={grade}
-                            onChange={(e) => setGrade(e.target.value)}
+                            onChange={(e) => {
+                                setGrade(e.target.value);
+                                markDirty();
+                            }}
                             className="select select-bordered select-sm w-full"
                         >
                             <option value="">Не указан</option>
@@ -352,7 +425,10 @@ function VehicleSection({
                         <input
                             type="text"
                             value={carModel}
-                            onChange={(e) => setCarModel(e.target.value)}
+                            onChange={(e) => {
+                                setCarModel(e.target.value);
+                                markDirty();
+                            }}
                             className="input input-bordered input-sm w-full"
                             placeholder="Toyota Hiace"
                         />
@@ -361,7 +437,10 @@ function VehicleSection({
                         <input
                             type="text"
                             value={carNumber}
-                            onChange={(e) => setCarNumber(e.target.value)}
+                            onChange={(e) => {
+                                setCarNumber(e.target.value);
+                                markDirty();
+                            }}
                             className="input input-bordered input-sm w-full"
                             placeholder="А123БВ77"
                         />
@@ -381,7 +460,10 @@ function VehicleSection({
                                     type="number"
                                     min={0}
                                     value={value}
-                                    onChange={(e) => set(e.target.value)}
+                                    onChange={(e) => {
+                                        set(e.target.value);
+                                        markDirty();
+                                    }}
                                     className="input input-bordered input-sm w-full"
                                     placeholder="0"
                                 />
@@ -416,9 +498,18 @@ function ScheduleSection({
     const [isSuccess, setIsSuccess] = useState(false);
     const [hasError, setHasError] = useState(false);
 
+    const [isDirty, setIsDirty] = useState(false);
     const [workDays, setWorkDays] = useState<TWorkDay[]>(as?.workDays ?? []);
     const [calendarMonths, setCalendarMonths] = useState(as?.calendarMonths ?? 2);
     const [editingDay, setEditingDay] = useState<TWorkDay | null>(null);
+
+    const serverKey = `${JSON.stringify(as?.workDays)}|${as?.calendarMonths}`;
+    const [prevServerKey, setPrevServerKey] = useState(serverKey);
+    if (!isDirty && serverKey !== prevServerKey) {
+        setPrevServerKey(serverKey);
+        setWorkDays(as?.workDays ?? []);
+        setCalendarMonths(as?.calendarMonths ?? 2);
+    }
 
     function handleDaySelect(day: TWorkDay) {
         setEditingDay(day);
@@ -431,11 +522,13 @@ function ScheduleSection({
                 ? prev.map((d) => (d.dayOfWeek === updated.dayOfWeek ? updated : d))
                 : [...prev, updated];
         });
+        setIsDirty(true);
         setEditingDay(null);
     }
 
     function handleEditorRemove(day: TWorkDay) {
         setWorkDays((prev) => prev.filter((d) => d.dayOfWeek !== day.dayOfWeek));
+        setIsDirty(true);
         setEditingDay(null);
     }
 
@@ -447,7 +540,11 @@ function ScheduleSection({
             {
                 onSuccess: () => {
                     fillCalendar(userId, {
-                        onSuccess: () => setIsSuccess(true),
+                        onSuccess: () => {
+                            setIsDirty(false);
+                            setIsSuccess(true);
+                            setTimeout(() => setIsSuccess(false), 2000);
+                        },
                         onError: () => setHasError(true),
                     });
                 },
@@ -476,7 +573,10 @@ function ScheduleSection({
                             min={0}
                             max={12}
                             value={calendarMonths}
-                            onChange={(e) => setCalendarMonths(Number(e.target.value))}
+                            onChange={(e) => {
+                                setCalendarMonths(Number(e.target.value));
+                                setIsDirty(true);
+                            }}
                             className="range range-primary range-sm w-full"
                         />
                         <div className="flex justify-between text-xs text-base-content/40 px-1">
@@ -518,11 +618,14 @@ function DayTimeEditor({
     onRemove: (day: TWorkDay) => void;
     onClose: () => void;
 }) {
-    const pad = (n: number) => String(n).padStart(2, '0');
+    const padTime = (n: number) => String(n).padStart(2, '0');
     const [startTime, setStartTime] = useState(
-        `${pad(workDay.startHour)}:${pad(workDay.startMinute)}`,
+        `${padTime(workDay.startHour)}:${padTime(workDay.startMinute)}`,
     );
-    const [endTime, setEndTime] = useState(`${pad(workDay.endHour)}:${pad(workDay.endMinute)}`);
+    const [endTime, setEndTime] = useState(
+        `${padTime(workDay.endHour)}:${padTime(workDay.endMinute)}`,
+    );
+    const [timeError, setTimeError] = useState('');
 
     function parseTime(t: string): [number, number] {
         const [h = 0, m = 0] = t.split(':').map(Number);
@@ -532,6 +635,16 @@ function DayTimeEditor({
     function handleSave() {
         const [startHour, startMinute] = parseTime(startTime);
         const [endHour, endMinute] = parseTime(endTime);
+        const startTotal = startHour * 60 + startMinute;
+        const endTotal = endHour * 60 + endMinute;
+        if (!startTime || !endTime || isNaN(startHour) || isNaN(endHour)) {
+            setTimeError('Укажите время начала и конца');
+            return;
+        }
+        if (endTotal <= startTotal) {
+            setTimeError('Время конца должно быть позже начала');
+            return;
+        }
         onSave({ ...workDay, startHour, startMinute, endHour, endMinute });
     }
 
@@ -545,7 +658,10 @@ function DayTimeEditor({
                         <input
                             type="time"
                             value={startTime}
-                            onChange={(e) => setStartTime(e.target.value)}
+                            onChange={(e) => {
+                                setStartTime(e.target.value);
+                                setTimeError('');
+                            }}
                             className="input input-bordered input-sm w-full"
                         />
                     </FieldRow>
@@ -553,11 +669,15 @@ function DayTimeEditor({
                         <input
                             type="time"
                             value={endTime}
-                            onChange={(e) => setEndTime(e.target.value)}
+                            onChange={(e) => {
+                                setEndTime(e.target.value);
+                                setTimeError('');
+                            }}
                             className="input input-bordered input-sm w-full"
                         />
                     </FieldRow>
                 </div>
+                {timeError && <p className="text-error text-xs">{timeError}</p>}
                 <div className="flex gap-2">
                     {workDay.dayOfWeek !== undefined && (
                         <button
@@ -583,19 +703,21 @@ function DayTimeEditor({
 
 // ─── Зоны ────────────────────────────────────────────────────────────────────
 
-function ZonesSection({ userId, as }: { userId: number; as: TCuratorMasterAccountService | null }) {
+function ZonesSection({ userId }: { userId: number }) {
     const { data: allZones } = useGetZones();
     const { data: masterZones } = useGetMasterZonesByCurator(userId);
     const { mutate, isPending, isSuccess, error, reset } = useUpdateMasterZones();
 
+    const [isDirty, setIsDirty] = useState(false);
     const [selection, setSelection] = useState<number[]>(() => masterZones.map((z) => z.id));
     const [search, setSearch] = useState('');
 
-    const center = as?.coordinates
-        ? { latitude: as.coordinates.coordinates[1], longitude: as.coordinates.coordinates[0] }
-        : undefined;
-
-    void center;
+    const serverKey = masterZones.map((z) => z.id).join(',');
+    const [prevServerKey, setPrevServerKey] = useState(serverKey);
+    if (!isDirty && serverKey !== prevServerKey) {
+        setPrevServerKey(serverKey);
+        setSelection(masterZones.map((z) => z.id));
+    }
 
     const masterZoneIds = masterZones.map((z) => z.id);
     const visible = allZones.filter((z) => z.isActive || masterZoneIds.includes(z.id));
@@ -607,10 +729,19 @@ function ZonesSection({ userId, as }: { userId: number; as: TCuratorMasterAccoun
         setSelection((prev) =>
             prev.includes(zoneId) ? prev.filter((id) => id !== zoneId) : [...prev, zoneId],
         );
+        setIsDirty(true);
     }
 
     function handleSave() {
-        mutate({ userId, zoneIds: selection }, { onSuccess: reset });
+        mutate(
+            { userId, zoneIds: selection },
+            {
+                onSuccess: () => {
+                    setIsDirty(false);
+                    setTimeout(() => reset(), 2000);
+                },
+            },
+        );
     }
 
     return (
@@ -622,6 +753,7 @@ function ZonesSection({ userId, as }: { userId: number; as: TCuratorMasterAccoun
                     onChange={(e) => setSearch(e.target.value)}
                     className="input input-bordered input-sm w-full"
                     placeholder="Поиск зоны..."
+                    aria-label="Поиск зоны"
                 />
                 <div className="flex flex-col gap-2 max-h-64 overflow-y-auto pr-1">
                     {filtered.map((zone) => (
