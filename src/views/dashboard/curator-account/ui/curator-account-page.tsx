@@ -19,8 +19,10 @@ import {
     CURATOR_MASTERS_PATH,
     CURATOR_CLIENTS_PATH,
     CURATOR_ZONES_PATH,
+    CURATOR_CHATS_PATH,
     curatorOrderPath,
 } from '@/shared/config';
+import { useGetUnreadCount } from '@/entities/chat';
 import { formatDateRu } from '@/shared/lib';
 import { PageContainer, PageTitle, QueryBoundary, SectionLabel } from '@/shared/ui';
 import type { TOrder } from '@/entities/order';
@@ -109,13 +111,7 @@ function AttentionBlock() {
                 <PendingOrdersList />
             </Suspense>
 
-            <div className="px-4 py-3 border-t border-base-content/5 flex items-center gap-3 opacity-40">
-                <ChatBubbleLeftEllipsisIcon className="size-5 shrink-0 text-base-content/60" />
-                <div className="flex flex-col min-w-0">
-                    <span className="text-sm">Новые сообщения в чате</span>
-                    <span className="text-xs text-base-content/40">Скоро</span>
-                </div>
-            </div>
+            <UnreadMessagesRow />
         </div>
     );
 }
@@ -168,6 +164,36 @@ function PendingOrderRow({ order }: { order: TOrder }) {
                 </div>
             </Link>
         </li>
+    );
+}
+
+function UnreadMessagesRow() {
+    const { data, isLoading } = useGetUnreadCount();
+    const count = data?.count ?? 0;
+
+    return (
+        <Link
+            href={CURATOR_CHATS_PATH}
+            className="px-4 py-3 border-t border-base-content/5 flex items-center gap-3 hover:bg-base-200 transition-colors"
+        >
+            <ChatBubbleLeftEllipsisIcon className="size-5 shrink-0 text-base-content/60" />
+            <div className="flex flex-col min-w-0 flex-1">
+                <span className="text-sm">Новые сообщения в чате</span>
+                {isLoading ? (
+                    <span className="loading loading-dots loading-xs text-base-content/30" />
+                ) : (
+                    <span className="text-xs text-base-content/40">
+                        {count > 0 ? `${count} непрочитанных` : 'Нет непрочитанных'}
+                    </span>
+                )}
+            </div>
+            {count > 0 && (
+                <span className="badge badge-primary badge-sm shrink-0">
+                    {count > 99 ? '99+' : count}
+                </span>
+            )}
+            <ChevronRightIcon className="size-4 text-base-content/30 shrink-0" />
+        </Link>
     );
 }
 

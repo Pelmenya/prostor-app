@@ -17,4 +17,10 @@ export default defineConfig([
             'fsd/insignificant-slice': 'off',
         },
     },
+    {
+        // features/ активно растёт, лимит 20 слайсов слишком мал
+        rules: {
+            'fsd/excessive-slicing': 'off',
+        },
+    },
 ]);

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { ChatBubbleLeftEllipsisIcon } from '@heroicons/react/24/outline';
 import { EOrderStatus } from '@/entities/order';
 import type { TUser } from '@/shared/model';
 
@@ -35,9 +36,10 @@ export function OrderActions({
 
     return (
         <div className="flex gap-4">
-            <button type="button" disabled className="flex-1 btn btn-md btn-primary">
+            <Link href={`/orders/${orderId}/chat`} className="flex-1 btn btn-md btn-primary gap-2">
+                <ChatBubbleLeftEllipsisIcon className="size-5" />
                 Задать вопрос
-            </button>
+            </Link>
             <button
                 type="button"
                 className="flex-1 btn btn-md btn-error btn-outline"

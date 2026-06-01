@@ -22,6 +22,7 @@ import {
     COMMISSION_PERCENTS,
     curatorClientPath,
     curatorMasterPath,
+    curatorOrderChatPath,
 } from '@/shared/config';
 import { formatDateRu, formatUserInitials, formatPrice } from '@/shared/lib';
 import {
@@ -31,6 +32,7 @@ import {
     ConfirmDialog,
     SectionLabel,
 } from '@/shared/ui';
+import { ChatBubbleLeftEllipsisIcon } from '@heroicons/react/24/outline';
 import type { TOrder } from '@/entities/order';
 
 type TProps = { id: string };
@@ -75,6 +77,7 @@ function CuratorOrderDetailContent({ orderId }: { orderId: number }) {
                     <ItemsCard order={order} imageUrls={imageUrls} loadingIds={loadingIds} />
                 )}
                 <PaymentCard order={order} />
+                <ChatCard orderId={orderId} />
                 <ManagementCard order={order} />
             </div>
         </PageContainer>
@@ -276,6 +279,26 @@ function PaymentCard({ order }: { order: TOrder }) {
                 </div>
             )}
         </div>
+    );
+}
+
+// ---- Чат ----
+
+function ChatCard({ orderId }: { orderId: number }) {
+    return (
+        <Link
+            href={curatorOrderChatPath(orderId)}
+            className="card bg-base-100 p-4 flex flex-row items-center justify-between gap-3 hover:bg-base-200 transition-colors"
+        >
+            <div className="flex items-center gap-3">
+                <ChatBubbleLeftEllipsisIcon className="size-5 text-primary" />
+                <div>
+                    <p className="text-sm font-medium">Чат по заказу</p>
+                    <p className="text-xs text-base-content/60">Клиент, мастер и куратор</p>
+                </div>
+            </div>
+            <span className="text-xs text-base-content/40">Открыть →</span>
+        </Link>
     );
 }
 

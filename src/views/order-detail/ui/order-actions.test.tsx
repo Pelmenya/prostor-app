@@ -68,7 +68,7 @@ describe('OrderActions', () => {
             expect(screen.getByText('Отменить')).toBeInTheDocument();
         });
 
-        it('"Задать вопрос" задизейблена (не реализована)', () => {
+        it('"Задать вопрос" — ссылка на чат заказа', () => {
             render(
                 <OrderActions
                     orderId={1}
@@ -79,7 +79,8 @@ describe('OrderActions', () => {
                     onCancelClick={vi.fn()}
                 />,
             );
-            expect(screen.getByText('Задать вопрос')).toBeDisabled();
+            const link = screen.getByRole('link', { name: /Задать вопрос/i });
+            expect(link).toHaveAttribute('href', '/orders/1/chat');
         });
 
         it('"Отменить" дизейблена когда isCancelled=true', () => {

@@ -19,7 +19,7 @@ export default function WebLayout({ children }: { children: React.ReactNode }) {
                     PageContainer чтобы серый фон тянулся на весь экран при
                     коротком контенте. На /water flex-col безвреден (контент
                     абсолютно позиционирован). */}
-                <main className="flex-1 flex flex-col overflow-y-auto overscroll-contain has-[[data-fullscreen-map]]:overflow-hidden has-[[data-fullscreen-map]]:overscroll-none">
+                <main className="flex-1 flex flex-col overflow-y-auto overscroll-contain has-[[data-fullscreen-map]]:overflow-hidden has-[[data-fullscreen-map]]:overscroll-none has-[[data-chat-page]]:overflow-hidden">
                     {children}
                 </main>
                 <Footer />

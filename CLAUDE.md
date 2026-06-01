@@ -149,7 +149,7 @@ Multi-modal smart search (text + photo) в `/water` page. Branch `feature/water-
 
 - **(web)** — серверный layout, Header/Footer, навигация. Статика где можно (каталог — ISR), SSR где нужны данные пользователя
 - **(miniapp)** — клиентский layout, без chrome браузера, платформенный UI
-- **(dashboard)** — клиентский layout, sidebar-навигация, много интерактива. Роли: SERVICE, CURATOR, ADMIN
+- **(dashboard)** — клиентский layout, sidebar-навигация, много интерактива. Роли: SERVICE, CURATOR, MANAGER, ADMIN
 - Бизнес-логика, UI, TanStack Query хуки — в FSD-слоях (общие для всех layout'ов)
 - Один деплой, один домен, разные точки входа
 
@@ -195,7 +195,9 @@ Business Logic → PlatformAdapter interface
 
 ### Ролевая модель
 
-Роли из бэка: **CLIENT** (клиент), **SERVICE** (мастер-монтажник), **CURATOR** (куратор-координатор), **ADMIN** (админ). Layout `(dashboard)` доступен только SERVICE/CURATOR/ADMIN.
+Роли из бэка: **CLIENT** (клиент), **SERVICE** (мастер-монтажник), **CURATOR** (куратор-координатор), **MANAGER** (B2B менеджер объектов), **ADMIN** (админ). Layout `(dashboard)` доступен только SERVICE/CURATOR/MANAGER/ADMIN.
+
+Полная спецификация роли MANAGER (B2B объекты, публичная карта, API) — [`docs/features/manager/MANAGER_ROLE.md`](docs/features/manager/MANAGER_ROLE.md).
 
 Полная архитектура (Adapter Pattern, NextAuth конфиг, схемы флоу) — [`docs/features/auth/AUTH_ADAPTER.md`](docs/features/auth/AUTH_ADAPTER.md).
 
@@ -203,7 +205,7 @@ Business Logic → PlatformAdapter interface
 
 Backend (NestJS) в `crm-aqua-kinetics-back`. Единый API для всех клиентов. Тип платформы определяется по заголовку авторизации.
 
-**Ключевые модули:** Auth (мульти-auth: Telegram initData, JWT, OAuth), User (роли CLIENT/SERVICE/CURATOR/ADMIN), Order (+ МойСклад), Cart, Catalog, RealEstate, Zones (OSM), Payment (ЮKassa + Telegram Payments), Chat, InstalledEquipment.
+**Ключевые модули:** Auth (мульти-auth: Telegram initData, JWT, OAuth), User (роли CLIENT/SERVICE/CURATOR/MANAGER/ADMIN), Order (+ МойСклад), Cart, Catalog, RealEstate (+ B2B поля: businessType/isPublic/managerId), Zones (OSM), Payment (ЮKassa + Telegram Payments), Chat, InstalledEquipment, Manager (новый).
 
 Swagger: `{BACKEND_URL}/api/docs`
 
@@ -527,6 +529,7 @@ claude mcp list
 
 - [`docs/features/auth/AUTH_ADAPTER.md`](docs/features/auth/AUTH_ADAPTER.md) — Adapter Pattern, авторизация
 - [`docs/features/cart/CART_STRATEGY.md`](docs/features/cart/CART_STRATEGY.md) — корзина (Zustand + localStorage → sync после логина)
+- [`docs/features/manager/MANAGER_ROLE.md`](docs/features/manager/MANAGER_ROLE.md) — роль MANAGER: B2B объекты, публичная карта, API эндпоинты, FSD структура
 
 **Бэкенд:**
 
