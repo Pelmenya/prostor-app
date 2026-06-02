@@ -190,7 +190,7 @@ function PendingOrdersList() {
 }
 
 function PendingOrderRow({ order }: { order: TOrder }) {
-    const hasNoExecutor = !order.executor;
+    const hasNoExecutor = !order.executor && order.deliveryType !== EDeliveryType.TRANSPORT_COMPANY;
 
     return (
         <li>
