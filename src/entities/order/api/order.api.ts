@@ -176,20 +176,29 @@ export function useUpdateOrderSchedule() {
 }
 
 /**
- * Стоимость доставки куратором
+ * Добавление/обновление доставки ТК куратором
  */
-export function useUpdateOrderDeliveryCost() {
+export function useAddOrderDelivery() {
     const api = useApi();
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: ({ orderId, deliveryCost }: { orderId: number; deliveryCost: number | null }) =>
-            api<TOrder>(`/order/${orderId}/delivery-cost`, {
+        mutationFn: ({
+            orderId,
+            deliveryCost,
+            deliveryDescription,
+        }: {
+            orderId: number;
+            deliveryCost: number | null;
+            deliveryDescription?: string | null;
+        }) =>
+            api<TOrder>(`/order/${orderId}/delivery`, {
                 method: 'PATCH',
-                body: { deliveryCost },
+                body: { deliveryCost, deliveryDescription },
             }),
         onSuccess: (_data, variables) => {
             void queryClient.invalidateQueries({ queryKey: orderKeys.detail(variables.orderId) });
+            void queryClient.invalidateQueries({ queryKey: orderKeys.all });
         },
     });
 }

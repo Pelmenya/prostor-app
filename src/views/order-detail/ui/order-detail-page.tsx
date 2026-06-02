@@ -1,7 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { useGetOrderById, useUpdateOrderStatus, EOrderStatus } from '@/entities/order';
+import {
+    useGetOrderById,
+    useUpdateOrderStatus,
+    EOrderStatus,
+    EDeliveryType,
+} from '@/entities/order';
 import Link from 'next/link';
 import { CartReadonlyView } from '@/features/cart';
 import { useSingleOrderThumbnails } from '@/features/orders';
@@ -72,8 +77,8 @@ function OrderDetailContent({ orderId }: TOrderDetailPageProps) {
                     </div>
                 )}
 
-                {/* Доставка */}
-                {!isCancelled && (
+                {/* Доставка — только для заказов через транспортную компанию */}
+                {!isCancelled && order.deliveryType === EDeliveryType.TRANSPORT_COMPANY && (
                     <div className="relative flex justify-between gap-4 p-4 bg-base-100 border border-base-300 rounded-2xl w-full">
                         <span className="font-medium text-sm leading-[110%]">Доставка</span>
                         {order.deliveryCost != null && order.deliveryCost > 0 ? (

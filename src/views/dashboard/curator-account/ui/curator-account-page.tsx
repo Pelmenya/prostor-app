@@ -11,7 +11,13 @@ import {
     ChevronRightIcon,
     ExclamationCircleIcon,
 } from '@heroicons/react/24/outline';
-import { useGetOrders, useGetOrdersCount, EOrderStatus, OrderStatus } from '@/entities/order';
+import {
+    useGetOrders,
+    useGetOrdersCount,
+    EOrderStatus,
+    EDeliveryType,
+    OrderStatus,
+} from '@/entities/order';
 import { useGetCuratorUsersCount } from '@/entities/user';
 import { EUserRole } from '@/shared/model';
 import {
@@ -109,11 +115,56 @@ function AttentionBlock() {
             </div>
 
             <Suspense fallback={<AttentionSkeleton />}>
+                <TCDeliveryList />
                 <PendingOrdersList />
             </Suspense>
 
             <UnreadMessagesRow />
         </div>
+    );
+}
+
+function TCDeliveryList() {
+    const { data } = useGetOrders({ status: [EOrderStatus.PENDING], limit: 20 });
+    const orders = data.pages
+        .flatMap((p) => p.items)
+        .filter(
+            (o) => o.deliveryType === EDeliveryType.TRANSPORT_COMPANY && o.deliveryCost == null,
+        );
+
+    if (orders.length === 0) return null;
+
+    return (
+        <>
+            <div className="px-4 pt-2 pb-1">
+                <span className="text-xs font-semibold text-warning">
+                    🚚 Ожидают расчёта доставки ТК
+                </span>
+            </div>
+            <ul className="divide-y divide-base-content/5">
+                {orders.map((order) => (
+                    <li key={order.id}>
+                        <Link
+                            href={curatorOrderPath(order.id)}
+                            className="flex items-center gap-3 px-4 py-3 hover:bg-base-200 transition-colors"
+                        >
+                            <ExclamationCircleIcon className="size-5 text-warning shrink-0" />
+                            <div className="flex flex-col gap-0.5 flex-1 min-w-0">
+                                <span className="text-sm font-medium">Заказ #{order.id}</span>
+                                <span className="text-xs text-base-content/40 truncate">
+                                    {order.realEstate?.address ?? formatDateRu(order.createdAt)}
+                                </span>
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0">
+                                <span className="badge badge-xs badge-warning">нет доставки</span>
+                                <OrderStatus status={order.status} />
+                                <ChevronRightIcon className="size-4 text-base-content/30" />
+                            </div>
+                        </Link>
+                    </li>
+                ))}
+            </ul>
+        </>
     );
 }
 
