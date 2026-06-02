@@ -176,6 +176,25 @@ export function useUpdateOrderSchedule() {
 }
 
 /**
+ * Стоимость доставки куратором
+ */
+export function useUpdateOrderDeliveryCost() {
+    const api = useApi();
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: ({ orderId, deliveryCost }: { orderId: number; deliveryCost: number | null }) =>
+            api<TOrder>(`/order/${orderId}/delivery-cost`, {
+                method: 'PATCH',
+                body: { deliveryCost },
+            }),
+        onSuccess: (_data, variables) => {
+            void queryClient.invalidateQueries({ queryKey: orderKeys.detail(variables.orderId) });
+        },
+    });
+}
+
+/**
  * Назначение/смена мастера куратором
  */
 export function useUpdateOrderExecutor() {

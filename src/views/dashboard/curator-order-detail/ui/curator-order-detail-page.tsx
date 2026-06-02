@@ -10,6 +10,7 @@ import {
     useUpdateOrderStatus,
     useUpdateOrderSchedule,
     useUpdateOrderExecutor,
+    useUpdateOrderDeliveryCost,
     OrderPositionsList,
     STATUS_LABEL,
     EOrderStatus,
@@ -321,6 +322,8 @@ function ManagementCard({ order }: { order: TOrder }) {
             >
                 <ExecutorControl order={order} />
             </Suspense>
+            <div className="divider my-0" />
+            <DeliveryCostControl order={order} />
         </div>
     );
 }
@@ -505,16 +508,18 @@ function ExecutorControl({ order }: { order: TOrder }) {
     const [executorId, setExecutorId] = useState(order.executor?.id ?? 0);
 
     const { mutate, isPending } = useUpdateOrderExecutor();
-    // isDirty computed: user changed selection
     const isDirty = executorId !== (order.executor?.id ?? 0);
 
-    // Sync from server when not dirty (adjusting state during render)
     const serverExecutorId = order.executor?.id ?? 0;
     const [prevExecutorId, setPrevExecutorId] = useState(serverExecutorId);
     if (!isDirty && serverExecutorId !== prevExecutorId) {
         setPrevExecutorId(serverExecutorId);
         setExecutorId(serverExecutorId);
     }
+
+    // Если назначенный мастер не попал в список (пагинация / фильтр) — добавляем его отдельно
+    const executorInList = masters.some((m) => m.id === serverExecutorId);
+    const showFallbackOption = !executorInList && order.executor != null;
 
     return (
         <div className="flex flex-col gap-2">
@@ -526,6 +531,13 @@ function ExecutorControl({ order }: { order: TOrder }) {
                     onChange={(e) => setExecutorId(Number(e.target.value))}
                 >
                     <option value={0}>Не назначен</option>
+                    {showFallbackOption && (
+                        <option value={order.executor!.id}>
+                            {[order.executor!.first_name, order.executor!.last_name]
+                                .filter(Boolean)
+                                .join(' ') || `ID ${order.executor!.id}`}
+                        </option>
+                    )}
                     {masters.map((m) => {
                         const name =
                             [m.first_name, m.last_name].filter(Boolean).join(' ') || `ID ${m.id}`;
@@ -548,6 +560,57 @@ function ExecutorControl({ order }: { order: TOrder }) {
                     )}
                 </button>
             </div>
+        </div>
+    );
+}
+
+function DeliveryCostControl({ order }: { order: TOrder }) {
+    const rawCost = order.deliveryCost;
+    const [rawValue, setRawValue] = useState(rawCost != null ? String(rawCost) : '');
+    const isDirty = rawValue !== (rawCost != null ? String(rawCost) : '');
+
+    const { mutate, isPending } = useUpdateOrderDeliveryCost();
+
+    const serverValue = rawCost != null ? String(rawCost) : '';
+    const [prevServerValue, setPrevServerValue] = useState(serverValue);
+    if (!isDirty && serverValue !== prevServerValue) {
+        setPrevServerValue(serverValue);
+        setRawValue(serverValue);
+    }
+
+    const handleSave = () => {
+        const deliveryCost = rawValue === '' ? null : Number(rawValue);
+        mutate({ orderId: order.id, deliveryCost });
+    };
+
+    return (
+        <div className="flex flex-col gap-2">
+            <span className="text-sm font-medium">Доставка</span>
+            <div className="flex gap-2">
+                <label className="input input-sm flex-1 flex items-center gap-1">
+                    <input
+                        type="number"
+                        min={0}
+                        placeholder="Уточняется"
+                        value={rawValue}
+                        onChange={(e) => setRawValue(e.target.value)}
+                        className="grow"
+                    />
+                    <span className="text-base-content/40 text-xs shrink-0">₽</span>
+                </label>
+                <button
+                    className="btn btn-sm btn-primary"
+                    disabled={!isDirty || isPending}
+                    onClick={handleSave}
+                >
+                    {isPending ? (
+                        <span className="loading loading-spinner loading-xs" />
+                    ) : (
+                        'Сохранить'
+                    )}
+                </button>
+            </div>
+            {rawValue === '0' && <p className="text-xs text-success">Клиент увидит «Бесплатно»</p>}
         </div>
     );
 }

@@ -7,6 +7,7 @@ export {
     useUpdateOrderStatus,
     useUpdateOrderSchedule,
     useUpdateOrderExecutor,
+    useUpdateOrderDeliveryCost,
     orderKeys,
 } from './api/order.api';
 export type {
