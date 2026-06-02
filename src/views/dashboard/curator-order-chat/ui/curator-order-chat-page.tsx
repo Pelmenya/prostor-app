@@ -12,7 +12,7 @@ type TProps = {
 
 export function CuratorOrderChatPage({ orderId }: TProps) {
     return (
-        <div className="flex flex-col h-dvh">
+        <div className="flex flex-col flex-1 min-h-0" data-chat-page="">
             <div className="px-4 py-3 bg-base-100 border-b border-base-content/10 shrink-0">
                 <DashboardBackHeader
                     title={`Чат по заказу #${orderId}`}
