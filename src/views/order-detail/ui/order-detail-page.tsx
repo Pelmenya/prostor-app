@@ -77,23 +77,19 @@ function OrderDetailContent({ orderId }: TOrderDetailPageProps) {
                     </div>
                 )}
 
-                {/* Доставка — только для заказов через транспортную компанию */}
-                {!isCancelled && order.deliveryType === EDeliveryType.TRANSPORT_COMPANY && (
-                    <div className="relative flex justify-between gap-4 p-4 bg-base-100 border border-base-300 rounded-2xl w-full">
-                        <span className="font-medium text-sm leading-[110%]">Доставка</span>
-                        {order.deliveryCost != null && order.deliveryCost > 0 ? (
-                            <span className="text-primary font-semibold text-sm leading-[110%]">
-                                {formatPrice(order.deliveryCost)}
+                {/* Комментарий к доставке ТК — трек-номер / примечание */}
+                {!isCancelled &&
+                    order.deliveryType === EDeliveryType.TRANSPORT_COMPANY &&
+                    order.deliveryDescription && (
+                        <div className="relative flex flex-col gap-1 p-4 bg-base-100 border border-base-300 rounded-2xl w-full">
+                            <span className="font-medium text-sm leading-[110%]">
+                                Примечание к доставке
                             </span>
-                        ) : order.deliveryCost === 0 ? (
-                            <span className="text-primary font-semibold text-sm leading-[110%]">
-                                Бесплатно
+                            <span className="text-sm text-base-content/60 leading-[110%]">
+                                {order.deliveryDescription}
                             </span>
-                        ) : (
-                            <span className="text-sm leading-[110%]">Уточняется</span>
-                        )}
-                    </div>
-                )}
+                        </div>
+                    )}
 
                 {/* Статус */}
                 <OrderStatusBlock
