@@ -142,6 +142,11 @@ export function useChatMessages({
                     return updatedMessages;
                 });
             } catch (error) {
+                const status = (error as Error & { status?: number }).status;
+                if (status === 401) {
+                    if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current);
+                    return;
+                }
                 console.error('Polling error:', error);
             }
         };
