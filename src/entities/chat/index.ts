@@ -18,6 +18,7 @@ export {
 } from './api/chat.api';
 
 // lib
+export { computeUnreadCount } from './lib/compute-unread-count';
 export { formatMessageDate } from './lib/format-message-date';
 export { getStorageUrl } from './lib/get-storage-url';
 export { validateFileSizes } from './lib/validate-file-size';

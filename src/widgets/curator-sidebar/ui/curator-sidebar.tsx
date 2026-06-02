@@ -43,7 +43,7 @@ const NAV_ITEMS = [
 export function CuratorSidebar() {
     const pathname = usePathname();
     const { user } = useAuth();
-    const { data: unreadData } = useGetUnreadCount();
+    const { data: unreadData } = useGetUnreadCount(user?.id);
     const unreadCount = unreadData?.count ?? 0;
     const { data: pendingData } = useGetOrdersCount({ status: [EOrderStatus.PENDING] });
     const { data: inProgressData } = useGetOrdersCount({ status: [EOrderStatus.IN_PROGRESS] });

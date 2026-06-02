@@ -4,17 +4,23 @@ import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { ChatBubbleLeftEllipsisIcon } from '@heroicons/react/24/outline';
-import { useGetUserActiveChats } from '@/entities/chat';
+import { useGetUserActiveChats, computeUnreadCount } from '@/entities/chat';
 import { EChatType } from '@/entities/chat';
 import { DashboardBackHeader, PageContainer } from '@/shared/ui';
 import { curatorOrderChatPath, CURATOR_PATH } from '@/shared/config';
+import { useAuth } from '@/shared/lib/platform';
 import type { TChatWithUnread } from '@/entities/chat';
 
 export function CuratorChatsPage() {
     const { data: chats, isLoading } = useGetUserActiveChats();
+    const { user } = useAuth();
 
-    // Server already sorts by lastMessageAt DESC — just push unread to top
-    const sorted = [...(chats ?? [])].sort((a, b) => b.unreadCount - a.unreadCount);
+    const getUnread = (chat: TChatWithUnread) =>
+        user?.id && chat.messages?.length
+            ? computeUnreadCount(chat.messages, user.id)
+            : (chat.unreadCount ?? 0);
+
+    const sorted = [...(chats ?? [])].sort((a, b) => getUnread(b) - getUnread(a));
 
     return (
         <PageContainer bg="bg-base-200">
@@ -43,6 +49,12 @@ export function CuratorChatsPage() {
 }
 
 function ChatListItem({ chat }: { chat: TChatWithUnread }) {
+    const { user } = useAuth();
+    const unread =
+        user?.id && chat.messages?.length
+            ? computeUnreadCount(chat.messages, user.id)
+            : (chat.unreadCount ?? 0);
+
     const href =
         chat.type === EChatType.ORDER && chat.entityId ? curatorOrderChatPath(chat.entityId) : null;
 
@@ -53,9 +65,15 @@ function ChatListItem({ chat }: { chat: TChatWithUnread }) {
               .at(-1)
         : null;
 
-    const lastText = lastMsg
+    // /chat/my возвращает только текущего пользователя в participants (backend bug),
+    // поэтому определяем только собственные сообщения через readBy[0]
+    const senderIdStr = lastMsg?.readBy[0];
+    const isOwn = user?.id ? senderIdStr === String(user.id) : false;
+    const senderLabel = isOwn ? 'Вы' : null;
+    const lastContent = lastMsg
         ? (lastMsg.content ?? (lastMsg.attachments.length > 0 ? '📎 Вложение' : null))
         : null;
+    const lastText = lastContent && senderLabel ? `${senderLabel}: ${lastContent}` : lastContent;
 
     const lastTime = lastMsg
         ? formatDistanceToNow(new Date(lastMsg.createdAt), { locale: ru, addSuffix: false })
@@ -84,9 +102,7 @@ function ChatListItem({ chat }: { chat: TChatWithUnread }) {
                 </p>
             </div>
 
-            {chat.unreadCount > 0 && (
-                <div className="badge badge-primary badge-sm shrink-0">{chat.unreadCount}</div>
-            )}
+            {unread > 0 && <div className="badge badge-primary badge-sm shrink-0">{unread}</div>}
         </div>
     );
 

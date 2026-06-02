@@ -32,7 +32,7 @@ export function useGetUserActiveChats() {
     });
 }
 
-export function useGetUnreadCount() {
+export function useGetUnreadCount(currentUserId?: number) {
     const api = useApi();
     return useQuery({
         queryKey: chatKeys.list(),
@@ -40,7 +40,18 @@ export function useGetUnreadCount() {
         staleTime: 30_000,
         refetchInterval: 30_000,
         select: (chats) => ({
-            count: chats.reduce((sum, chat) => sum + (chat.unreadCount ?? 0), 0),
+            count: chats.reduce((sum, chat) => {
+                if (currentUserId && chat.messages?.length) {
+                    const userIdStr = String(currentUserId);
+                    return (
+                        sum +
+                        chat.messages.filter(
+                            (m) => m.readBy[0] !== userIdStr && !m.readBy.includes(userIdStr),
+                        ).length
+                    );
+                }
+                return sum + (chat.unreadCount ?? 0);
+            }, 0),
         }),
     });
 }

@@ -24,6 +24,7 @@ import {
 } from '@/shared/config';
 import { useGetUnreadCount } from '@/entities/chat';
 import { formatDateRu } from '@/shared/lib';
+import { useAuth } from '@/shared/lib/platform';
 import { PageContainer, PageTitle, QueryBoundary, SectionLabel } from '@/shared/ui';
 import type { TOrder } from '@/entities/order';
 
@@ -168,7 +169,8 @@ function PendingOrderRow({ order }: { order: TOrder }) {
 }
 
 function UnreadMessagesRow() {
-    const { data, isLoading } = useGetUnreadCount();
+    const { user } = useAuth();
+    const { data, isLoading } = useGetUnreadCount(user?.id);
     const count = data?.count ?? 0;
 
     return (

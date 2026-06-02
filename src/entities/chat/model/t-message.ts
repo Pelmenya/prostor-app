@@ -5,6 +5,7 @@ import type { EMessageType } from './e-message-type';
 export type TMessage = {
     id: string;
     chatId: string;
+    senderId: number;
     sender: TChatParticipant;
     type: EMessageType;
     content: string | null;
