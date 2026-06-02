@@ -207,9 +207,11 @@ describe('order API', () => {
     });
 
     describe('useUpdateOrderStatus', () => {
-        it('PATCH /order/:id/status и инвалидирует detail + all', async () => {
-            mockApi.mockResolvedValue({ ...MOCK_ORDER, status: EOrderStatus.CONFIRMED });
+        it('PATCH /order/:id/status, обновляет detail через setQueryData и инвалидирует all', async () => {
+            const updatedOrder = { ...MOCK_ORDER, status: EOrderStatus.CONFIRMED };
+            mockApi.mockResolvedValue(updatedOrder);
             const { wrapper, queryClient } = createWrapper();
+            const setQueryDataSpy = vi.spyOn(queryClient, 'setQueryData');
             const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
 
             const { result } = renderHook(() => useUpdateOrderStatus(), { wrapper });
@@ -221,7 +223,7 @@ describe('order API', () => {
                 method: 'PATCH',
                 body: { status: EOrderStatus.CONFIRMED },
             });
-            expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: orderKeys.detail(1) });
+            expect(setQueryDataSpy).toHaveBeenCalledWith(orderKeys.detail(1), updatedOrder);
             expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: orderKeys.all });
         });
     });

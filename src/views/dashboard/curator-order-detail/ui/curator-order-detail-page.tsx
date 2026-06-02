@@ -663,7 +663,7 @@ function DeliveryControl({ order }: { order: TOrder }) {
             />
             <button
                 className="btn btn-sm btn-primary w-full"
-                disabled={!isDirty || isPending || costRub === ''}
+                disabled={!isDirty || isPending}
                 onClick={handleSave}
             >
                 {isPending ? <span className="loading loading-spinner loading-xs" /> : 'Сохранить'}
