@@ -13,3 +13,7 @@ export const CURATOR_ORDERS_PATH = '/curator/orders';
 export const curatorOrderPath = (id: number | string) => `/curator/orders/${id}`;
 export const CURATOR_ZONES_PATH = '/curator/zones';
 export const CURATOR_SETTINGS_PATH = '/curator/settings';
+export const CURATOR_CHATS_PATH = '/curator/chats';
+
+export const masterOrderChatPath = (id: number | string) => `/master/orders/${id}/chat`;
+export const curatorOrderChatPath = (id: number | string) => `/curator/orders/${id}/chat`;

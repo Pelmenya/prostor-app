@@ -13,7 +13,9 @@ import {
 import { useCurrentUserSuspense } from '@/entities/user';
 import { useSingleOrderThumbnails } from '@/features/orders';
 import { QueryBoundary, PageContainer, DashboardBackHeader } from '@/shared/ui';
-import { MASTER_ORDERS_PATH } from '@/shared/config';
+import { MASTER_ORDERS_PATH, masterOrderChatPath } from '@/shared/config';
+import Link from 'next/link';
+import { ChatBubbleLeftEllipsisIcon } from '@heroicons/react/24/outline';
 import { ClientCard } from './client-card';
 import { AddressCard } from './address-card';
 import { ScheduleCard } from './schedule-card';
@@ -127,6 +129,18 @@ function MasterOrderDetailContent({ orderId }: TProps) {
                         </span>
                     </div>
                 )}
+
+                {/* Чат по заказу */}
+                <Link
+                    href={masterOrderChatPath(orderId)}
+                    className="card bg-base-100 p-4 flex flex-row items-center justify-between gap-3 hover:bg-base-200 transition-colors"
+                >
+                    <div className="flex items-center gap-3">
+                        <ChatBubbleLeftEllipsisIcon className="size-5 text-primary" />
+                        <span className="text-sm font-medium">Чат с клиентом и куратором</span>
+                    </div>
+                    <span className="text-xs text-base-content/40">Открыть →</span>
+                </Link>
 
                 {!isFinished && action && (
                     <MasterOrderActions

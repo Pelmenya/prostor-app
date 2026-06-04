@@ -149,8 +149,8 @@ export function useUpdateOrderStatus() {
                 method: 'PATCH',
                 body: { status },
             }),
-        onSuccess: (_data, variables) => {
-            void queryClient.invalidateQueries({ queryKey: orderKeys.detail(variables.orderId) });
+        onSuccess: (data, variables) => {
+            applyOrderUpdate(queryClient, variables.orderId, data);
             void queryClient.invalidateQueries({ queryKey: orderKeys.all });
         },
     });
@@ -169,8 +169,36 @@ export function useUpdateOrderSchedule() {
                 method: 'PATCH',
                 body: { scheduledDate },
             }),
-        onSuccess: (_data, variables) => {
-            void queryClient.invalidateQueries({ queryKey: orderKeys.detail(variables.orderId) });
+        onSuccess: (data, variables) => {
+            applyOrderUpdate(queryClient, variables.orderId, data);
+        },
+    });
+}
+
+/**
+ * Добавление/обновление доставки ТК куратором
+ */
+export function useAddOrderDelivery() {
+    const api = useApi();
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: ({
+            orderId,
+            deliveryCost,
+            deliveryDescription,
+        }: {
+            orderId: number;
+            deliveryCost: number | null;
+            deliveryDescription?: string | null;
+        }) =>
+            api<TOrder>(`/order/${orderId}/delivery`, {
+                method: 'PATCH',
+                body: { deliveryCost, deliveryDescription },
+            }),
+        onSuccess: (data, variables) => {
+            applyOrderUpdate(queryClient, variables.orderId, data);
+            void queryClient.invalidateQueries({ queryKey: orderKeys.all });
         },
     });
 }
@@ -188,9 +216,27 @@ export function useUpdateOrderExecutor() {
                 method: 'PATCH',
                 body: { executorId },
             }),
-        onSuccess: (_data, variables) => {
-            void queryClient.invalidateQueries({ queryKey: orderKeys.detail(variables.orderId) });
+        onSuccess: (data, variables) => {
+            applyOrderUpdate(queryClient, variables.orderId, data);
             void queryClient.invalidateQueries({ queryKey: orderKeys.all });
         },
     });
+}
+
+/**
+ * Обновляет кеш заказа:
+ * - если мутация вернула полный TOrder (бэкенд ответил 200 с телом) → setQueryData для мгновенного обновления
+ * - если вернула undefined (бэкенд ответил 204 No Content) → invalidateQueries чтобы
+ *   useSuspenseQuery сделал background refetch без очистки кеша
+ */
+function applyOrderUpdate(
+    queryClient: ReturnType<typeof useQueryClient>,
+    orderId: number,
+    data: TOrder | undefined,
+) {
+    if (data != null && typeof data.id === 'number') {
+        queryClient.setQueryData(orderKeys.detail(orderId), data);
+    } else {
+        void queryClient.invalidateQueries({ queryKey: orderKeys.detail(orderId) });
+    }
 }

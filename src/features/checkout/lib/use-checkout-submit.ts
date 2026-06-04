@@ -86,7 +86,7 @@ export function useCheckoutSubmit({
                 }),
             );
 
-            await queryClient.invalidateQueries({ queryKey: CART_QUERY_KEY });
+            void queryClient.invalidateQueries({ queryKey: CART_QUERY_KEY });
             submittingLockRef.current = false;
             setIsSubmitting(false);
             router.replace(`/orders/${order.id}`);

@@ -10,9 +10,11 @@ import {
     useUpdateOrderStatus,
     useUpdateOrderSchedule,
     useUpdateOrderExecutor,
+    useAddOrderDelivery,
     OrderPositionsList,
     STATUS_LABEL,
     EOrderStatus,
+    EDeliveryType,
     isDangerousTransition,
 } from '@/entities/order';
 import { useGetCuratorMasters } from '@/entities/user';
@@ -22,6 +24,7 @@ import {
     COMMISSION_PERCENTS,
     curatorClientPath,
     curatorMasterPath,
+    curatorOrderChatPath,
 } from '@/shared/config';
 import { formatDateRu, formatUserInitials, formatPrice } from '@/shared/lib';
 import {
@@ -31,6 +34,7 @@ import {
     ConfirmDialog,
     SectionLabel,
 } from '@/shared/ui';
+import { ChatBubbleLeftEllipsisIcon } from '@heroicons/react/24/outline';
 import type { TOrder } from '@/entities/order';
 
 type TProps = { id: string };
@@ -48,6 +52,7 @@ function CuratorOrderDetailContent({ orderId }: { orderId: number }) {
     const { data: order } = useGetOrderById(orderId);
     const { imageUrls, loadingIds } = useSingleOrderThumbnails(order);
     const hasItems = Object.keys(order.cartState.items ?? {}).length > 0;
+    const isTCOrder = order.deliveryType === EDeliveryType.TRANSPORT_COMPANY;
 
     return (
         <PageContainer bg="bg-base-200">
@@ -61,21 +66,23 @@ function CuratorOrderDetailContent({ orderId }: { orderId: number }) {
                         href={curatorClientPath(order.client.id)}
                     />
                 )}
-                {order.executor && (
+                {!isTCOrder && order.executor && (
                     <PersonCard
                         label="Мастер"
                         user={order.executor}
                         href={curatorMasterPath(order.executor.id)}
                     />
                 )}
-                {!order.executor && <NoExecutorCard />}
+                {!isTCOrder && !order.executor && <NoExecutorCard />}
+                {isTCOrder && <TCDeliveryInfoCard order={order} />}
                 {order.realEstate && <AddressCard realEstate={order.realEstate} />}
-                <ScheduleCard scheduledDate={order.scheduledDate} />
+                <ScheduleCard scheduledDate={order.scheduledDate} isTCOrder={isTCOrder} />
                 {hasItems && (
                     <ItemsCard order={order} imageUrls={imageUrls} loadingIds={loadingIds} />
                 )}
-                <PaymentCard order={order} />
-                <ManagementCard order={order} />
+                <PaymentCard order={order} isTCOrder={isTCOrder} />
+                <ChatCard orderId={orderId} />
+                <ManagementCard order={order} isTCOrder={isTCOrder} />
             </div>
         </PageContainer>
     );
@@ -168,6 +175,38 @@ function NoExecutorCard() {
     );
 }
 
+function TCDeliveryInfoCard({ order }: { order: TOrder }) {
+    const hasDelivery = order.deliveryCost != null;
+    return (
+        <div className="card bg-base-100 p-4 flex flex-col gap-2">
+            <div className="flex items-center justify-between">
+                <SectionLabel>Доставка ТК</SectionLabel>
+                {hasDelivery ? (
+                    <span className="badge badge-sm badge-success">Указана</span>
+                ) : (
+                    <span className="badge badge-sm badge-warning">Нужен расчёт</span>
+                )}
+            </div>
+            {hasDelivery && (
+                <>
+                    <div className="flex items-center justify-between">
+                        <span className="text-sm text-base-content/60">Стоимость</span>
+                        <span className="text-sm font-medium">
+                            {formatPrice(order.deliveryCost!)}
+                        </span>
+                    </div>
+                    {order.deliveryDescription && (
+                        <div className="flex flex-col gap-0.5">
+                            <span className="text-sm text-base-content/60">Комментарий</span>
+                            <span className="text-sm">{order.deliveryDescription}</span>
+                        </div>
+                    )}
+                </>
+            )}
+        </div>
+    );
+}
+
 function AddressCard({ realEstate }: { realEstate: NonNullable<TOrder['realEstate']> }) {
     return (
         <div className="card bg-base-100 p-4 flex flex-col gap-2">
@@ -186,10 +225,16 @@ function AddressCard({ realEstate }: { realEstate: NonNullable<TOrder['realEstat
     );
 }
 
-function ScheduleCard({ scheduledDate }: { scheduledDate: TOrder['scheduledDate'] }) {
+function ScheduleCard({
+    scheduledDate,
+    isTCOrder,
+}: {
+    scheduledDate: TOrder['scheduledDate'];
+    isTCOrder: boolean;
+}) {
     return (
         <div className="card bg-base-100 p-4 flex flex-col gap-2">
-            <SectionLabel>Расписание</SectionLabel>
+            <SectionLabel>{isTCOrder ? 'Дата доставки' : 'Расписание'}</SectionLabel>
             <div className="flex items-center gap-2">
                 <CalendarDaysIcon className="size-5 shrink-0 text-base-content/40" />
                 <span className="text-sm">
@@ -238,7 +283,7 @@ function ItemsCard({ order, imageUrls, loadingIds }: TItemsCardProps) {
     );
 }
 
-function PaymentCard({ order }: { order: TOrder }) {
+function PaymentCard({ order, isTCOrder }: { order: TOrder; isTCOrder: boolean }) {
     const masterEarnings = Math.round(order.totalAmount * (1 - COMMISSION_PERCENTS / 100));
 
     return (
@@ -248,23 +293,25 @@ function PaymentCard({ order }: { order: TOrder }) {
                 <span className="text-sm text-base-content/60">Итого</span>
                 <span className="text-sm font-semibold">{formatPrice(order.totalAmount)}</span>
             </div>
-            {order.deliveryCost != null && order.deliveryCost > 0 && (
+            {isTCOrder && order.deliveryCost != null && order.deliveryCost > 0 && (
                 <div className="flex items-center justify-between">
                     <span className="text-sm text-base-content/60">Доставка</span>
                     <span className="text-sm">{formatPrice(order.deliveryCost)}</span>
                 </div>
             )}
-            <div className="flex items-center justify-between">
-                <div className="flex flex-col">
-                    <span className="text-sm text-base-content/60">Мастер получит</span>
-                    <span className="text-xs text-base-content/40">
-                        После комиссии {COMMISSION_PERCENTS}%
+            {!isTCOrder && (
+                <div className="flex items-center justify-between">
+                    <div className="flex flex-col">
+                        <span className="text-sm text-base-content/60">Мастер получит</span>
+                        <span className="text-xs text-base-content/40">
+                            После комиссии {COMMISSION_PERCENTS}%
+                        </span>
+                    </div>
+                    <span className="text-sm font-medium text-success">
+                        {formatPrice(masterEarnings)}
                     </span>
                 </div>
-                <span className="text-sm font-medium text-success">
-                    {formatPrice(masterEarnings)}
-                </span>
-            </div>
+            )}
             <div className="flex items-center justify-between">
                 <span className="text-sm text-base-content/60">Статус оплаты</span>
                 <span className="badge badge-sm badge-ghost">{order.paymentStatus}</span>
@@ -279,25 +326,49 @@ function PaymentCard({ order }: { order: TOrder }) {
     );
 }
 
+// ---- Чат ----
+
+function ChatCard({ orderId }: { orderId: number }) {
+    return (
+        <Link
+            href={curatorOrderChatPath(orderId)}
+            className="card bg-base-100 p-4 flex flex-row items-center justify-between gap-3 hover:bg-base-200 transition-colors"
+        >
+            <div className="flex items-center gap-3">
+                <ChatBubbleLeftEllipsisIcon className="size-5 text-primary" />
+                <div>
+                    <p className="text-sm font-medium">Чат по заказу</p>
+                    <p className="text-xs text-base-content/60">Клиент, мастер и куратор</p>
+                </div>
+            </div>
+            <span className="text-xs text-base-content/40">Открыть →</span>
+        </Link>
+    );
+}
+
 // ---- Управление заказом ----
 
-function ManagementCard({ order }: { order: TOrder }) {
+function ManagementCard({ order, isTCOrder }: { order: TOrder; isTCOrder: boolean }) {
     return (
         <div className="card bg-base-100 p-4 flex flex-col gap-4">
             <SectionLabel>Управление</SectionLabel>
             <StatusControl order={order} />
             <div className="divider my-0" />
-            <ScheduleControl order={order} />
+            <ScheduleControl order={order} isTCOrder={isTCOrder} />
             <div className="divider my-0" />
-            <Suspense
-                fallback={
-                    <div className="flex justify-center py-2">
-                        <span className="loading loading-spinner loading-sm" />
-                    </div>
-                }
-            >
-                <ExecutorControl order={order} />
-            </Suspense>
+            {isTCOrder ? (
+                <DeliveryControl order={order} />
+            ) : (
+                <Suspense
+                    fallback={
+                        <div className="flex justify-center py-2">
+                            <span className="loading loading-spinner loading-sm" />
+                        </div>
+                    }
+                >
+                    <ExecutorControl order={order} />
+                </Suspense>
+            )}
         </div>
     );
 }
@@ -380,7 +451,7 @@ function StatusControl({ order }: { order: TOrder }) {
 
 const pad = (n: number) => String(n).padStart(2, '0');
 
-function ScheduleControl({ order }: { order: TOrder }) {
+function ScheduleControl({ order, isTCOrder }: { order: TOrder; isTCOrder: boolean }) {
     const sd = order.scheduledDate;
     const [date, setDate] = useState(sd?.date ?? '');
     const [startTime, setStartTime] = useState(
@@ -429,7 +500,9 @@ function ScheduleControl({ order }: { order: TOrder }) {
 
     return (
         <div className="flex flex-col gap-2">
-            <span className="text-sm font-medium">Дата и время</span>
+            <span className="text-sm font-medium">
+                {isTCOrder ? 'Дата доставки' : 'Дата и время'}
+            </span>
             <input
                 type="date"
                 className="input input-sm w-full"
@@ -482,16 +555,18 @@ function ExecutorControl({ order }: { order: TOrder }) {
     const [executorId, setExecutorId] = useState(order.executor?.id ?? 0);
 
     const { mutate, isPending } = useUpdateOrderExecutor();
-    // isDirty computed: user changed selection
     const isDirty = executorId !== (order.executor?.id ?? 0);
 
-    // Sync from server when not dirty (adjusting state during render)
     const serverExecutorId = order.executor?.id ?? 0;
     const [prevExecutorId, setPrevExecutorId] = useState(serverExecutorId);
     if (!isDirty && serverExecutorId !== prevExecutorId) {
         setPrevExecutorId(serverExecutorId);
         setExecutorId(serverExecutorId);
     }
+
+    // Если назначенный мастер не попал в список (пагинация / фильтр) — добавляем его отдельно
+    const executorInList = masters.some((m) => m.id === serverExecutorId);
+    const showFallbackOption = !executorInList && order.executor != null;
 
     return (
         <div className="flex flex-col gap-2">
@@ -503,6 +578,13 @@ function ExecutorControl({ order }: { order: TOrder }) {
                     onChange={(e) => setExecutorId(Number(e.target.value))}
                 >
                     <option value={0}>Не назначен</option>
+                    {showFallbackOption && (
+                        <option value={order.executor!.id}>
+                            {[order.executor!.first_name, order.executor!.last_name]
+                                .filter(Boolean)
+                                .join(' ') || `ID ${order.executor!.id}`}
+                        </option>
+                    )}
                     {masters.map((m) => {
                         const name =
                             [m.first_name, m.last_name].filter(Boolean).join(' ') || `ID ${m.id}`;
@@ -525,6 +607,67 @@ function ExecutorControl({ order }: { order: TOrder }) {
                     )}
                 </button>
             </div>
+        </div>
+    );
+}
+
+function DeliveryControl({ order }: { order: TOrder }) {
+    // Цены в копейках — конвертируем для ввода/вывода
+    const serverCostRub = order.deliveryCost != null ? String(order.deliveryCost / 100) : '';
+    const serverDesc = order.deliveryDescription ?? '';
+
+    const [costRub, setCostRub] = useState(serverCostRub);
+    const [desc, setDesc] = useState(serverDesc);
+    const isDirty = costRub !== serverCostRub || desc !== serverDesc;
+
+    const { mutate, isPending } = useAddOrderDelivery();
+
+    const [prevCost, setPrevCost] = useState(serverCostRub);
+    const [prevDesc, setPrevDesc] = useState(serverDesc);
+    if (!isDirty) {
+        if (serverCostRub !== prevCost) {
+            setPrevCost(serverCostRub);
+            setCostRub(serverCostRub);
+        }
+        if (serverDesc !== prevDesc) {
+            setPrevDesc(serverDesc);
+            setDesc(serverDesc);
+        }
+    }
+
+    const handleSave = () => {
+        const deliveryCost = costRub === '' ? null : Math.round(Number(costRub) * 100);
+        mutate({ orderId: order.id, deliveryCost, deliveryDescription: desc.trim() || null });
+    };
+
+    return (
+        <div className="flex flex-col gap-2">
+            <span className="text-sm font-medium">Доставка ТК</span>
+            <label className="input input-sm flex items-center gap-1">
+                <input
+                    type="number"
+                    min={0}
+                    placeholder="Стоимость"
+                    value={costRub}
+                    onChange={(e) => setCostRub(e.target.value)}
+                    className="grow"
+                />
+                <span className="text-base-content/40 text-xs shrink-0">₽</span>
+            </label>
+            <input
+                type="text"
+                className="input input-sm w-full"
+                placeholder="СДЭК, трек-номер, примечание"
+                value={desc}
+                onChange={(e) => setDesc(e.target.value)}
+            />
+            <button
+                className="btn btn-sm btn-primary w-full"
+                disabled={!isDirty || isPending}
+                onClick={handleSave}
+            >
+                {isPending ? <span className="loading loading-spinner loading-xs" /> : 'Сохранить'}
+            </button>
         </div>
     );
 }
