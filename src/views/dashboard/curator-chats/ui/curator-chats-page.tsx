@@ -4,8 +4,7 @@ import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { ChatBubbleLeftEllipsisIcon } from '@heroicons/react/24/outline';
-import { useGetUserActiveChats, computeUnreadCount } from '@/entities/chat';
-import { EChatType } from '@/entities/chat';
+import { useGetUserActiveChats, computeUnreadCount, EChatType } from '@/entities/chat';
 import { DashboardBackHeader, PageContainer } from '@/shared/ui';
 import { curatorOrderChatPath, CURATOR_PATH } from '@/shared/config';
 import { useAuth } from '@/shared/lib/platform';
@@ -65,10 +64,7 @@ function ChatListItem({ chat }: { chat: TChatWithUnread }) {
               .at(-1)
         : null;
 
-    // /chat/my возвращает только текущего пользователя в participants (backend bug),
-    // поэтому определяем только собственные сообщения через readBy[0]
-    const senderIdStr = lastMsg?.readBy[0];
-    const isOwn = user?.id ? senderIdStr === String(user.id) : false;
+    const isOwn = user?.id ? lastMsg?.senderId === user.id : false;
     const senderLabel = isOwn ? 'Вы' : null;
     const lastContent = lastMsg
         ? (lastMsg.content ?? (lastMsg.attachments.length > 0 ? '📎 Вложение' : null))

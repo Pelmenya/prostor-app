@@ -12,12 +12,14 @@ type TProps = {
     onFilesSelected: (files: File[]) => void;
     disabled?: boolean;
     accept?: string;
+    onValidationError?: (errors: string[]) => void;
 };
 
 export function FileUploadButton({
     onFilesSelected,
     disabled = false,
     accept = DEFAULT_ACCEPT,
+    onValidationError,
 }: TProps) {
     const inputRef = useRef<HTMLInputElement>(null);
 
@@ -25,7 +27,7 @@ export function FileUploadButton({
         const files = Array.from(e.target.files ?? []);
         if (files.length > 0) {
             const { validFiles, errors } = validateFileSizes(files);
-            errors.forEach((err) => alert(err));
+            if (errors.length > 0) onValidationError?.(errors);
             if (validFiles.length > 0) onFilesSelected(validFiles);
         }
         e.target.value = '';

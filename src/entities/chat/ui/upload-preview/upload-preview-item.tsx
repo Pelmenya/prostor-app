@@ -1,9 +1,10 @@
 'use client';
 
-import { useMemo } from 'react';
+import Image from 'next/image';
 import { XMarkIcon, DocumentTextIcon } from '@heroicons/react/24/outline';
 
 export type TUploadFile = {
+    id: string;
     file: File;
     progress: number;
     previewUrl?: string;
@@ -22,18 +23,26 @@ export function UploadPreviewItem({ file, progress, previewUrl, onRemove }: TPro
     const isComplete = progress === 100;
     const fileExtension = file.name.split('.').pop()?.toUpperCase();
 
-    const fileSize = useMemo(() => {
-        const bytes = file.size;
-        if (bytes < 1024) return `${bytes} B`;
-        if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-        return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-    }, [file.size]);
+    const bytes = file.size;
+    const fileSize =
+        bytes < 1024
+            ? `${bytes} B`
+            : bytes < 1024 * 1024
+              ? `${(bytes / 1024).toFixed(1)} KB`
+              : `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 
     return (
         <div className="relative shrink-0 w-20 h-20">
             <div className="w-full h-full rounded-lg overflow-hidden bg-base-200 border border-base-300">
                 {isImage && previewUrl ? (
-                    <img src={previewUrl} alt={file.name} className="w-full h-full object-cover" />
+                    <Image
+                        src={previewUrl}
+                        alt={file.name}
+                        fill
+                        sizes="80px"
+                        className="object-cover"
+                        unoptimized
+                    />
                 ) : (
                     <div className="w-full h-full flex flex-col items-center justify-center p-1">
                         <DocumentTextIcon className="size-6 text-base-content/60" />

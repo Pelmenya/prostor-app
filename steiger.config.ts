@@ -18,7 +18,10 @@ export default defineConfig([
         },
     },
     {
-        // features/ активно растёт, лимит 20 слайсов слишком мал
+        // features/ активно растёт, лимит 20 слайсов слишком мал.
+        // TODO: сгруппировать по доменам (features/master/*, features/order/*)
+        // когда количество стабилизируется — убрать override.
+        files: ['./src/features/**'],
         rules: {
             'fsd/excessive-slicing': 'off',
         },

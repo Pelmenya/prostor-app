@@ -10,18 +10,22 @@ import type { TUploadFile } from '../upload-preview/upload-preview-item';
 type TProps = {
     onSendMessage: (content: string) => void;
     onFilesSelected?: (files: File[]) => void;
+    isSending?: boolean;
     disabled?: boolean;
     uploadingFiles?: TUploadFile[];
-    onRemoveFile?: (index: number) => void;
+    onRemoveFile?: (id: string) => void;
+    onValidationError?: (errors: string[]) => void;
     hasAttachments?: boolean;
 };
 
 export function MessageInput({
     onSendMessage,
     onFilesSelected,
+    isSending = false,
     disabled = false,
     uploadingFiles = [],
     onRemoveFile,
+    onValidationError,
     hasAttachments = false,
 }: TProps) {
     const [content, setContent] = useState('');
@@ -39,7 +43,7 @@ export function MessageInput({
         adjustHeight();
     }, [content]);
 
-    const canSend = (content.trim() || hasAttachments) && !disabled;
+    const canSend = (content.trim() || hasAttachments) && !disabled && !isSending;
 
     const handleSend = () => {
         if (!canSend) return;
@@ -62,7 +66,11 @@ export function MessageInput({
 
             <div className="flex gap-2 items-end p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
                 {onFilesSelected && (
-                    <FileUploadButton onFilesSelected={onFilesSelected} disabled={disabled} />
+                    <FileUploadButton
+                        onFilesSelected={onFilesSelected}
+                        disabled={disabled || isSending}
+                        onValidationError={onValidationError}
+                    />
                 )}
 
                 <textarea
@@ -73,7 +81,7 @@ export function MessageInput({
                     placeholder="Сообщение..."
                     className="textarea textarea-bordered flex-1 resize-none min-h-[2.5rem] overflow-y-auto"
                     rows={1}
-                    disabled={disabled}
+                    disabled={disabled || isSending}
                     style={{ maxHeight: '50vh' }}
                 />
 
@@ -83,7 +91,7 @@ export function MessageInput({
                     disabled={!canSend}
                     className="btn btn-primary btn-square shrink-0"
                 >
-                    {disabled ? (
+                    {isSending ? (
                         <span className="loading loading-spinner loading-sm" />
                     ) : (
                         <PaperAirplaneIcon className="size-5" />

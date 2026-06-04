@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { APP_NAME } from '@/shared/config';
 import { notFound } from 'next/navigation';
 import { MasterOrderChatPage } from '@/views/dashboard/master-order-chat';
 
@@ -8,7 +9,7 @@ type TPageProps = {
 
 export async function generateMetadata({ params }: TPageProps): Promise<Metadata> {
     const { id } = await params;
-    return { title: `Чат заказа #${id} — PROSTOR` };
+    return { title: `Чат заказа #${id} — ${APP_NAME}` };
 }
 
 export default async function MasterOrderChatRoute({ params }: TPageProps) {

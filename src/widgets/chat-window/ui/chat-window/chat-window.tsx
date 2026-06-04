@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { Virtuoso } from 'react-virtuoso';
 import type { VirtuosoHandle } from 'react-virtuoso';
 import { startOfDay } from 'date-fns';
@@ -33,8 +33,10 @@ export function ChatWindow({ chatId }: TProps) {
     const { mutateAsync: uploadFile } = useUploadChatFile();
 
     const [uploadingFiles, setUploadingFiles] = useState<TUploadFile[]>([]);
-    const [pendingAttachments, setPendingAttachments] = useState<TMessageAttachment[]>([]);
+    // Completed attachments keyed by upload id
+    const [pendingMap, setPendingMap] = useState<Map<string, TMessageAttachment>>(new Map());
     const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+    const [uploadError, setUploadError] = useState<string | null>(null);
 
     useMarkAsRead({ chatId, messages, currentUserId: user.id });
 
@@ -42,8 +44,22 @@ export function ChatWindow({ chatId }: TProps) {
     const scrollerRef = useRef<HTMLElement | null>(null);
     const isAtBottomRef = useRef(true);
     const prevMessagesLengthRef = useRef(0);
+    // Keep a ref to uploadingFiles for cleanup on unmount (avoids stale closure)
+    const uploadingFilesRef = useRef<TUploadFile[]>([]);
+    useEffect(() => {
+        uploadingFilesRef.current = uploadingFiles;
+    }, [uploadingFiles]);
 
-    // Скролл вниз при новых сообщениях
+    // Revoke all ObjectURLs on unmount
+    useEffect(() => {
+        return () => {
+            uploadingFilesRef.current.forEach((f) => {
+                if (f.previewUrl) URL.revokeObjectURL(f.previewUrl);
+            });
+        };
+    }, []);
+
+    // Scroll to bottom on new messages
     useEffect(() => {
         if (messages.length > prevMessagesLengthRef.current && isAtBottomRef.current) {
             virtuosoRef.current?.scrollToIndex({ index: 0, behavior: 'smooth' });
@@ -51,63 +67,66 @@ export function ChatWindow({ chatId }: TProps) {
         prevMessagesLengthRef.current = messages.length;
     }, [messages.length]);
 
-    // Инверсия колеса для перевёрнутого списка
+    // Invert wheel for the flipped list
     useEffect(() => {
         const scroller = scrollerRef.current;
         if (!scroller) return;
         const handleWheel = (e: WheelEvent) => {
-            e.preventDefault();
             scroller.scrollTop += -e.deltaY;
         };
-        scroller.addEventListener('wheel', handleWheel, { passive: false });
+        scroller.addEventListener('wheel', handleWheel, { passive: true });
         return () => scroller.removeEventListener('wheel', handleWheel);
     }, [isInitialLoadComplete, messages.length]);
 
-    const reversedMessages = useMemo(() => [...messages].reverse(), [messages]);
+    const reversedMessages = [...messages].reverse();
 
-    const handleEndReached = useCallback(() => {
+    const handleEndReached = () => {
         if (hasMore && !isLoadingMore) loadMore();
-    }, [hasMore, isLoadingMore, loadMore]);
+    };
 
-    const handleFilesSelected = useCallback(
-        async (files: File[]) => {
-            const newUploads: TUploadFile[] = files.map((file) => ({
-                file,
-                progress: 0,
-                previewUrl: file.type.startsWith('image/') ? URL.createObjectURL(file) : undefined,
-            }));
-            setUploadingFiles((prev) => [...prev, ...newUploads]);
+    const handleFilesSelected = async (files: File[]) => {
+        const newUploads: TUploadFile[] = files.map((file) => ({
+            id: crypto.randomUUID(),
+            file,
+            progress: 0,
+            previewUrl: file.type.startsWith('image/') ? URL.createObjectURL(file) : undefined,
+        }));
+        setUploadingFiles((prev) => [...prev, ...newUploads]);
 
-            for (let i = 0; i < files.length; i++) {
-                const file = files[i];
-                const idx = uploadingFiles.length + i;
+        await Promise.allSettled(
+            newUploads.map(async (upload) => {
                 try {
                     setUploadingFiles((prev) =>
-                        prev.map((f, j) => (j === idx ? { ...f, progress: 50 } : f)),
+                        prev.map((f) => (f.id === upload.id ? { ...f, progress: 50 } : f)),
                     );
-                    const attachment = await uploadFile({ chatId, file });
+                    const attachment = await uploadFile({ chatId, file: upload.file });
                     setUploadingFiles((prev) =>
-                        prev.map((f, j) => (j === idx ? { ...f, progress: 100 } : f)),
+                        prev.map((f) => (f.id === upload.id ? { ...f, progress: 100 } : f)),
                     );
-                    setPendingAttachments((prev) => [...prev, attachment]);
+                    setPendingMap((prev) => new Map(prev).set(upload.id, attachment));
                 } catch {
-                    setUploadingFiles((prev) => prev.filter((_, j) => j !== idx));
+                    setUploadingFiles((prev) => prev.filter((f) => f.id !== upload.id));
                 }
-            }
-        },
-        [chatId, uploadFile, uploadingFiles.length],
-    );
+            }),
+        );
+    };
 
-    const handleRemoveFile = useCallback((index: number) => {
-        setUploadingFiles((prev) => {
-            const f = prev[index];
-            if (f?.previewUrl) URL.revokeObjectURL(f.previewUrl);
-            return prev.filter((_, i) => i !== index);
+    const handleRemoveFile = (id: string) => {
+        const file = uploadingFiles.find((f) => f.id === id);
+        if (file?.previewUrl) URL.revokeObjectURL(file.previewUrl);
+        setUploadingFiles((prev) => prev.filter((f) => f.id !== id));
+        setPendingMap((prev) => {
+            const next = new Map(prev);
+            next.delete(id);
+            return next;
         });
-        setPendingAttachments((prev) => prev.filter((_, i) => i !== index));
-    }, []);
+    };
 
     const handleSendMessage = async (content: string) => {
+        const pendingAttachments = uploadingFiles
+            .filter((f) => pendingMap.has(f.id))
+            .map((f) => pendingMap.get(f.id)!);
+
         if (!content.trim() && pendingAttachments.length === 0) return;
 
         const hasImages = pendingAttachments.some((a) => a.mimeType.startsWith('image/'));
@@ -131,43 +150,40 @@ export function ChatWindow({ chatId }: TProps) {
                 if (f.previewUrl) URL.revokeObjectURL(f.previewUrl);
             });
             setUploadingFiles([]);
-            setPendingAttachments([]);
-        } catch (error) {
-            console.error('Failed to send message:', error);
+            setPendingMap(new Map());
+        } catch {
+            // keep UI intact on error
         }
     };
 
-    const renderItem = useCallback(
-        (index: number, message: TMessage) => {
-            const nextMessage =
-                index < reversedMessages.length - 1 ? reversedMessages[index + 1] : null;
-            const showDateSeparator =
-                index === reversedMessages.length - 1 ||
-                (nextMessage &&
-                    startOfDay(new Date(message.createdAt)).getTime() !==
-                        startOfDay(new Date(nextMessage.createdAt)).getTime());
+    const renderItem = (index: number, message: TMessage) => {
+        const nextMessage =
+            index < reversedMessages.length - 1 ? reversedMessages[index + 1] : null;
+        const showDateSeparator =
+            index === reversedMessages.length - 1 ||
+            (nextMessage &&
+                startOfDay(new Date(message.createdAt)).getTime() !==
+                    startOfDay(new Date(nextMessage.createdAt)).getTime());
 
-            return (
-                <div className="px-4" style={{ transform: 'scaleY(-1)' }}>
-                    {showDateSeparator && (
-                        <div className="flex justify-center my-2">
-                            <div className="badge badge-sm badge-ghost shadow-sm">
-                                {formatMessageDate(message.createdAt)}
-                            </div>
+        return (
+            <div className="px-4" style={{ transform: 'scaleY(-1)' }}>
+                {showDateSeparator && (
+                    <div className="flex justify-center my-2">
+                        <div className="badge badge-sm badge-ghost shadow-sm">
+                            {formatMessageDate(message.createdAt)}
                         </div>
-                    )}
-                    <MessageBubble
-                        message={message}
-                        isOwn={message.sender.id === user.id}
-                        onImageClick={(att) => setLightboxUrl(getStorageUrl(att.path))}
-                    />
-                </div>
-            );
-        },
-        [reversedMessages, user.id],
-    );
+                    </div>
+                )}
+                <MessageBubble
+                    message={message}
+                    isOwn={message.sender.id === user.id}
+                    onImageClick={(att) => setLightboxUrl(getStorageUrl(att.path))}
+                />
+            </div>
+        );
+    };
 
-    const Footer = useCallback(() => {
+    const Footer = () => {
         if (!hasMore) return null;
         return (
             <div className="flex justify-center py-2" style={{ transform: 'scaleY(-1)' }}>
@@ -178,7 +194,9 @@ export function ChatWindow({ chatId }: TProps) {
                 )}
             </div>
         );
-    }, [hasMore, isLoadingMore]);
+    };
+
+    const hasAttachments = uploadingFiles.some((f) => pendingMap.has(f.id));
 
     return (
         <div className="flex flex-col h-full">
@@ -189,7 +207,7 @@ export function ChatWindow({ chatId }: TProps) {
                     </div>
                 ) : messages.length === 0 ? (
                     <div className="flex items-center justify-center h-full text-base-content/50">
-                        <p className="text-sm">Нет сообщений. Начните общение!</p>
+                        <p className="text-sm">Нет сообщений. Начните общение.</p>
                     </div>
                 ) : (
                     <Virtuoso
@@ -211,13 +229,20 @@ export function ChatWindow({ chatId }: TProps) {
                 )}
             </div>
 
+            {uploadError && (
+                <div className="px-4 py-1 text-xs text-error bg-error/10 border-t border-error/20">
+                    {uploadError}
+                </div>
+            )}
+
             <MessageInput
                 onSendMessage={handleSendMessage}
                 onFilesSelected={handleFilesSelected}
-                disabled={isSending}
+                isSending={isSending}
                 uploadingFiles={uploadingFiles}
                 onRemoveFile={handleRemoveFile}
-                hasAttachments={pendingAttachments.length > 0}
+                onValidationError={(errors) => setUploadError(errors[0] ?? null)}
+                hasAttachments={hasAttachments}
             />
 
             {lightboxUrl && (

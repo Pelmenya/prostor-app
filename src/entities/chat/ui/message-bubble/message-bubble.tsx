@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { format } from 'date-fns';
 import { CheckIcon } from '@heroicons/react/16/solid';
 import { EUserRole } from '@/shared/model';
@@ -32,12 +33,14 @@ export function MessageBubble({ message, isOwn, onImageClick }: TProps) {
         <div className={`chat ${isOwn ? 'chat-end' : 'chat-start'}`}>
             {!isOwn && (
                 <div className="chat-image avatar">
-                    <div className="size-10 rounded-full overflow-hidden bg-primary/10 text-primary flex items-center justify-center">
+                    <div className="relative size-10 rounded-full overflow-hidden bg-primary/10 text-primary flex items-center justify-center">
                         {message.sender.photo_url ? (
-                            <img
+                            <Image
                                 src={getStorageUrl(message.sender.photo_url)}
-                                alt={message.sender.first_name}
-                                className="size-full object-cover"
+                                alt={message.sender.first_name ?? ''}
+                                fill
+                                sizes="40px"
+                                className="object-cover"
                             />
                         ) : (
                             <span className="text-lg font-semibold">

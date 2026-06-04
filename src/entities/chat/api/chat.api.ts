@@ -1,7 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useApi } from '@/shared/api';
-import { API_URL } from '@/shared/config';
-import { useAuth } from '@/shared/lib/platform';
+import { computeUnreadCount } from '../lib/compute-unread-count';
 import type { TChat, TChatWithUnread, TMessage } from '../model/t-chat';
 import type { TMessageAttachment } from '../model/t-message-attachment';
 import type { EMessageType } from '../model/e-message-type';
@@ -10,6 +9,7 @@ export const chatKeys = {
     all: ['chats'] as const,
     list: () => ['chats', 'list'] as const,
     detail: (chatId: string) => ['chats', 'detail', chatId] as const,
+    messages: (chatId: string) => ['chats', 'messages', chatId] as const,
     byOrder: (orderId: number) => ['chats', 'order', orderId] as const,
 };
 
@@ -42,13 +42,7 @@ export function useGetUnreadCount(currentUserId?: number) {
         select: (chats) => ({
             count: chats.reduce((sum, chat) => {
                 if (currentUserId && chat.messages?.length) {
-                    const userIdStr = String(currentUserId);
-                    return (
-                        sum +
-                        chat.messages.filter(
-                            (m) => m.readBy[0] !== userIdStr && !m.readBy.includes(userIdStr),
-                        ).length
-                    );
+                    return sum + computeUnreadCount(chat.messages, currentUserId);
                 }
                 return sum + (chat.unreadCount ?? 0);
             }, 0),
@@ -75,7 +69,7 @@ export function useCreateMessage() {
                 body: { chatId, ...rest },
             }),
         onSuccess: (_data, variables) => {
-            void queryClient.invalidateQueries({ queryKey: chatKeys.detail(variables.chatId) });
+            void queryClient.invalidateQueries({ queryKey: chatKeys.messages(variables.chatId) });
             void queryClient.invalidateQueries({ queryKey: chatKeys.list() });
         },
     });
@@ -98,10 +92,10 @@ export function useMarkMessagesAsRead() {
 }
 
 export function useUploadChatFile() {
-    const { authHeader } = useAuth();
+    const api = useApi();
 
     return useMutation({
-        mutationFn: async ({
+        mutationFn: ({
             chatId,
             file,
         }: {
@@ -110,16 +104,10 @@ export function useUploadChatFile() {
         }): Promise<TMessageAttachment> => {
             const formData = new FormData();
             formData.append('file', file);
-
-            const response = await fetch(`${API_URL}/chat/${chatId}/upload`, {
+            return api<TMessageAttachment>(`/chat/${chatId}/upload`, {
                 method: 'POST',
-                headers: authHeader ? { Authorization: authHeader } : undefined,
                 body: formData,
-                credentials: 'include',
             });
-
-            if (!response.ok) throw new Error('Upload failed');
-            return response.json() as Promise<TMessageAttachment>;
         },
     });
 }

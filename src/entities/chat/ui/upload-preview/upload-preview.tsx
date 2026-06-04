@@ -5,7 +5,7 @@ import type { TUploadFile } from './upload-preview-item';
 
 type TProps = {
     files: TUploadFile[];
-    onRemove: (index: number) => void;
+    onRemove: (id: string) => void;
 };
 
 export function UploadPreview({ files, onRemove }: TProps) {
@@ -13,13 +13,13 @@ export function UploadPreview({ files, onRemove }: TProps) {
 
     return (
         <div className="flex gap-2 p-2 overflow-x-auto border-t border-base-content/10">
-            {files.map((item, index) => (
+            {files.map((item) => (
                 <UploadPreviewItem
-                    key={`${item.file.name}-${index}`}
+                    key={item.id}
                     file={item.file}
                     progress={item.progress}
                     previewUrl={item.previewUrl}
-                    onRemove={() => onRemove(index)}
+                    onRemove={() => onRemove(item.id)}
                 />
             ))}
         </div>

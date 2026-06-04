@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useCallback, useRef, useEffect } from 'react';
-import { API_URL } from '@/shared/config';
-import { useAuth } from '@/shared/lib/platform';
+import { useInfiniteQuery, useQueryClient, type InfiniteData } from '@tanstack/react-query';
+import { useApi } from '@/shared/api';
+import { buildSearchParams } from '@/shared/lib';
+import { chatKeys } from '../../api/chat.api';
 import type { TMessage, TGetMessagesResponse } from '../../model/t-chat';
 
 type TUseChatMessagesParams = {
@@ -28,185 +29,53 @@ export function useChatMessages({
     enabled = true,
     limit = 30,
 }: TUseChatMessagesParams): TUseChatMessagesResult {
-    const { authHeader } = useAuth();
-    const shouldFetch = enabled && chatId !== null;
+    const api = useApi();
+    const queryClient = useQueryClient();
 
-    const [messages, setMessages] = useState<TMessage[]>([]);
-    const [nextCursor, setNextCursor] = useState<string | null>(null);
-    const [hasMore, setHasMore] = useState(true);
-    const [isLoading, setIsLoading] = useState(false);
-    const [isLoadingMore, setIsLoadingMore] = useState(false);
-    const [isInitialLoadComplete, setIsInitialLoadComplete] = useState(false);
-
-    const pollingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-    const isLoadingMoreRef = useRef(false);
-
-    const fetchMessages = useCallback(
-        async (cursor?: string): Promise<TGetMessagesResponse | null> => {
-            if (!chatId) return null;
-
-            const url = new URL(`${API_URL}/chat/${chatId}/messages`);
-            if (cursor) url.searchParams.set('cursor', cursor);
-            url.searchParams.set('limit', String(limit));
-
-            const response = await fetch(url.toString(), {
-                headers: authHeader ? { Authorization: authHeader } : undefined,
-                credentials: 'include',
-            });
-
-            if (!response.ok) {
-                const err = new Error(
-                    `Failed to fetch messages: ${response.status} ${response.statusText}`,
-                );
-                (err as Error & { status: number }).status = response.status;
-                throw err;
-            }
-            return response.json() as Promise<TGetMessagesResponse>;
+    const { data, isPending, isFetchingNextPage, hasNextPage, fetchNextPage } = useInfiniteQuery({
+        queryKey: chatKeys.messages(chatId ?? ''),
+        queryFn: ({ pageParam }) => {
+            const qs = buildSearchParams({ cursor: pageParam, limit });
+            return api<TGetMessagesResponse>(`/chat/${chatId}/messages?${qs}`);
         },
-        [chatId, limit, authHeader],
-    );
+        initialPageParam: undefined as string | undefined,
+        getNextPageParam: (lastPage) =>
+            lastPage.hasMore ? (lastPage.nextCursor ?? undefined) : undefined,
+        refetchInterval: pollingInterval,
+        staleTime: 0,
+        enabled: enabled && !!chatId,
+    });
 
-    // Первоначальная загрузка
-    useEffect(() => {
-        if (!shouldFetch) return;
+    // pages[0] = newest batch (oldest→newest within batch)
+    // pages[1] = older batch, etc.
+    // Reverse pages order to get all messages oldest→newest
+    const messages: TMessage[] = data ? [...data.pages].reverse().flatMap((p) => p.messages) : [];
 
-        const loadInitial = async () => {
-            setIsLoading(true);
-            try {
-                const data = await fetchMessages();
-                if (data) {
-                    setMessages(data.messages);
-                    setNextCursor(data.nextCursor);
-                    setHasMore(data.hasMore);
-                }
-            } catch (error) {
-                console.error('Failed to load messages:', error);
-            } finally {
-                setIsLoading(false);
-                setIsInitialLoadComplete(true);
-            }
-        };
-
-        void loadInitial();
-    }, [shouldFetch, fetchMessages]);
-
-    // Polling для новых сообщений
-    useEffect(() => {
-        if (!shouldFetch || !isInitialLoadComplete) return;
-
-        const poll = async () => {
-            try {
-                const data = await fetchMessages();
-                if (!data || data.messages.length === 0) return;
-
-                setMessages((prev) => {
-                    const existingIds = new Set(prev.map((m) => m.id));
-                    const trulyNew = data.messages.filter((m) => !existingIds.has(m.id));
-
-                    const newMessagesMap = new Map(data.messages.map((m) => [m.id, m]));
-                    let hasReadByChanges = false;
-                    for (const msg of prev) {
-                        const newVersion = newMessagesMap.get(msg.id);
-                        if (
-                            newVersion &&
-                            JSON.stringify(msg.readBy) !== JSON.stringify(newVersion.readBy)
-                        ) {
-                            hasReadByChanges = true;
-                            break;
-                        }
-                    }
-
-                    if (trulyNew.length === 0 && !hasReadByChanges) return prev;
-
-                    const updatedMessages = hasReadByChanges
-                        ? prev.map((msg) => {
-                              const newVersion = newMessagesMap.get(msg.id);
-                              if (
-                                  newVersion &&
-                                  JSON.stringify(msg.readBy) !== JSON.stringify(newVersion.readBy)
-                              ) {
-                                  return { ...msg, readBy: newVersion.readBy };
-                              }
-                              return msg;
-                          })
-                        : prev;
-
-                    if (trulyNew.length > 0) {
-                        const sorted = trulyNew.sort(
-                            (a, b) =>
-                                new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
-                        );
-                        return [...updatedMessages, ...sorted];
-                    }
-
-                    return updatedMessages;
-                });
-            } catch (error) {
-                const status = (error as Error & { status?: number }).status;
-                if (status === 401) {
-                    if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current);
-                    return;
-                }
-                console.error('Polling error:', error);
-            }
-        };
-
-        pollingIntervalRef.current = setInterval(poll, pollingInterval);
-
-        return () => {
-            if (pollingIntervalRef.current) {
-                clearInterval(pollingIntervalRef.current);
-            }
-        };
-    }, [shouldFetch, isInitialLoadComplete, fetchMessages, pollingInterval]);
-
-    // Сброс при смене чата
-    useEffect(() => {
-        setMessages([]);
-        setNextCursor(null);
-        setHasMore(true);
-        setIsInitialLoadComplete(false);
-        isLoadingMoreRef.current = false;
-        if (pollingIntervalRef.current) {
-            clearInterval(pollingIntervalRef.current);
-        }
-    }, [chatId]);
-
-    const loadMore = useCallback(async () => {
-        if (!shouldFetch || !nextCursor || isLoadingMoreRef.current || !hasMore) return;
-
-        isLoadingMoreRef.current = true;
-        setIsLoadingMore(true);
-
-        try {
-            const data = await fetchMessages(nextCursor);
-            if (data && data.messages.length > 0) {
-                setMessages((prev) => [...data.messages, ...prev]);
-                setNextCursor(data.nextCursor);
-                setHasMore(data.hasMore);
-            }
-        } catch (error) {
-            console.error('Failed to load more messages:', error);
-        } finally {
-            isLoadingMoreRef.current = false;
-            setIsLoadingMore(false);
-        }
-    }, [shouldFetch, nextCursor, hasMore, fetchMessages]);
-
-    const addMessage = useCallback((message: TMessage) => {
-        setMessages((prev) => {
-            if (prev.some((m) => m.id === message.id)) return prev;
-            return [...prev, message];
-        });
-    }, []);
+    const addMessage = (message: TMessage) => {
+        if (!chatId) return;
+        queryClient.setQueryData<InfiniteData<TGetMessagesResponse>>(
+            chatKeys.messages(chatId),
+            (old) => {
+                if (!old) return old;
+                const [firstPage, ...rest] = old.pages;
+                if (firstPage.messages.some((m) => m.id === message.id)) return old;
+                return {
+                    ...old,
+                    pages: [{ ...firstPage, messages: [...firstPage.messages, message] }, ...rest],
+                };
+            },
+        );
+    };
 
     return {
         messages,
-        isLoading,
-        isLoadingMore,
-        isInitialLoadComplete,
-        hasMore,
-        loadMore,
+        isLoading: isPending,
+        isLoadingMore: isFetchingNextPage,
+        isInitialLoadComplete: !isPending,
+        hasMore: hasNextPage ?? false,
+        loadMore: () => {
+            void fetchNextPage();
+        },
         addMessage,
     };
 }
