@@ -32,6 +32,11 @@ export function useChatMessages({
     const api = useApi();
     const queryClient = useQueryClient();
 
+    // TanStack Query v5: refetchInterval на useInfiniteQuery рефетчит ВСЕ загруженные
+    // страницы последовательно — не только newest-batch. На коротких чатах (≤30 сообщений)
+    // это 1 запрос, что приемлемо. При пагинации (100+ сообщений) polling станет дорогим.
+    // TODO: при необходимости разделить на useInfiniteQuery (без refetch) +
+    // отдельный useQuery для newest-batch — см. docs/backlog/chat-polling-strategy.md
     const { data, isPending, isFetchingNextPage, hasNextPage, fetchNextPage } = useInfiniteQuery({
         queryKey: chatKeys.messages(chatId ?? ''),
         queryFn: ({ pageParam }) => {
