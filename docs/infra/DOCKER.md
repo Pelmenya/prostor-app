@@ -34,7 +34,7 @@ docker-compose.yml  — сервис prostor_app в сети crm_network_prod
 Если Docker Hub недоступен с сервера Timeweb, укажите в `.env` зеркало:
 
 ```env
-NODE_IMAGE=dockerhub.timeweb.cloud/library/node:22.16-alpine
+NODE_IMAGE=dockerhub.timeweb.cloud/library/node:22.16-slim
 ```
 
 **При изменении `NEXT_PUBLIC_*` нужен пересбор образа** (`docker compose build`).

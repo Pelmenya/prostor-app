@@ -1,5 +1,5 @@
 # ─── 1. Зависимости ─────────────────────────────────────────
-ARG NODE_IMAGE=node:22.16-alpine
+ARG NODE_IMAGE=node:22.16-slim
 FROM ${NODE_IMAGE} AS deps
 
 WORKDIR /app
@@ -35,8 +35,8 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
-RUN addgroup --system --gid 1001 nodejs && \
-    adduser --system --uid 1001 nextjs
+RUN groupadd --system --gid 1001 nodejs && \
+    useradd --system --uid 1001 --gid nodejs nextjs
 
 # standalone сервер
 COPY --from=builder /app/.next/standalone ./
