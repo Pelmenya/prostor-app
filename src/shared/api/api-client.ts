@@ -1,5 +1,12 @@
 import { API_URL as BASE_URL } from '@/shared/config';
 
+function getBaseUrl(): string {
+    if (typeof window === 'undefined') {
+        return process.env.INTERNAL_API_URL || BASE_URL;
+    }
+    return BASE_URL;
+}
+
 export class ApiError extends Error {
     constructor(
         public status: number,
@@ -41,7 +48,7 @@ export async function apiClient<T = unknown>(
         requestHeaders['Authorization'] = auth;
     }
 
-    const response = await fetch(`${BASE_URL}${path}`, {
+    const response = await fetch(`${getBaseUrl()}${path}`, {
         method,
         headers: requestHeaders,
         body: isFormData ? body : body ? JSON.stringify(body) : undefined,

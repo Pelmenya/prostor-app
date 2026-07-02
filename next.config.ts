@@ -1,9 +1,39 @@
 import type { NextConfig } from 'next';
 import path from 'path';
 
+const internalApiUrl = (process.env.INTERNAL_API_URL || 'http://localhost:3000').replace(/\/$/, '');
+const internalSlovoApiUrl = (process.env.INTERNAL_SLOVO_API_URL || 'http://localhost:3101').replace(
+    /\/$/,
+    '',
+);
+
 const nextConfig: NextConfig = {
     output: 'standalone',
     reactCompiler: true,
+    async rewrites() {
+        return {
+            beforeFiles: [
+                {
+                    source: '/api/docs',
+                    destination: `${internalApiUrl}/api/docs`,
+                },
+                {
+                    source: '/api/docs/:path*',
+                    destination: `${internalApiUrl}/api/docs/:path*`,
+                },
+                {
+                    source: '/api/:path*',
+                    destination: `${internalApiUrl}/:path*`,
+                },
+                {
+                    source: '/smart-search/:path*',
+                    destination: `${internalSlovoApiUrl}/:path*`,
+                },
+            ],
+            afterFiles: [],
+            fallback: [],
+        };
+    },
     async redirects() {
         return [
             {
@@ -25,11 +55,6 @@ const nextConfig: NextConfig = {
     images: {
         unoptimized: process.env.NODE_ENV === 'development',
         remotePatterns: [
-            {
-                protocol: 'https',
-                hostname: new URL(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000')
-                    .hostname,
-            },
             {
                 protocol: 'http',
                 hostname: 'localhost',

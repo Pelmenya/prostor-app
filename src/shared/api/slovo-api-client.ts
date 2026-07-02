@@ -1,5 +1,12 @@
 import { SLOVO_API_URL } from '@/shared/config';
 
+function getBaseUrl(): string {
+    if (typeof window === 'undefined') {
+        return process.env.INTERNAL_SLOVO_API_URL || SLOVO_API_URL;
+    }
+    return SLOVO_API_URL;
+}
+
 /**
  * Минималистичный fetch для slovo-api (water-analysis + catalog/search). Не
  * используется shared/api/api-client потому что:
@@ -39,7 +46,7 @@ export async function slovoGet<T>(
     query: TQueryParams = {},
     signal?: AbortSignal,
 ): Promise<T> {
-    const url = `${SLOVO_API_URL}${path}${buildQueryString(query)}`;
+    const url = `${getBaseUrl()}${path}${buildQueryString(query)}`;
     // credentials: 'omit' — slovo public endpoints throttled by IP, не должны
     // получать prostor auth cookies даже когда оба на одном eTLD+1 (security
     // posture, code-reviewer agent 2026-05-18).
@@ -52,7 +59,7 @@ export async function slovoGet<T>(
 }
 
 export async function slovoPost<T>(path: string, body: unknown, signal?: AbortSignal): Promise<T> {
-    const url = `${SLOVO_API_URL}${path}`;
+    const url = `${getBaseUrl()}${path}`;
     const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
