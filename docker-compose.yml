@@ -11,6 +11,8 @@ services:
                 NEXT_PUBLIC_VAPID_PUBLIC_KEY: ${NEXT_PUBLIC_VAPID_PUBLIC_KEY:-}
                 NEXT_PUBLIC_COMMISSION_PERCENTS: ${NEXT_PUBLIC_COMMISSION_PERCENTS:-35}
                 NEXT_PUBLIC_SMART_SEARCH_MOCK: ${NEXT_PUBLIC_SMART_SEARCH_MOCK:-0}
+                BUILD_API_URL: ${BUILD_API_URL:-}
+                BUILD_SLOVO_API_URL: ${BUILD_SLOVO_API_URL:-}
                 INTERNAL_API_URL: ${INTERNAL_API_URL:-http://crm-back:3000}
                 INTERNAL_SLOVO_API_URL: ${INTERNAL_SLOVO_API_URL:-http://slovo-api:3101}
         container_name: prostor_app

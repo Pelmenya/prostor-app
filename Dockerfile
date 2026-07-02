@@ -5,7 +5,8 @@ FROM ${NODE_IMAGE} AS deps
 WORKDIR /app
 
 COPY package.json package-lock.json* ./
-RUN npm ci
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci --no-audit --no-fund --fetch-retries=5 --fetch-retry-mintimeout=20000 --fetch-retry-maxtimeout=120000
 
 # ─── 2. Сборка ──────────────────────────────────────────────
 FROM ${NODE_IMAGE} AS builder
@@ -23,6 +24,8 @@ ARG NEXT_PUBLIC_SALE_PRICES
 ARG NEXT_PUBLIC_VAPID_PUBLIC_KEY
 ARG NEXT_PUBLIC_COMMISSION_PERCENTS
 ARG NEXT_PUBLIC_SMART_SEARCH_MOCK
+ARG BUILD_API_URL
+ARG BUILD_SLOVO_API_URL
 ARG INTERNAL_API_URL
 ARG INTERNAL_SLOVO_API_URL
 

@@ -25,7 +25,7 @@ docker-compose.yml  — сервис prostor_app в сети crm_network_prod
 
 `NEXT_PUBLIC_*` инлайнятся в JS-бандл **на этапе билда** (не в рантайме). Передаются через цепочку: `.env` на сервере → docker-compose `build.args` → Dockerfile `ARG` → Next.js инлайнит при `npm run build`.
 
-Для единого origin браузер использует относительные адреса `NEXT_PUBLIC_API_URL=/api` и `NEXT_PUBLIC_SLOVO_API_URL=/smart-search`. Next.js rewrites проксируют их во внутреннюю Docker-сеть. SSR/ISR-запросы выполняются напрямую через `INTERNAL_API_URL` и `INTERNAL_SLOVO_API_URL`.
+Для единого origin браузер использует относительные адреса `NEXT_PUBLIC_API_URL=/api` и `NEXT_PUBLIC_SLOVO_API_URL=/smart-search`. Next.js rewrites проксируют их во внутреннюю Docker-сеть. Runtime SSR/ISR-запросы выполняются через `INTERNAL_API_URL` и `INTERNAL_SLOVO_API_URL`. Если prerender во время Docker build требует backend, используется доступный сборщику `BUILD_API_URL`.
 
 - **Никакие `.env` файлы не попадают в Docker-образ** (`.env.local` в `.dockerignore`)
 - На сервере создаётся `.env` рядом с `docker-compose.yml` — docker-compose автоматически его читает
@@ -49,17 +49,8 @@ docker network create crm_network_prod 2>/dev/null || true
 # После объединения compose это подключение будет декларативным.
 docker network connect crm_network_prod crm-back 2>/dev/null || true
 
-# Создать BuildKit builder в общей сети (один раз на сервере)
-docker buildx create \
-  --name crm-builder \
-  --driver docker-container \
-  --driver-opt network=crm_network_prod \
-  --driver-opt default-load=true \
-  --use 2>/dev/null || docker buildx use crm-builder
-docker buildx inspect --bootstrap
-
-# Собрать через сетевой builder и запустить
-docker compose build --builder crm-builder prostor_app
+# Собрать обычным builder с доступом в npm registry и запустить
+docker compose build --builder default prostor_app
 docker compose up -d --no-build
 
 # Логи

@@ -2,7 +2,7 @@ import { API_URL as BASE_URL } from '@/shared/config';
 
 function getBaseUrl(): string {
     if (typeof window === 'undefined') {
-        return process.env.INTERNAL_API_URL || BASE_URL;
+        return process.env.BUILD_API_URL || process.env.INTERNAL_API_URL || BASE_URL;
     }
     return BASE_URL;
 }

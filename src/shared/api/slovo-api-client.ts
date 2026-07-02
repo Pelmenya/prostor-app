@@ -2,7 +2,9 @@ import { SLOVO_API_URL } from '@/shared/config';
 
 function getBaseUrl(): string {
     if (typeof window === 'undefined') {
-        return process.env.INTERNAL_SLOVO_API_URL || SLOVO_API_URL;
+        return (
+            process.env.BUILD_SLOVO_API_URL || process.env.INTERNAL_SLOVO_API_URL || SLOVO_API_URL
+        );
     }
     return SLOVO_API_URL;
 }
