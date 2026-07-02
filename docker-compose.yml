@@ -3,6 +3,7 @@ services:
         build:
             context: .
             args:
+                NODE_IMAGE: ${NODE_IMAGE:-node:22.16-alpine}
                 NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-/api}
                 NEXT_PUBLIC_SLOVO_API_URL: ${NEXT_PUBLIC_SLOVO_API_URL:-/smart-search}
                 NEXT_PUBLIC_S3_PUBLIC_URL: ${NEXT_PUBLIC_S3_PUBLIC_URL:-}

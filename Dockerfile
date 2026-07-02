@@ -1,5 +1,6 @@
 # ─── 1. Зависимости ─────────────────────────────────────────
-FROM node:22.16-alpine AS deps
+ARG NODE_IMAGE=node:22.16-alpine
+FROM ${NODE_IMAGE} AS deps
 
 WORKDIR /app
 
@@ -7,7 +8,7 @@ COPY package.json package-lock.json* ./
 RUN npm ci
 
 # ─── 2. Сборка ──────────────────────────────────────────────
-FROM node:22.16-alpine AS builder
+FROM ${NODE_IMAGE} AS builder
 
 WORKDIR /app
 
@@ -28,7 +29,7 @@ ARG INTERNAL_SLOVO_API_URL
 RUN npm run build
 
 # ─── 3. Продакшн ────────────────────────────────────────────
-FROM node:22.16-alpine AS runner
+FROM ${NODE_IMAGE} AS runner
 
 WORKDIR /app
 

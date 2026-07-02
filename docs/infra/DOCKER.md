@@ -31,6 +31,12 @@ docker-compose.yml  — сервис prostor_app в сети crm_network_prod
 - На сервере создаётся `.env` рядом с `docker-compose.yml` — docker-compose автоматически его читает
 - При добавлении новой `NEXT_PUBLIC_*` переменной — добавить `ARG` в Dockerfile + `args` в docker-compose
 
+Если Docker Hub недоступен с сервера Timeweb, укажите в `.env` зеркало:
+
+```env
+NODE_IMAGE=dockerhub.timeweb.cloud/library/node:22.16-alpine
+```
+
 **При изменении `NEXT_PUBLIC_*` нужен пересбор образа** (`docker compose build`).
 
 ## Запуск
