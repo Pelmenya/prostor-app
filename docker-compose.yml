@@ -2,7 +2,6 @@ services:
     prostor_app:
         build:
             context: .
-            network: crm_network_prod
             args:
                 NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-/api}
                 NEXT_PUBLIC_SLOVO_API_URL: ${NEXT_PUBLIC_SLOVO_API_URL:-/smart-search}

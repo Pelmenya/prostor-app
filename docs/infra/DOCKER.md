@@ -43,8 +43,18 @@ docker network create crm_network_prod 2>/dev/null || true
 # После объединения compose это подключение будет декларативным.
 docker network connect crm_network_prod crm-back 2>/dev/null || true
 
-# Собрать и запустить
-docker compose up -d --build
+# Создать BuildKit builder в общей сети (один раз на сервере)
+docker buildx create \
+  --name crm-builder \
+  --driver docker-container \
+  --driver-opt network=crm_network_prod \
+  --driver-opt default-load=true \
+  --use 2>/dev/null || docker buildx use crm-builder
+docker buildx inspect --bootstrap
+
+# Собрать через сетевой builder и запустить
+docker compose build --builder crm-builder prostor_app
+docker compose up -d --no-build
 
 # Логи
 docker compose logs -f prostor_app
