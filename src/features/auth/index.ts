@@ -13,6 +13,7 @@ export {
 } from './api/auth-api';
 export type { TAuthResponse } from './api/auth-api';
 export { useLogout } from './lib/use-logout';
+export { SessionExpiredListener } from './ui/session-expired-listener';
 export {
     loginSchema,
     newPasswordSchema,

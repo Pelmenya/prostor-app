@@ -30,6 +30,17 @@ type TApiClientInternalOptions = TApiClientOptions & { _retry?: boolean };
 
 let refreshPromise: Promise<void> | null = null;
 
+/**
+ * Уведомляет приложение о терминальном провале refresh-токена (SESSION-04).
+ * api-client.ts остаётся плоским модулем без next/navigation — навигацию
+ * берёт на себя SessionExpiredListener, смонтированный в (web)/layout.tsx.
+ */
+function notifySessionExpired(): void {
+    if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('auth:session-expired'));
+    }
+}
+
 export async function apiClient<T = unknown>(
     path: string,
     options: TApiClientOptions = {},
@@ -87,6 +98,7 @@ async function tryRefreshTokens(): Promise<boolean> {
 
     if (!refreshToken) {
         logout();
+        notifySessionExpired();
         return false;
     }
 
@@ -105,6 +117,7 @@ async function tryRefreshTokens(): Promise<boolean> {
 
             if (!res.ok) {
                 logout();
+                notifySessionExpired();
                 return;
             }
 
@@ -112,6 +125,7 @@ async function tryRefreshTokens(): Promise<boolean> {
             setTokens(data.accessToken, data.refreshToken);
         } catch {
             logout();
+            notifySessionExpired();
         }
     })();
 
