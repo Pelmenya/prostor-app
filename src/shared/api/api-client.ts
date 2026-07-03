@@ -108,12 +108,17 @@ async function tryRefreshTokens(): Promise<boolean> {
     }
 
     refreshPromise = (async () => {
+        const refreshTokenAtStart = refreshToken;
         try {
             const res = await fetch(`${BASE_URL}/auth/web/refresh`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ refreshToken }),
             });
+
+            // Сессия могла быть завершена (logout()) или уже обновлена, пока
+            // этот refresh был в полёте — не применяем устаревший результат.
+            if (useAuthStore.getState().refreshToken !== refreshTokenAtStart) return;
 
             if (!res.ok) {
                 logout();
@@ -122,6 +127,7 @@ async function tryRefreshTokens(): Promise<boolean> {
             }
 
             const data = await res.json();
+            if (useAuthStore.getState().refreshToken !== refreshTokenAtStart) return;
             setTokens(data.accessToken, data.refreshToken);
         } catch {
             logout();
