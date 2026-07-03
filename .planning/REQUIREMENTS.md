@@ -46,8 +46,8 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Session / JWT Lifecycle
 
 - [x] **SESSION-01**: Все защищённые запросы отправляются с `Authorization: Bearer <accessToken>`
-- [ ] **SESSION-02**: При 401 фронт один раз вызывает `POST /auth/web/refresh`; параллельные refresh-запросы объединяются в один (single-flight), т.к. refresh-токен ротируется
-- [ ] **SESSION-03**: Успешный refresh заменяет обе пары — `accessToken` и `refreshToken`
+- [x] **SESSION-02**: При 401 фронт один раз вызывает `POST /auth/web/refresh`; параллельные refresh-запросы объединяются в один (single-flight), т.к. refresh-токен ротируется
+- [x] **SESSION-03**: Успешный refresh заменяет обе пары — `accessToken` и `refreshToken`
 - [x] **SESSION-04**: Если refresh тоже вернул 401 — токены очищаются, пользователь перенаправляется на страницу входа
 - [x] **SESSION-05**: Пользователь может выйти (`POST /auth/web/logout`); локальная сессия очищается независимо от результата запроса
 
@@ -101,8 +101,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PASS-02     | Phase 4 — Account Linking & Password Management    | Pending  |
 | PASS-03     | Phase 4 — Account Linking & Password Management    | Pending  |
 | SESSION-01  | Phase 1 — JWT Session Lifecycle                    | Complete |
-| SESSION-02  | Phase 1 — JWT Session Lifecycle                    | Pending  |
-| SESSION-03  | Phase 1 — JWT Session Lifecycle                    | Pending  |
+| SESSION-02  | Phase 1 — JWT Session Lifecycle                    | Complete |
+| SESSION-03  | Phase 1 — JWT Session Lifecycle                    | Complete |
 | SESSION-04  | Phase 1 — JWT Session Lifecycle                    | Complete |
 | SESSION-05  | Phase 1 — JWT Session Lifecycle                    | Complete |
 

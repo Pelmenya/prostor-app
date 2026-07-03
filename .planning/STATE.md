@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 01
-current_phase_name: JWT Session Lifecycle
-status: executing
-stopped_at: ROADMAP.md and STATE.md written, REQUIREMENTS.md traceability updated
-last_updated: '2026-07-03T08:58:16.234Z'
+current_phase: 2
+current_phase_name: Email Registration, Verification & Login
+status: ready_to_plan
+stopped_at: Phase 01 complete, ready to plan Phase 2
+last_updated: '2026-07-03T17:49:36.702Z'
 last_activity: 2026-07-03
-last_activity_desc: Phase 01 execution started
+last_activity_desc: Phase 01 complete, transitioned to Phase 2
 progress:
     total_phases: 4
-    completed_phases: 0
+    completed_phases: 1
     total_plans: 3
-    completed_plans: 0
-    percent: 0
+    completed_plans: 3
+    percent: 25
 ---
 
 # Project State
@@ -24,22 +24,22 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-03)
 
 **Core value:** Пользователь должен суметь зарегистрироваться и войти (по почте или через Telegram) и остаться авторизованным — вся цепочка issue/refresh/logout токенов обязана работать без дыр.
-**Current focus:** Phase 01 — JWT Session Lifecycle
+**Current focus:** Phase 2 — Email Registration, Verification & Login
 
 ## Current Position
 
-Phase: 01 (JWT Session Lifecycle) — EXECUTING
-Plan: 1 of 3
-Status: Executing Phase 01
-Last activity: 2026-07-03 — Phase 01 execution started
+Phase: 2 — Email Registration, Verification & Login
+Plan: Not started
+Status: Ready to plan Phase 2
+Last activity: 2026-07-03 — Phase 01 complete, transitioned to Phase 2
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [█████░░░░░░░░░░░░░░░] 25% (1/4 phases)
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 0
+- Total plans completed: 3
 - Average duration: N/A
 - Total execution time: 0 hours
 
@@ -47,7 +47,7 @@ Progress: [░░░░░░░░░░] 0%
 
 | Phase | Plans | Total | Avg/Plan |
 | ----- | ----- | ----- | -------- |
-| -     | -     | -     | -        |
+| 01    | 3     | -     | -        |
 
 **Recent Trend:**
 
@@ -74,8 +74,8 @@ None yet.
 ### Blockers/Concerns
 
 - Дев-токен (`NEXT_PUBLIC_DEMO_TOKEN` в `web-adapter.ts:22`) должен быть выведен из использования по завершении Phase 2 (реальный login появляется там)
-- `api-client.ts:59-69` уже содержит частичный 401-retry — Phase 1 адаптирует его под single-flight refresh-контракт, а не переписывает с нуля
 - 6 `(web)` страниц с `// TODO(NextAuth)` (`ssr: false` воркэраунд) — конвертация обратно на SSR не входит явно ни в одну фазу этого roadmap; проверить на транзишене после Phase 2, возможно потребует отдельного тех-долг тикета
+- [Phase 1] `src/proxy.ts` содержит третью дублирующую копию private-paths логики (помимо `shared/config/private-paths.ts`) — вне скоупа Phase 1 ревью, не устранено
 
 ## Deferred Items
 
@@ -88,5 +88,5 @@ Items acknowledged and carried forward from previous milestone close:
 ## Session Continuity
 
 Last session: 2026-07-03
-Stopped at: ROADMAP.md and STATE.md written, REQUIREMENTS.md traceability updated
+Stopped at: Phase 01 complete, ready to plan Phase 2
 Resume file: None
