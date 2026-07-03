@@ -158,8 +158,11 @@ async function tryRefreshTokens(): Promise<boolean> {
         }
     })();
 
-    await refreshPromise;
-    refreshPromise = null;
+    try {
+        await refreshPromise;
+    } finally {
+        refreshPromise = null;
+    }
 
     return !!useAuthStore.getState().accessToken;
 }
