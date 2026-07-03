@@ -183,6 +183,66 @@ describe('apiClient', () => {
         expect(dataB).toEqual({ b: 1 });
     });
 
+    it('CR-01: явный logout во время фонового refresh не откатывается устаревшим результатом refresh', async () => {
+        useAuthStore.setState({
+            accessToken: 'expired-access',
+            refreshToken: 'refresh-1',
+            isAuthenticated: true,
+        });
+
+        const refreshDeferred = createDeferred<{
+            ok: boolean;
+            status: number;
+            json: () => Promise<unknown>;
+            headers: Headers;
+        }>();
+
+        const fetchMock = vi
+            .fn()
+            // оригинальный запрос /test → 401, запускает refresh
+            .mockResolvedValueOnce({
+                ok: false,
+                status: 401,
+                statusText: 'Unauthorized',
+                json: async () => ({}),
+            })
+            // POST /auth/web/refresh — удерживается открытым до resolve
+            .mockImplementationOnce(() => refreshDeferred.promise);
+
+        vi.stubGlobal('fetch', fetchMock);
+
+        const requestPromise = apiClient('/test', { auth: 'Bearer expired-access' });
+
+        // Дождаться, пока apiClient реально дойдёт до POST /auth/web/refresh
+        // (2-й вызов fetch), иначе logout() ниже сработает раньше, чем refresh
+        // вообще стартовал, и тест ничего не проверит (ложный проход).
+        await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+
+        // Пока refresh ещё в полёте, пользователь явно разлогинивается.
+        useAuthStore.getState().logout();
+        expect(useAuthStore.getState().isAuthenticated).toBe(false);
+        expect(useAuthStore.getState().accessToken).toBeNull();
+
+        // Устаревший refresh успешно резолвится уже ПОСЛЕ logout — его результат
+        // не должен воскресить сессию (защита refreshTokenAtStart, коммит 85bbff6).
+        refreshDeferred.resolve({
+            ok: true,
+            status: 200,
+            headers: new Headers({ 'content-type': 'application/json' }),
+            json: async () => ({
+                accessToken: 'stale-new-access',
+                refreshToken: 'stale-new-refresh',
+            }),
+        });
+
+        await expect(requestPromise).rejects.toBeInstanceOf(ApiError);
+
+        const { accessToken, refreshToken, isAuthenticated } = useAuthStore.getState();
+        expect(accessToken).toBeNull();
+        expect(refreshToken).toBeNull();
+        expect(isAuthenticated).toBe(false);
+    });
+
     it('терминальный 401 на refresh очищает токены и диспатчит auth:session-expired, повторный запрос не делает второй refresh', async () => {
         useAuthStore.setState({
             accessToken: 'expired-access',
