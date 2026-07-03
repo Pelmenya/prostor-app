@@ -45,11 +45,11 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Session / JWT Lifecycle
 
-- [ ] **SESSION-01**: Все защищённые запросы отправляются с `Authorization: Bearer <accessToken>`
+- [x] **SESSION-01**: Все защищённые запросы отправляются с `Authorization: Bearer <accessToken>`
 - [ ] **SESSION-02**: При 401 фронт один раз вызывает `POST /auth/web/refresh`; параллельные refresh-запросы объединяются в один (single-flight), т.к. refresh-токен ротируется
 - [ ] **SESSION-03**: Успешный refresh заменяет обе пары — `accessToken` и `refreshToken`
 - [ ] **SESSION-04**: Если refresh тоже вернул 401 — токены очищаются, пользователь перенаправляется на страницу входа
-- [ ] **SESSION-05**: Пользователь может выйти (`POST /auth/web/logout`); локальная сессия очищается независимо от результата запроса
+- [x] **SESSION-05**: Пользователь может выйти (`POST /auth/web/logout`); локальная сессия очищается независимо от результата запроса
 
 ## v2 Requirements
 
@@ -80,31 +80,31 @@ Explicitly excluded. Documented to prevent scope creep.
 
 Which phases cover which requirements. Updated during roadmap creation.
 
-| Requirement | Phase                                              | Status  |
-| ----------- | -------------------------------------------------- | ------- |
-| REG-01      | Phase 2 — Email Registration, Verification & Login | Pending |
-| REG-02      | Phase 2 — Email Registration, Verification & Login | Pending |
-| REG-03      | Phase 2 — Email Registration, Verification & Login | Pending |
-| REG-04      | Phase 2 — Email Registration, Verification & Login | Pending |
-| VERIFY-01   | Phase 2 — Email Registration, Verification & Login | Pending |
-| VERIFY-02   | Phase 2 — Email Registration, Verification & Login | Pending |
-| VERIFY-03   | Phase 2 — Email Registration, Verification & Login | Pending |
-| LOGIN-01    | Phase 2 — Email Registration, Verification & Login | Pending |
-| LOGIN-02    | Phase 2 — Email Registration, Verification & Login | Pending |
-| TG-01       | Phase 3 — Telegram Login & Registration            | Pending |
-| TG-02       | Phase 3 — Telegram Login & Registration            | Pending |
-| TG-03       | Phase 3 — Telegram Login & Registration            | Pending |
-| TG-04       | Phase 3 — Telegram Login & Registration            | Pending |
-| LINK-01     | Phase 4 — Account Linking & Password Management    | Pending |
-| LINK-02     | Phase 4 — Account Linking & Password Management    | Pending |
-| PASS-01     | Phase 4 — Account Linking & Password Management    | Pending |
-| PASS-02     | Phase 4 — Account Linking & Password Management    | Pending |
-| PASS-03     | Phase 4 — Account Linking & Password Management    | Pending |
-| SESSION-01  | Phase 1 — JWT Session Lifecycle                    | Pending |
-| SESSION-02  | Phase 1 — JWT Session Lifecycle                    | Pending |
-| SESSION-03  | Phase 1 — JWT Session Lifecycle                    | Pending |
-| SESSION-04  | Phase 1 — JWT Session Lifecycle                    | Pending |
-| SESSION-05  | Phase 1 — JWT Session Lifecycle                    | Pending |
+| Requirement | Phase                                              | Status   |
+| ----------- | -------------------------------------------------- | -------- |
+| REG-01      | Phase 2 — Email Registration, Verification & Login | Pending  |
+| REG-02      | Phase 2 — Email Registration, Verification & Login | Pending  |
+| REG-03      | Phase 2 — Email Registration, Verification & Login | Pending  |
+| REG-04      | Phase 2 — Email Registration, Verification & Login | Pending  |
+| VERIFY-01   | Phase 2 — Email Registration, Verification & Login | Pending  |
+| VERIFY-02   | Phase 2 — Email Registration, Verification & Login | Pending  |
+| VERIFY-03   | Phase 2 — Email Registration, Verification & Login | Pending  |
+| LOGIN-01    | Phase 2 — Email Registration, Verification & Login | Pending  |
+| LOGIN-02    | Phase 2 — Email Registration, Verification & Login | Pending  |
+| TG-01       | Phase 3 — Telegram Login & Registration            | Pending  |
+| TG-02       | Phase 3 — Telegram Login & Registration            | Pending  |
+| TG-03       | Phase 3 — Telegram Login & Registration            | Pending  |
+| TG-04       | Phase 3 — Telegram Login & Registration            | Pending  |
+| LINK-01     | Phase 4 — Account Linking & Password Management    | Pending  |
+| LINK-02     | Phase 4 — Account Linking & Password Management    | Pending  |
+| PASS-01     | Phase 4 — Account Linking & Password Management    | Pending  |
+| PASS-02     | Phase 4 — Account Linking & Password Management    | Pending  |
+| PASS-03     | Phase 4 — Account Linking & Password Management    | Pending  |
+| SESSION-01  | Phase 1 — JWT Session Lifecycle                    | Complete |
+| SESSION-02  | Phase 1 — JWT Session Lifecycle                    | Pending  |
+| SESSION-03  | Phase 1 — JWT Session Lifecycle                    | Pending  |
+| SESSION-04  | Phase 1 — JWT Session Lifecycle                    | Pending  |
+| SESSION-05  | Phase 1 — JWT Session Lifecycle                    | Complete |
 
 **Coverage:**
 
