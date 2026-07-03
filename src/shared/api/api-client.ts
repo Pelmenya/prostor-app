@@ -145,6 +145,11 @@ async function tryRefreshTokens(): Promise<boolean> {
 
             const data = await res.json();
             if (useAuthStore.getState().refreshToken !== refreshTokenAtStart) return;
+            if (typeof data?.accessToken !== 'string' || typeof data?.refreshToken !== 'string') {
+                logout();
+                notifySessionExpired();
+                return;
+            }
             setTokens(data.accessToken, data.refreshToken);
             sessionExpiredNotified = false;
         } catch {
