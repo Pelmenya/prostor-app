@@ -389,22 +389,25 @@ it('очищает локальную сессию даже если /auth/web/l
 
 **If this table is empty:** N/A — see rows above.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Forced-logout navigation mechanism (SESSION-04): event+router vs. hard redirect?**
+1. **RESOLVED — Forced-logout navigation mechanism (SESSION-04): event+router vs. hard redirect?**
     - What we know: Both satisfy the literal requirement ("cleared, redirected to sign in"). The rest of the app already uses `router.push` for auth-flow navigation.
     - What's unclear: Whether the user has a preference for SPA-smoothness vs. bulletproof-simplicity here, since a full-reload approach is trivially correct with zero wiring while the event-based approach needs a listener mounted early enough to never miss the event.
     - Recommendation: Default to Option A (event + `router.push` + `getSafeRedirect`) for consistency with existing navigation patterns; planner should note this as a reasonably reversible choice, not agonize over it.
+    - **Resolution:** Option A adopted — `01-03-PLAN.md` dispatches `CustomEvent('auth:session-expired')` and implements `SessionExpiredListener` (`router.push` + `getSafeRedirect`, loop/private-path guards).
 
-2. **Should this phase also close the "401 console noise" backlog item via a pre-flight `exp` check?**
+2. **RESOLVED — Should this phase also close the "401 console noise" backlog item via a pre-flight `exp` check?**
     - What we know: `docs/backlog/401-auth-refresh-console-noise.md` explicitly says "Bundle into NextAuth implementation (step 2)" — but that plan is dead (NextAuth rejected). SESSION-01..05 don't require it.
     - What's unclear: Whether "Phase 1: JWT Session Lifecycle" is the natural new home for this backlog item now that the NextAuth step it was deferred to no longer exists.
     - Recommendation: Treat as optional/stretch, not required for phase success criteria. If included, gate behind a 30s clock-skew buffer as the backlog doc already specifies, and use `jwt-decode` rather than hand-rolled parsing (see Don't Hand-Roll).
+    - **Resolution:** Deferred — not picked up in this phase's plans (correctly excluded per recommendation). Remains open in `docs/backlog/401-auth-refresh-console-noise.md` for a future phase.
 
-3. **Audit completeness of direct `apiClient()` call sites bypassing `useApi()`**
+3. **RESOLVED — Audit completeness of direct `apiClient()` call sites bypassing `useApi()`**
     - What we know: 19 files use `useApi()` (which sources `auth` from `WebAdapter.getAuthHeader()` automatically); 3 files (`features/auth/api/auth-api.ts`, `features/push-notifications/api/push.api.ts`, `features/cart/lib/use-cart-backend-sync.ts`) call `apiClient()` directly with a manually-passed `auth` value.
     - What's unclear: Whether all 3 direct-call sites correctly and consistently source their `auth` value (e.g. from `useAuthStore` directly, matching what `WebAdapter.getAuthHeader()` would produce) — not fully audited in this research pass.
     - Recommendation: Planner should add a verification/audit task for SESSION-01 covering these 3 files specifically, since they're the ones most likely to silently drift from the Bearer-header contract if `auth-store.ts` is touched during this phase.
+    - **Resolution:** Adopted — `01-01-PLAN.md` Task 2 audits all 3 direct-call sites for Bearer-header consistency.
 
 ## Environment Availability
 
