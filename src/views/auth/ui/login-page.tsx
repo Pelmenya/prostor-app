@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { webLogin, loginSchema, type TLoginForm } from '@/features/auth';
-import { ApiError } from '@/shared/api';
+import { ApiError, resetSessionExpiredNotified } from '@/shared/api';
 import {
     useAuthStore,
     extractErrorMessage,
@@ -42,6 +42,7 @@ function LoginForm() {
             clearDraft();
             setTokens(data.accessToken, data.refreshToken);
             setUser(data.user);
+            resetSessionExpiredNotified();
             router.push(getSafeRedirect(searchParams.get('from')));
         } catch (err) {
             if (err instanceof ApiError) {

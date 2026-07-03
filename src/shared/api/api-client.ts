@@ -30,15 +30,32 @@ type TApiClientInternalOptions = TApiClientOptions & { _retry?: boolean };
 
 let refreshPromise: Promise<void> | null = null;
 
+// Не даёт повторно диспатчить auth:session-expired для каждого
+// параллельного 401-запроса после того, как сессия уже завершена —
+// иначе SessionExpiredListener делает лишние router.push() (WR-01).
+let sessionExpiredNotified = false;
+
 /**
  * Уведомляет приложение о терминальном провале refresh-токена (SESSION-04).
  * api-client.ts остаётся плоским модулем без next/navigation — навигацию
  * берёт на себя SessionExpiredListener, смонтированный в (web)/layout.tsx.
  */
 function notifySessionExpired(): void {
+    if (sessionExpiredNotified) return;
+    sessionExpiredNotified = true;
     if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('auth:session-expired'));
     }
+}
+
+/**
+ * Сбрасывает флаг "уже уведомили об истечении сессии". Вызывать при
+ * любом успешном получении новых токенов (логин, регистрация, успешный
+ * refresh) — иначе после повторного входа новое истечение сессии больше
+ * не триггерит редирект на /login.
+ */
+export function resetSessionExpiredNotified(): void {
+    sessionExpiredNotified = false;
 }
 
 export async function apiClient<T = unknown>(
@@ -129,6 +146,7 @@ async function tryRefreshTokens(): Promise<boolean> {
             const data = await res.json();
             if (useAuthStore.getState().refreshToken !== refreshTokenAtStart) return;
             setTokens(data.accessToken, data.refreshToken);
+            sessionExpiredNotified = false;
         } catch {
             logout();
             notifySessionExpired();

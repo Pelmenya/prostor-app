@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { apiClient, ApiError } from './api-client';
+import { apiClient, ApiError, resetSessionExpiredNotified } from './api-client';
 import { useAuthStore } from '@/shared/lib/auth';
 
 function mockFetchJson(data: unknown, extra: Record<string, unknown> = {}) {
@@ -26,6 +26,7 @@ describe('apiClient', () => {
     afterEach(() => {
         vi.restoreAllMocks();
         useAuthStore.setState(initialAuthState, true);
+        resetSessionExpiredNotified();
     });
 
     it('отправляет GET-запрос на правильный URL', async () => {
@@ -234,6 +235,13 @@ describe('apiClient', () => {
             String(url).includes('/auth/web/refresh'),
         );
         expect(refreshCalls).toHaveLength(1);
+
+        // WR-01: повторный 401 после уже истёкшей сессии не должен диспатчить
+        // auth:session-expired ещё раз (one-shot guard)
+        const sessionExpiredCallsAfterSecondRequest = dispatchSpy.mock.calls.filter(
+            ([event]) => (event as Event).type === 'auth:session-expired',
+        );
+        expect(sessionExpiredCallsAfterSecondRequest).toHaveLength(1);
     });
 
     it('сетевая ошибка при refresh (catch) тоже очищает токены и диспатчит auth:session-expired', async () => {

@@ -7,7 +7,7 @@ import { useForm, useFormContext, Controller, FormProvider } from 'react-hook-fo
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { webRegister } from '@/features/auth';
-import { ApiError } from '@/shared/api';
+import { ApiError, resetSessionExpiredNotified } from '@/shared/api';
 import {
     useAuthStore,
     extractErrorMessage,
@@ -161,6 +161,7 @@ function RegisterForm() {
             clearDraft();
             setTokens(data.accessToken, data.refreshToken);
             setUser(data.user);
+            resetSessionExpiredNotified();
             router.push(getSafeRedirect(searchParams.get('from')));
         } catch (err) {
             if (err instanceof ApiError) {
