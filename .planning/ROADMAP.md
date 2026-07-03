@@ -13,7 +13,7 @@ The web platform currently has no real authentication — every `(web)` page run
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: JWT Session Lifecycle** - Token storage, single-flight refresh, and logout work reliably underneath every future auth flow
+- [x] **Phase 1: JWT Session Lifecycle** - Token storage, single-flight refresh, and logout work reliably underneath every future auth flow (completed 2026-07-03)
 - [ ] **Phase 2: Email Registration, Verification & Login** - A user can create an account by email, verify it, and log in — landing in an authenticated personal cabinet
 - [ ] **Phase 3: Telegram Login & Registration** - A user can authenticate or register entirely through Telegram, including new-account and email-conflict handling
 - [ ] **Phase 4: Account Linking & Password Management** - A logged-in user can link Telegram to a password account, or set a password on a Telegram-only account, and use either method afterward
@@ -33,11 +33,11 @@ Decimal phases appear between their surrounding integers in numeric order.
 3. Firing multiple protected requests at once while the token is expired triggers exactly one `POST /auth/web/refresh` call (single-flight, refresh token rotates); every pending request still succeeds using the refreshed token
 4. If the refresh call also comes back 401, all local tokens are cleared and the user is sent back to sign in
 5. Triggering logout clears local tokens and ends the session immediately, even if the `POST /auth/web/logout` network call fails or times out
-   **Plans**: 2/3 plans executed
+   **Plans**: 3/3 plans complete
 
 - [x] 01-01-PLAN.md — SESSION-01/05 regression tests (Bearer header positive case, direct-call-site audit, logout-survives-network-failure)
 - [x] 01-02-PLAN.md — SESSION-02/03 single-flight refresh hardening (static import) + dedup & both-tokens-replaced tests
-- [ ] 01-03-PLAN.md — SESSION-04 forced logout+redirect on terminal refresh failure (auth:session-expired event + SessionExpiredListener)
+- [x] 01-03-PLAN.md — SESSION-04 forced logout+redirect on terminal refresh failure (auth:session-expired event + SessionExpiredListener)
 
 ### Phase 2: Email Registration, Verification & Login
 
@@ -91,12 +91,12 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Execution Order:**
 Phases execute in numeric order: 1 → 2 → 3 → 4
 
-| Phase                                       | Plans Complete | Status      | Completed |
-| ------------------------------------------- | -------------- | ----------- | --------- |
-| 1. JWT Session Lifecycle                    | 2/3            | In Progress |           |
-| 2. Email Registration, Verification & Login | 0/TBD          | Not started | -         |
-| 3. Telegram Login & Registration            | 0/TBD          | Not started | -         |
-| 4. Account Linking & Password Management    | 0/TBD          | Not started | -         |
+| Phase                                       | Plans Complete | Status      | Completed  |
+| ------------------------------------------- | -------------- | ----------- | ---------- |
+| 1. JWT Session Lifecycle                    | 3/3            | Complete    | 2026-07-03 |
+| 2. Email Registration, Verification & Login | 0/TBD          | Not started | -          |
+| 3. Telegram Login & Registration            | 0/TBD          | Not started | -          |
+| 4. Account Linking & Password Management    | 0/TBD          | Not started | -          |
 
 ---
 
