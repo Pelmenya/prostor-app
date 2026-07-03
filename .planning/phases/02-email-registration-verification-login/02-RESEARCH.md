@@ -422,17 +422,17 @@ async function handleResend() {
 
 **If this table is empty:** N/A — see rows above.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Should the Telegram button's disabled state in Phase 2 be reconsidered?**
     - What we know: UI-SPEC explicitly resolved this in favor of `disabled` (no handler, tooltip only), citing "shipping an enabled button with no working handler is worse UX than an honest disabled state," and explicitly flagged it as an overridable discretion call for the planner/user.
     - What's unclear: Whether the user has a strong preference either way — this affects the Phase 2/Phase 3 scope boundary.
-    - Recommendation: Default to UI-SPEC's resolution (disabled); the planner should carry the flag forward rather than re-litigate, but should note it in the plan's assumptions/risks section for one final human check before execution.
+    - RESOLVED: Default to UI-SPEC's resolution (disabled); the planner carried the flag forward into 02-01-PLAN.md rather than re-litigating it, and flagged it in the plan's final-review notes for one human check before `/gsd-execute-phase`.
 
 2. **Exact backend 401 response contract for `POST /auth/web/login`**
     - What we know: `extractErrorMessage`'s docstring documents NestJS's general `{ message: string | string[] }` shape; `forgot-password-page.tsx` already treats non-400 statuses as unsafe to surface.
     - What's unclear: Whether `/auth/web/login`'s 401 specifically returns a generic message today (making this fix defense-in-depth) or a distinguishing one (making this fix an active vulnerability closure). Backend repo not available on this machine this session.
-    - Recommendation: Implement the fix regardless (it's strictly correct either way per Pattern 2), but flag to the user that backend-side confirmation would be useful context, not a blocker.
+    - RESOLVED: Implement the fix regardless (it's strictly correct either way per Pattern 2) — 02-01-PLAN.md does this unconditionally. Backend-side confirmation would be useful context but is not a blocker; not required before execution.
 
 ## Environment Availability
 
