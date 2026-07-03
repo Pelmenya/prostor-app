@@ -46,24 +46,28 @@ Multi-modal smart search (text + photo) в `/water` page. Branch `feature/water-
 - ❌ Замена `EquipmentModal v5` — smart-search **дополняет** AutoEquipmentCard (water-context остаётся)
 - ✅ Brand-маркер: единственный `WaterDrop` SVG из `@/shared/ui` (тот же что в `SimilarFab`) — gradient OKLCH `(72% 0.16 232) → (58% 0.22 250) → (48% 0.26 270)` + sparkle. Sizes 14-40px. **Не делать дубль `WaterDropAI` или any.ru drop variants** — один компонент везде (Дима 2026-05-18)
 
-### Фронт: Adapter Pattern — `docs/features/auth/AUTH_ADAPTER.md`
+### Фронт: Web Auth Rework — GSD-проект, `.planning/PROJECT.md`
 
-| Шаг                  | Описание                                       | Прогресс |
-| -------------------- | ---------------------------------------------- | -------- |
-| 1. Каркас            | platform adapter + api-слой + dev-токен        | ✅ done  |
-| 2. Web авторизация   | NextAuth (логин/пароль, Яндекс ID, magic link) | ⬜ 0%    |
-| 3. Telegram Mini App | TelegramAdapter + SDK                          | ⬜ 0%    |
-| 4. MAX Mini App      | MaxAdapter                                     | ⬜ 0%    |
+Продукт сменил курс на web-only: Telegram/MAX Mini App вью-слои больше не развиваются (код пока не трогаем — `TelegramAdapter`/`MaxAdapter`/layout `(miniapp)`, отдельная будущая задача по чистке). Backend auth-эндпоинты (`/auth/web/*`, `/auth/telegram/*`, verify-email, forgot/reset-password) уже задеплоены. Полный план (4 фазы, 23 требования) — `.planning/ROADMAP.md` / `.planning/REQUIREMENTS.md`. Работа ведётся через GSD-флоу (`/gsd-plan-phase`, `/gsd-execute-phase`).
+
+**Заменяет** старый план `docs/features/auth/AUTH_ADAPTER.md` (NextAuth + Яндекс ID + magic link) — отменён в пользу собственного JWT-флоу через `WebAdapter` (accessToken/refreshToken, single-flight refresh).
+
+| Фаза | Описание                                                                    | Прогресс |
+| ---- | --------------------------------------------------------------------------- | -------- |
+| 1    | JWT Session Lifecycle — хранение/refresh/logout токенов                     | ⬜ 0%    |
+| 2    | Email: регистрация, подтверждение почты, вход                               | ⬜ 0%    |
+| 3    | Telegram: вход/регистрация, обработка конфликта email                       | ⬜ 0%    |
+| 4    | Привязка Telegram к аккаунту с паролем + установка пароля для telegram-only | ⬜ 0%    |
 
 ### Бэк: Strangle Fig Migration — `docs/backend/STRANGLE_FIG_MIGRATION.md`
 
-| Шаг | Описание                              | Риск   | Прогресс |
-| --- | ------------------------------------- | ------ | -------- |
-| 1   | UUID колонка в User (не меняя PK)     | 0      | ✅ done  |
-| 2   | Таблица UserIdentity                  | 0      | ✅ done  |
-| 3   | JWT + OAuth + magic link в auth.guard | Низкий | ⬜ 0%    |
-| 4   | Bull/BullMQ очереди                   | 0      | ⬜ 0%    |
-| 5   | Тесты на новый код                    | 0      | ⬜ 0%    |
+| Шаг | Описание                                                                | Риск   | Прогресс |
+| --- | ----------------------------------------------------------------------- | ------ | -------- |
+| 1   | UUID колонка в User (не меняя PK)                                       | 0      | ✅ done  |
+| 2   | Таблица UserIdentity                                                    | 0      | ✅ done  |
+| 3   | JWT + Telegram OIDC в auth.guard (OAuth/magic link отменены — см. выше) | Низкий | ✅ done  |
+| 4   | Bull/BullMQ очереди                                                     | 0      | ⬜ 0%    |
+| 5   | Тесты на новый код                                                      | 0      | ⬜ 0%    |
 
 ## Язык общения
 
