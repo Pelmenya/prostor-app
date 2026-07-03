@@ -27,6 +27,7 @@ describe('apiClient', () => {
         vi.restoreAllMocks();
         useAuthStore.setState(initialAuthState, true);
         resetSessionExpiredNotified();
+        localStorage.clear();
     });
 
     it('отправляет GET-запрос на правильный URL', async () => {
