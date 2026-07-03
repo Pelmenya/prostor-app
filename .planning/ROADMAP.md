@@ -33,7 +33,11 @@ Decimal phases appear between their surrounding integers in numeric order.
 3. Firing multiple protected requests at once while the token is expired triggers exactly one `POST /auth/web/refresh` call (single-flight, refresh token rotates); every pending request still succeeds using the refreshed token
 4. If the refresh call also comes back 401, all local tokens are cleared and the user is sent back to sign in
 5. Triggering logout clears local tokens and ends the session immediately, even if the `POST /auth/web/logout` network call fails or times out
-   **Plans**: TBD
+   **Plans**: 3 plans
+
+- [ ] 01-01-PLAN.md — SESSION-01/05 regression tests (Bearer header positive case, direct-call-site audit, logout-survives-network-failure)
+- [ ] 01-02-PLAN.md — SESSION-02/03 single-flight refresh hardening (static import) + dedup & both-tokens-replaced tests
+- [ ] 01-03-PLAN.md — SESSION-04 forced logout+redirect on terminal refresh failure (auth:session-expired event + SessionExpiredListener)
 
 ### Phase 2: Email Registration, Verification & Login
 
@@ -89,7 +93,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase                                       | Plans Complete | Status      | Completed |
 | ------------------------------------------- | -------------- | ----------- | --------- |
-| 1. JWT Session Lifecycle                    | 0/TBD          | Not started | -         |
+| 1. JWT Session Lifecycle                    | 0/3            | Not started | -         |
 | 2. Email Registration, Verification & Login | 0/TBD          | Not started | -         |
 | 3. Telegram Login & Registration            | 0/TBD          | Not started | -         |
 | 4. Account Linking & Password Management    | 0/TBD          | Not started | -         |
