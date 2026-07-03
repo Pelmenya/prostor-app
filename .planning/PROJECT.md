@@ -20,24 +20,27 @@ PROSTOR App — фронтенд для CRM PROSTOR (Aqua Kinetics, монтаж
 ### Validated
 
 - ✓ Next.js 16 + React 19 + FSD 2.1 бойлерплейт — существующий
-- ✓ PlatformAdapter паттерн (`src/shared/lib/platform/`) — существующий, WebAdapter получит новую auth-реализацию
+- ✓ PlatformAdapter паттерн (`src/shared/lib/platform/`) — существующий, WebAdapter уже читает реальные токены (dev-token удалён из `src/`)
 - ✓ Каталог товаров, корзина (Zustand + backend sync) — существующие
 - ✓ PWA manifest — существующий
-- ✓ `api-client.ts` с retry/401-интерцептором — существующий, будет адаптирован под новый refresh-контракт
+- ✓ Регистрация по email (`POST /auth/web/register`, `src/views/auth/ui/register-page.tsx`) — имя/фамилия/email/телефон/пароль/2 чекбокса согласий, уже реализовано и покрыто тестами (PR #6, #9, #10)
+- ✓ Подтверждение email (`POST /auth/verify-email`, `/auth/resend-verification`, `src/views/auth/ui/verify-email-page.tsx`) — уже реализовано (PR #20)
+- ✓ Вход по email/паролю (`POST /auth/web/login`, `src/views/auth/ui/login-page.tsx`) с generic-сообщением об ошибке — уже реализовано (PR #6)
+- ✓ Восстановление/установка пароля (`POST /auth/forgot-password` → `/reset-password?token=` → `POST /auth/reset-password`, `src/views/auth/ui/forgot-password-page.tsx` + `reset-password-page.tsx`) — уже реализовано (PR #20)
+- ✓ `api-client.ts` — уже содержит 401→refresh→retry с single-flight `refreshPromise` и обновлением обеих пар токенов (SESSION-01/02/03 функционально готовы; регрессионных тестов на них нет — см. `.planning/phases/01-jwt-session-lifecycle/01-RESEARCH.md`)
+- ✓ Logout (`POST /auth/web/logout`, `use-logout.ts`) — локальная очистка сессии независимо от сетевого результата уже реализована (SESSION-05), теста нет
+
+**⚠ Открытие 2026-07-03 (research Phase 1):** `.planning/codebase/CONCERNS.md`'s раздел про auth оказался устаревшим/неточным — писался по старому `AUTH_ADAPTER.md`, не по факту кода. Реально JWT web-авторизация (login/register/refresh/logout/verify-email/forgot-reset-password) уже landed через PR #6 и последующие, **до** старта этого GSD-проекта. Экран авторизации с выбором «Войти по почте» / «Войти через Telegram» ещё не существует — сейчас `/login` и `/register` отдельные страницы без Telegram-опции.
 
 ### Active
 
-- [ ] Экран авторизации: «Войти по почте» / «Войти через Telegram» / «Регистрация по почте»
-- [ ] Регистрация по email (`POST /auth/web/register`) — имя, фамилия, email, телефон, пароль (мин. 8 симв.), 2 чекбокса согласий
-- [ ] Подтверждение email по ссылке (`POST /auth/verify-email`), не блокирует вход; повторная отправка (`POST /auth/resend-verification`)
-- [ ] Вход по email/паролю (`POST /auth/web/login`), generic-сообщение при 401 (не палим существование почты)
-- [ ] Вход через Telegram для существующего пользователя: nonce → Telegram Login OIDC → id_token → `POST /auth/telegram/login`
-- [ ] Регистрация через Telegram для нового пользователя: ветвление по `registrationRequired`, форма завершения (email + телефон, без пароля), `POST /auth/telegram/register`, TTL/одноразовость `registrationToken` (sessionStorage, 10 мин)
-- [ ] Обработка конфликта email при telegram-регистрации: сообщение + редирект на вход по почте + предложение привязать Telegram после входа
-- [ ] Привязка Telegram к аккаунту с паролем (`POST /auth/telegram/link`) из личного кабинета
-- [ ] Восстановление/установка пароля для telegram-only пользователей (`POST /auth/forgot-password` → `/reset-password?token=` → `POST /auth/reset-password`)
-- [ ] JWT-жизненный цикл: access ~15 мин, `POST /auth/web/refresh` с дедупликацией параллельных refresh-запросов (ротация refresh-токена), logout (`POST /auth/web/logout`) с локальной очисткой независимо от результата
-- [ ] Обновление CLAUDE.md — таблица «Текущая задача» отражает новый auth-курс вместо старого NextAuth/adapter-плана
+- [ ] Экран/точка входа с выбором «Войти по почте» / «Войти через Telegram» / «Регистрация по почте» (сейчас email-флоу существует отдельно, Telegram-опции нет)
+- [ ] Вход через Telegram для существующего пользователя: nonce → Telegram Login OIDC → id_token → `POST /auth/telegram/login` — **не реализовано**
+- [ ] Регистрация через Telegram для нового пользователя: ветвление по `registrationRequired`, форма завершения (email + телефон, без пароля), `POST /auth/telegram/register`, TTL/одноразовость `registrationToken` (sessionStorage, 10 мин) — **не реализовано**
+- [ ] Обработка конфликта email при telegram-регистрации: сообщение + редирект на вход по почте + предложение привязать Telegram после входа — **не реализовано**
+- [ ] Привязка Telegram к аккаунту с паролем (`POST /auth/telegram/link`) из личного кабинета — **не реализовано**
+- [ ] JWT session lifecycle hardening: single-flight refresh регрессионные тесты (SESSION-02/03), forced-navigation на терминальный 401 (SESSION-04 — реальный пробел, нет редиректа при неудачном refresh), тест logout (SESSION-05)
+- [x] Обновление CLAUDE.md — таблица «Текущая задача» отражает новый auth-курс вместо старого NextAuth/adapter-плана
 
 ### Out of Scope
 
@@ -49,8 +52,8 @@ PROSTOR App — фронтенд для CRM PROSTOR (Aqua Kinetics, монтаж
 ## Context
 
 - Backend (`crm-aqua-kinetics-back`) уже реализовал и задеплоил все auth-эндпоинты (`/auth/web/*`, `/auth/telegram/*`, `/auth/verify-email`, `/auth/forgot-password`, `/auth/reset-password`) — фронт может интегрироваться сразу, без координации по контракту.
-- Текущее состояние по `.planning/codebase/CONCERNS.md`: web auth 0% реализован, все `(web)` страницы работают через dev-token с `ssr: false` как временный воркэраунд; 6 страниц помечены `// TODO(NextAuth)`. Эта задача закрывает данный техдолг.
-- `api-client.ts` (`src/shared/api/api-client.ts:59-69`) уже содержит интерцептор 401 → `tryRefreshTokens()` — переиспользовать/адаптировать под новый refresh-контракт (single-flight для параллельных refresh, а не только retry).
+- ~~Текущее состояние по `.planning/codebase/CONCERNS.md`: web auth 0% реализован...~~ — **устарело**, см. открытие выше. `.planning/phases/01-jwt-session-lifecycle/01-RESEARCH.md` — актуальный источник правды по факту кода.
+- `api-client.ts` (`src/shared/api/api-client.ts:85-123`) уже содержит `tryRefreshTokens()` с single-flight `refreshPromise` — не переписывать, только хардить (убрать лишний `await import()`) и покрыть тестами.
 - Известный баг «401 console noise при cold load» (`docs/backlog/401-auth-refresh-console-noise.md`) может быть закрыт заодно, если реализовать pre-flight JWT expiration check — не обязательно, но уместно в рамках этой работы.
 - Дев-токен (`NEXT_PUBLIC_DEMO_TOKEN` в `web-adapter.ts:22`) должен быть выведен из использования после внедрения реального флоу.
 - Стек: React Hook Form + Zod для форм — auth-формы (регистрация, логин, завершение telegram-регистрации, восстановление пароля) следуют этому паттерну.
