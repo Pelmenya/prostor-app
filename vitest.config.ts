@@ -7,6 +7,16 @@ export default defineConfig({
         globals: true,
         setupFiles: ['./src/test/setup.ts'],
         include: ['src/**/*.test.{ts,tsx}'],
+        // Node 22+ регистрирует собственный экспериментальный глобальный `localStorage`
+        // (требует `--localstorage-file`), который конфликтует с happy-dom и ломает
+        // модульную инициализацию Zustand-стора (useAuthStore) при импорте в тестах.
+        // Отключаем нативный webstorage в тестовых воркерах, чтобы happy-dom предоставлял
+        // свой `window.localStorage` без коллизии.
+        poolOptions: {
+            forks: {
+                execArgv: ['--no-experimental-webstorage'],
+            },
+        },
         coverage: {
             provider: 'v8',
             include: ['src/**/*.{ts,tsx}'],
