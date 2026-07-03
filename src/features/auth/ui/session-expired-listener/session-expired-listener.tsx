@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { PRIVATE_PATHS } from '@/shared/config';
+import { isPrivatePath } from '@/shared/config';
 import { getSafeRedirect } from '@/shared/lib';
 
 /**
@@ -19,10 +19,7 @@ export function SessionExpiredListener() {
         function handleSessionExpired(): void {
             if (pathname === '/login') return; // защита от цикла редиректов
 
-            const isPrivate = PRIVATE_PATHS.some(
-                (p) => pathname === p || pathname.startsWith(`${p}/`),
-            );
-            if (!isPrivate) return;
+            if (!isPrivatePath(pathname)) return;
 
             router.push(`/login?from=${encodeURIComponent(getSafeRedirect(pathname))}`);
         }
