@@ -6,6 +6,9 @@ import '@testing-library/jest-dom/vitest';
 // skips installing its own in-memory Storage polyfill, so any code reading
 // bare `localStorage` (not `window.localStorage`) breaks in tests. Replace
 // it with a minimal in-memory Storage before any test module runs.
+// See also vitest.config.ts's `poolOptions.forks.execArgv:
+// ['--no-experimental-webstorage']`, which addresses the same root cause via
+// a Node flag — this fallback exists in case that flag is ever dropped (WR-05).
 function createMemoryStorage(): Storage {
     const store = new Map<string, string>();
     return {
@@ -27,7 +30,18 @@ function createMemoryStorage(): Storage {
 }
 
 for (const key of ['localStorage', 'sessionStorage'] as const) {
-    if (!globalThis[key]) {
+    // На части релизов Node 22.x доступ к глобальному localStorage/sessionStorage
+    // синхронно бросает исключение (а не просто резолвится в undefined) — простая
+    // проверка `!globalThis[key]` в этом случае падает и роняет весь test-run до
+    // того, как успеет установиться fallback-полифилл, который этот блок и должен
+    // предоставить.
+    let existing: unknown;
+    try {
+        existing = globalThis[key];
+    } catch {
+        existing = undefined;
+    }
+    if (!existing) {
         Object.defineProperty(globalThis, key, {
             value: createMemoryStorage(),
             writable: true,

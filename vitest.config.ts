@@ -12,6 +12,8 @@ export default defineConfig({
         // модульную инициализацию Zustand-стора (useAuthStore) при импорте в тестах.
         // Отключаем нативный webstorage в тестовых воркерах, чтобы happy-dom предоставлял
         // свой `window.localStorage` без коллизии.
+        // См. также src/test/setup.ts — независимый fallback-полифилл на случай, если
+        // этот флаг когда-нибудь исчезнет из конфига (WR-05).
         poolOptions: {
             forks: {
                 execArgv: ['--no-experimental-webstorage'],
