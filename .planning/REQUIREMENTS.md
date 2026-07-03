@@ -80,39 +80,39 @@ Explicitly excluded. Documented to prevent scope creep.
 
 Which phases cover which requirements. Updated during roadmap creation.
 
-| Requirement | Phase | Status  |
-| ----------- | ----- | ------- |
-| REG-01      | TBD   | Pending |
-| REG-02      | TBD   | Pending |
-| REG-03      | TBD   | Pending |
-| REG-04      | TBD   | Pending |
-| VERIFY-01   | TBD   | Pending |
-| VERIFY-02   | TBD   | Pending |
-| VERIFY-03   | TBD   | Pending |
-| LOGIN-01    | TBD   | Pending |
-| LOGIN-02    | TBD   | Pending |
-| TG-01       | TBD   | Pending |
-| TG-02       | TBD   | Pending |
-| TG-03       | TBD   | Pending |
-| TG-04       | TBD   | Pending |
-| LINK-01     | TBD   | Pending |
-| LINK-02     | TBD   | Pending |
-| PASS-01     | TBD   | Pending |
-| PASS-02     | TBD   | Pending |
-| PASS-03     | TBD   | Pending |
-| SESSION-01  | TBD   | Pending |
-| SESSION-02  | TBD   | Pending |
-| SESSION-03  | TBD   | Pending |
-| SESSION-04  | TBD   | Pending |
-| SESSION-05  | TBD   | Pending |
+| Requirement | Phase                                              | Status  |
+| ----------- | -------------------------------------------------- | ------- |
+| REG-01      | Phase 2 — Email Registration, Verification & Login | Pending |
+| REG-02      | Phase 2 — Email Registration, Verification & Login | Pending |
+| REG-03      | Phase 2 — Email Registration, Verification & Login | Pending |
+| REG-04      | Phase 2 — Email Registration, Verification & Login | Pending |
+| VERIFY-01   | Phase 2 — Email Registration, Verification & Login | Pending |
+| VERIFY-02   | Phase 2 — Email Registration, Verification & Login | Pending |
+| VERIFY-03   | Phase 2 — Email Registration, Verification & Login | Pending |
+| LOGIN-01    | Phase 2 — Email Registration, Verification & Login | Pending |
+| LOGIN-02    | Phase 2 — Email Registration, Verification & Login | Pending |
+| TG-01       | Phase 3 — Telegram Login & Registration            | Pending |
+| TG-02       | Phase 3 — Telegram Login & Registration            | Pending |
+| TG-03       | Phase 3 — Telegram Login & Registration            | Pending |
+| TG-04       | Phase 3 — Telegram Login & Registration            | Pending |
+| LINK-01     | Phase 4 — Account Linking & Password Management    | Pending |
+| LINK-02     | Phase 4 — Account Linking & Password Management    | Pending |
+| PASS-01     | Phase 4 — Account Linking & Password Management    | Pending |
+| PASS-02     | Phase 4 — Account Linking & Password Management    | Pending |
+| PASS-03     | Phase 4 — Account Linking & Password Management    | Pending |
+| SESSION-01  | Phase 1 — JWT Session Lifecycle                    | Pending |
+| SESSION-02  | Phase 1 — JWT Session Lifecycle                    | Pending |
+| SESSION-03  | Phase 1 — JWT Session Lifecycle                    | Pending |
+| SESSION-04  | Phase 1 — JWT Session Lifecycle                    | Pending |
+| SESSION-05  | Phase 1 — JWT Session Lifecycle                    | Pending |
 
 **Coverage:**
 
 - v1 requirements: 23 total
-- Mapped to phases: 0 (roadmap not yet created)
-- Unmapped: 23 ⚠️
+- Mapped to phases: 23 (roadmap created 2026-07-03)
+- Unmapped: 0 ✓
 
 ---
 
 _Requirements defined: 2026-07-03_
-_Last updated: 2026-07-03 after initial definition_
+_Last updated: 2026-07-03 after roadmap creation_
