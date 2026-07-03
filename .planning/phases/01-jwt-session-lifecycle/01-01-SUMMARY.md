@@ -150,3 +150,13 @@ None - no external service configuration required.
 
 _Phase: 01-jwt-session-lifecycle_
 _Completed: 2026-07-03_
+
+## Self-Check: PASSED
+
+- FOUND: src/shared/lib/platform/adapters/web-adapter.test.ts
+- FOUND: src/features/auth/lib/use-logout.test.ts
+- FOUND: src/test/setup.ts
+- FOUND: .planning/phases/01-jwt-session-lifecycle/01-01-SUMMARY.md
+- FOUND commit: 73510ed
+- FOUND commit: 153aab7
+- FOUND commit: 654e43d
