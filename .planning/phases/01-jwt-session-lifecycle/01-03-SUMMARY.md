@@ -158,3 +158,13 @@ None — no external service configuration required.
 
 _Phase: 01-jwt-session-lifecycle_
 _Completed: 2026-07-03_
+
+## Self-Check: PASSED
+
+- FOUND: src/features/auth/ui/session-expired-listener/session-expired-listener.tsx
+- FOUND: src/features/auth/ui/session-expired-listener/session-expired-listener.test.tsx
+- FOUND: src/features/auth/ui/session-expired-listener/index.ts
+- FOUND: .planning/phases/01-jwt-session-lifecycle/01-03-SUMMARY.md
+- FOUND commit: 72a5c6d
+- FOUND commit: e5fdbe6
+- FOUND commit: 9cc83eb
