@@ -41,7 +41,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 ### Phase 2: Email Registration, Verification & Login
 
-**Goal**: A new or returning user can create an account by email, verify their email, and log in by email/password — landing in an authenticated personal cabinet. This phase also introduces the shared auth screen shell (email login / Telegram login / register) that Phase 3 wires Telegram into.
+**Goal**: As a new or returning user, I want to register by email, verify my email, and log in by email or password, so that I land in my authenticated personal cabinet through a shared auth screen that Phase 3 will extend with Telegram login.
 **Mode:** mvp
 **Depends on**: Phase 1
 **Requirements**: REG-01, REG-02, REG-03, REG-04, VERIFY-01, VERIFY-02, VERIFY-03, LOGIN-01, LOGIN-02
