@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { apiClient, ApiError } from './api-client';
+import { useAuthStore } from '@/shared/lib/auth';
 
 function mockFetchJson(data: unknown, extra: Record<string, unknown> = {}) {
     return vi.fn().mockResolvedValue({
@@ -11,9 +12,20 @@ function mockFetchJson(data: unknown, extra: Record<string, unknown> = {}) {
     });
 }
 
+function createDeferred<T>() {
+    let resolve!: (value: T) => void;
+    const promise = new Promise<T>((res) => {
+        resolve = res;
+    });
+    return { promise, resolve };
+}
+
+const initialAuthState = useAuthStore.getState();
+
 describe('apiClient', () => {
     afterEach(() => {
         vi.restoreAllMocks();
+        useAuthStore.setState(initialAuthState, true);
     });
 
     it('отправляет GET-запрос на правильный URL', async () => {
@@ -93,5 +105,79 @@ describe('apiClient', () => {
                 body: JSON.stringify({ name: 'test' }),
             }),
         );
+    });
+
+    it('дедуплицирует параллельные refresh-запросы (single-flight) и обновляет обе пары токенов', async () => {
+        useAuthStore.setState({
+            accessToken: 'expired-access',
+            refreshToken: 'refresh-1',
+            isAuthenticated: true,
+        });
+
+        const refreshDeferred = createDeferred<{
+            ok: boolean;
+            status: number;
+            json: () => Promise<unknown>;
+            headers: Headers;
+        }>();
+
+        const fetchMock = vi
+            .fn()
+            // request A → 401
+            .mockResolvedValueOnce({
+                ok: false,
+                status: 401,
+                statusText: 'Unauthorized',
+                json: async () => ({}),
+            })
+            // request B → 401
+            .mockResolvedValueOnce({
+                ok: false,
+                status: 401,
+                statusText: 'Unauthorized',
+                json: async () => ({}),
+            })
+            // единственный POST /auth/web/refresh, удерживаемый открытым до resolve
+            .mockImplementationOnce(() => refreshDeferred.promise)
+            // повтор A
+            .mockResolvedValueOnce({
+                ok: true,
+                status: 200,
+                headers: new Headers({ 'content-type': 'application/json' }),
+                json: async () => ({ a: 1 }),
+            })
+            // повтор B
+            .mockResolvedValueOnce({
+                ok: true,
+                status: 200,
+                headers: new Headers({ 'content-type': 'application/json' }),
+                json: async () => ({ b: 1 }),
+            });
+
+        vi.stubGlobal('fetch', fetchMock);
+
+        const resultA = apiClient('/a', { auth: 'Bearer expired-access' });
+        const resultB = apiClient('/b', { auth: 'Bearer expired-access' });
+
+        refreshDeferred.resolve({
+            ok: true,
+            status: 200,
+            headers: new Headers({ 'content-type': 'application/json' }),
+            json: async () => ({ accessToken: 'new-access', refreshToken: 'new-refresh' }),
+        });
+
+        const [dataA, dataB] = await Promise.all([resultA, resultB]);
+
+        const refreshCalls = fetchMock.mock.calls.filter(([url]) =>
+            String(url).includes('/auth/web/refresh'),
+        );
+        expect(refreshCalls).toHaveLength(1); // SESSION-02: ровно один refresh-запрос
+
+        const { accessToken, refreshToken } = useAuthStore.getState();
+        expect(accessToken).toBe('new-access'); // SESSION-03
+        expect(refreshToken).toBe('new-refresh'); // SESSION-03
+
+        expect(dataA).toEqual({ a: 1 });
+        expect(dataB).toEqual({ b: 1 });
     });
 });
