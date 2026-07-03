@@ -1,4 +1,5 @@
 import { API_URL as BASE_URL } from '@/shared/config';
+import { useAuthStore } from '@/shared/lib/auth';
 
 function getBaseUrl(): string {
     if (typeof window === 'undefined') {
@@ -59,7 +60,6 @@ export async function apiClient<T = unknown>(
         if (response.status === 401 && !_retry && typeof window !== 'undefined') {
             const refreshed = await tryRefreshTokens();
             if (refreshed) {
-                const { useAuthStore } = await import('@/shared/lib/auth');
                 const newToken = useAuthStore.getState().accessToken;
                 return apiClient<T>(path, {
                     ...options,
@@ -83,7 +83,6 @@ export async function apiClient<T = unknown>(
 }
 
 async function tryRefreshTokens(): Promise<boolean> {
-    const { useAuthStore } = await import('@/shared/lib/auth');
     const { refreshToken, logout, setTokens } = useAuthStore.getState();
 
     if (!refreshToken) {
