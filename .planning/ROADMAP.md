@@ -61,7 +61,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 ### Phase 3: Telegram Login & Registration
 
-**Goal**: A user can authenticate or register entirely through Telegram from the auth screen built in Phase 2, with new-account detection and email conflicts handled gracefully instead of creating duplicate accounts.
+**Goal**: As a user, I want to authenticate or register entirely through Telegram from the auth screen built in Phase 2, so that new accounts are detected correctly and email conflicts are handled gracefully instead of creating duplicate accounts.
 **Mode:** mvp
 **Depends on**: Phase 2
 **Requirements**: TG-01, TG-02, TG-03, TG-04
