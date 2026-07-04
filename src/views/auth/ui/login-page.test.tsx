@@ -153,4 +153,22 @@ describe('LoginPage', () => {
             expect(screen.getByText('Неверная почта или пароль')).toBeInTheDocument();
         });
     });
+
+    it('WR-01: не показывает locked-строку для не-401 ApiError (например 429)', async () => {
+        const { webLogin } = await import('@/features/auth');
+        vi.mocked(webLogin).mockRejectedValueOnce(
+            new ApiError(429, 'Too Many Requests', { message: 'rate limited' }),
+        );
+        const user = userEvent.setup();
+        render(<LoginPage />);
+
+        await user.type(screen.getByPlaceholderText('Email'), 'test@mail.ru');
+        await user.type(screen.getByPlaceholderText('Пароль'), 'password123');
+        await user.click(screen.getByRole('button', { name: 'Войти' }));
+
+        await waitFor(() => {
+            expect(screen.getByText('Не удалось войти. Попробуйте позже.')).toBeInTheDocument();
+        });
+        expect(screen.queryByText('Неверная почта или пароль')).not.toBeInTheDocument();
+    });
 });

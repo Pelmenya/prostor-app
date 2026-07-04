@@ -39,10 +39,12 @@ function LoginForm() {
             resetSessionExpiredNotified();
             router.push(getSafeRedirect(searchParams.get('from')));
         } catch (err) {
-            if (err instanceof ApiError) {
+            if (err instanceof ApiError && err.status === 401) {
                 // OWASP A07: единое сообщение независимо от причины (несуществующий
                 // email vs неверный пароль) — backend-message из 401-тела не рендерим.
                 setServerError('Неверная почта или пароль');
+            } else if (err instanceof ApiError) {
+                setServerError('Не удалось войти. Попробуйте позже.');
             } else {
                 setServerError('Ошибка сети');
             }
