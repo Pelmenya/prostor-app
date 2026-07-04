@@ -14,6 +14,7 @@ export {
 export type { TAuthResponse } from './api/auth-api';
 export { useLogout } from './lib/use-logout';
 export { SessionExpiredListener } from './ui/session-expired-listener';
+export { RegistrationNoticeListener } from './ui/registration-notice-listener';
 export {
     loginSchema,
     newPasswordSchema,

@@ -162,6 +162,7 @@ function RegisterForm() {
             setTokens(data.accessToken, data.refreshToken);
             setUser(data.user);
             resetSessionExpiredNotified();
+            sessionStorage.setItem('reg-notice-pending', '1'); // читается RegistrationNoticeListener (REG-03)
             router.push(getSafeRedirect(searchParams.get('from')));
         } catch (err) {
             if (err instanceof ApiError) {
