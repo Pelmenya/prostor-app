@@ -30,13 +30,14 @@ PROSTOR App — фронтенд для CRM PROSTOR (Aqua Kinetics, монтаж
 - ✓ `api-client.ts` — уже содержит 401→refresh→retry с single-flight `refreshPromise` и обновлением обеих пар токенов (SESSION-01/02/03 функционально готовы; регрессионных тестов на них нет — см. `.planning/phases/01-jwt-session-lifecycle/01-RESEARCH.md`)
 - ✓ Logout (`POST /auth/web/logout`, `use-logout.ts`) — локальная очистка сессии независимо от сетевого результата уже реализована (SESSION-05), теста нет
 - ✓ JWT session lifecycle hardening (SESSION-01..05) — регрессионные тесты на single-flight refresh, forced-redirect на терминальный 401 через `SessionExpiredListener`, race-condition фикс (logout во время фонового refresh не воскрешает сессию) — Phase 1, подтверждено ручным браузерным тестом через Playwright MCP
+- ✓ Email registration/verification/login hardening (REG-01..04, VERIFY-01..03, LOGIN-01..02) — Phase 2: REG-03 «письмо для подтверждения» уведомление (`RegistrationNoticeListener`), VERIFY-03 повторная отправка письма из личного кабинета, LOGIN-02 статус-gated generic-ошибка (401 → locked-строка, 429/500 → отдельное сообщение, не «неверный пароль»), copy-drift фиксы («Почта подтверждена»). Все 5 code-review находок (1 critical, 3 warning) исправлены и независимо перепроверены verifier'ом. Подтверждено ручным браузерным тестом через Playwright MCP (визуал Telegram-кнопки на /login, REG-03 баннер cross-navigation)
+- ✓ Shared auth screen shell (частично) — `login-page.tsx` теперь содержит disabled-кнопку «Войти через Telegram» (divider + иконка + tooltip) как заглушку под Phase 3; полноценный OIDC-флоу ещё не подключён
 
 **⚠ Открытие 2026-07-03 (research Phase 1):** `.planning/codebase/CONCERNS.md`'s раздел про auth оказался устаревшим/неточным — писался по старому `AUTH_ADAPTER.md`, не по факту кода. Реально JWT web-авторизация (login/register/refresh/logout/verify-email/forgot-reset-password) уже landed через PR #6 и последующие, **до** старта этого GSD-проекта. Экран авторизации с выбором «Войти по почте» / «Войти через Telegram» ещё не существует — сейчас `/login` и `/register` отдельные страницы без Telegram-опции.
 
 ### Active
 
-- [ ] Экран/точка входа с выбором «Войти по почте» / «Войти через Telegram» / «Регистрация по почте» (сейчас email-флоу существует отдельно, Telegram-опции нет)
-- [ ] Вход через Telegram для существующего пользователя: nonce → Telegram Login OIDC → id_token → `POST /auth/telegram/login` — **не реализовано**
+- [ ] Вход через Telegram для существующего пользователя: nonce → Telegram Login OIDC → id_token → `POST /auth/telegram/login` — **не реализовано** (кнопка-заглушка на `/login` уже есть, disabled, Phase 2)
 - [ ] Регистрация через Telegram для нового пользователя: ветвление по `registrationRequired`, форма завершения (email + телефон, без пароля), `POST /auth/telegram/register`, TTL/одноразовость `registrationToken` (sessionStorage, 10 мин) — **не реализовано**
 - [ ] Обработка конфликта email при telegram-регистрации: сообщение + редирект на вход по почте + предложение привязать Telegram после входа — **не реализовано**
 - [ ] Привязка Telegram к аккаунту с паролем (`POST /auth/telegram/link`) из личного кабинета — **не реализовано**
@@ -67,13 +68,15 @@ PROSTOR App — фронтенд для CRM PROSTOR (Aqua Kinetics, монтаж
 
 ## Key Decisions
 
-| Decision                                                          | Rationale                                                                                                                                                                                 | Outcome |
-| ----------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
-| Отказ от NextAuth в пользу собственного JWT-флоу через WebAdapter | Новый backend-контракт отдаёт голые `accessToken`/`refreshToken` для ручного хранения и ротации — модель NextAuth (httpOnly session, свой `/api/auth/*`) не соответствует этому контракту | ✓ Good  |
-| Telegram Mini App / MAX код не удаляется в этом проекте           | Продукт временно замораживает мультиплатформенность, но явного решения снести код ещё нет                                                                                                 | ✓ Good  |
-| Backend auth endpoints считаются готовыми и не блокируют фронт    | Пользователь подтвердил: эндпоинты уже задеплоены                                                                                                                                         | ✓ Good  |
-| CLAUDE.md обновляется вместе с .planning/                         | Чтобы таблица «Текущая задача» не расходилась с реальным курсом проекта (auth adapter план — устарел)                                                                                     | ✓ Good  |
-| `refreshTokenAtStart`-guard в `tryRefreshTokens()` (CR-01)        | Явный logout во время фонового refresh не должен воскрешать сессию устаревшим результатом refresh — guard сравнивает refresh-токен на входе/выходе single-flight промиса                  | ✓ Good  |
+| Decision                                                           | Rationale                                                                                                                                                                                 | Outcome |
+| ------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| Отказ от NextAuth в пользу собственного JWT-флоу через WebAdapter  | Новый backend-контракт отдаёт голые `accessToken`/`refreshToken` для ручного хранения и ротации — модель NextAuth (httpOnly session, свой `/api/auth/*`) не соответствует этому контракту | ✓ Good  |
+| Telegram Mini App / MAX код не удаляется в этом проекте            | Продукт временно замораживает мультиплатформенность, но явного решения снести код ещё нет                                                                                                 | ✓ Good  |
+| Backend auth endpoints считаются готовыми и не блокируют фронт     | Пользователь подтвердил: эндпоинты уже задеплоены                                                                                                                                         | ✓ Good  |
+| CLAUDE.md обновляется вместе с .planning/                          | Чтобы таблица «Текущая задача» не расходилась с реальным курсом проекта (auth adapter план — устарел)                                                                                     | ✓ Good  |
+| `refreshTokenAtStart`-guard в `tryRefreshTokens()` (CR-01)         | Явный logout во время фонового refresh не должен воскрешать сессию устаревшим результатом refresh — guard сравнивает refresh-токен на входе/выходе single-flight промиса                  | ✓ Good  |
+| LOGIN-02: locked-строка только на 401, не на любой `ApiError`      | Review-находка WR-01 (Phase 2) — 429/500 ошибочно показывались как «неверный пароль»; статус-гейтинг предотвращает вводящее в заблуждение сообщение                                       | ✓ Good  |
+| Telegram-кнопка на `/login` — disabled в Phase 2, wiring в Phase 3 | UI-SPEC discretion call: показывать нерабочую кнопку хуже, чем честно disabled с tooltip; решение перенесено в план и подтверждено при верификации                                        | ✓ Good  |
 
 ## Evolution
 
@@ -96,4 +99,4 @@ This document evolves at phase transitions and milestone boundaries.
 
 ---
 
-_Last updated: 2026-07-03 after Phase 1_
+_Last updated: 2026-07-04 after Phase 2_
