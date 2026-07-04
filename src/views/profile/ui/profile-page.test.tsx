@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { ProfilePage } from './profile-page';
 
 const mockResendVerification = vi.fn();
+const mockReplace = vi.fn();
 
 const baseUser = {
     id: 1,
@@ -15,6 +16,11 @@ const baseUser = {
 };
 
 let mockAccessToken: string | null = 'test-access-token';
+let mockUser: typeof baseUser | null = baseUser;
+
+vi.mock('next/navigation', () => ({
+    useRouter: () => ({ replace: mockReplace }),
+}));
 
 vi.mock('@/features/auth', async (importOriginal) => {
     const actual = await importOriginal<typeof import('@/features/auth')>();
@@ -30,8 +36,8 @@ vi.mock('@/shared/lib', async (importOriginal) => {
         ...actual,
         useAuthStore: vi.fn((selector?: (s: Record<string, unknown>) => unknown) =>
             selector
-                ? selector({ user: baseUser, accessToken: mockAccessToken })
-                : { user: baseUser, accessToken: mockAccessToken },
+                ? selector({ user: mockUser, accessToken: mockAccessToken })
+                : { user: mockUser, accessToken: mockAccessToken },
         ),
     };
 });
@@ -40,6 +46,7 @@ describe('ProfilePage', () => {
     beforeEach(() => {
         vi.clearAllMocks();
         mockAccessToken = 'test-access-token';
+        mockUser = baseUser;
     });
 
     it('REG-04: рендерит кабинет для пользователя без поля email-верификации', () => {
@@ -103,5 +110,15 @@ describe('ProfilePage', () => {
         });
 
         expect(screen.queryByText('Письмо отправлено')).not.toBeInTheDocument();
+    });
+
+    it('WR-02: редиректит неавторизованного пользователя на /login и ничего не рендерит', async () => {
+        mockUser = null;
+        render(<ProfilePage />);
+
+        expect(screen.queryByText('Личный кабинет')).not.toBeInTheDocument();
+        await waitFor(() => {
+            expect(mockReplace).toHaveBeenCalledWith('/login?from=%2Fprofile');
+        });
     });
 });

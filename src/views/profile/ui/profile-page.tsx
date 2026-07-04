@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { PencilSquareIcon, LockClosedIcon, EnvelopeIcon } from '@heroicons/react/24/outline';
 import { resendVerification } from '@/features/auth';
 import { useAuthStore, normalizeRuPhone, formatRuPhoneForView, useIsClient } from '@/shared/lib';
@@ -11,8 +12,13 @@ export function ProfilePage() {
     const user = useAuthStore((s) => s.user);
     const accessToken = useAuthStore((s) => s.accessToken);
     const mounted = useIsClient();
+    const router = useRouter();
     const [isSending, setIsSending] = useState(false);
     const [resendResult, setResendResult] = useState<'idle' | 'success' | 'error'>('idle');
+
+    useEffect(() => {
+        if (mounted && !user) router.replace('/login?from=%2Fprofile');
+    }, [mounted, user, router]);
 
     if (!mounted || !user) return null;
 
