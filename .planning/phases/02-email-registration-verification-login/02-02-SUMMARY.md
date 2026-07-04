@@ -181,3 +181,7 @@ None - no external service configuration required.
 - REG-01/REG-02/REG-03 all covered and green; registration flow (form → account creation → session → one-shot email-verification notice) is complete for this plan's scope
 - Manual Playwright verification (register → see banner → dismiss → navigate → banner does not reappear) from the plan's `<verification>` section was not run in this execution (no dev server / browser available in this environment) — recommend running it before marking Phase 2 fully done, or covering it in a later verification pass
 - No blockers for 02-03 or later phases
+
+## Self-Check: PASSED
+
+All created/modified files verified present on disk; both commits (`c35eb2f`, `33b2de9`) verified present in `git log --oneline --all`.
