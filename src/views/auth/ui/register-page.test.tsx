@@ -2,6 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { REGISTRATION_NOTICE_FLAG_KEY } from '@/features/auth';
 import { RegisterPage } from './register-page';
 
 const mockPush = vi.fn();
@@ -12,13 +13,17 @@ vi.mock('next/navigation', () => ({
     useSearchParams: () => ({ get: mockGet }),
 }));
 
-vi.mock('@/features/auth', () => ({
-    webRegister: vi.fn().mockResolvedValue({
-        user: { id: 1, first_name: 'Тест', last_name: 'Тестов' },
-        accessToken: 'access-token',
-        refreshToken: 'refresh-token',
-    }),
-}));
+vi.mock('@/features/auth', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('@/features/auth')>();
+    return {
+        ...actual,
+        webRegister: vi.fn().mockResolvedValue({
+            user: { id: 1, first_name: 'Тест', last_name: 'Тестов' },
+            accessToken: 'access-token',
+            refreshToken: 'refresh-token',
+        }),
+    };
+});
 
 vi.mock('@/shared/lib', async (importOriginal) => {
     const actual = await importOriginal<Record<string, unknown>>();
@@ -181,5 +186,7 @@ describe('RegisterPage', () => {
         await waitFor(() => {
             expect(mockPush).toHaveBeenCalledWith('/');
         });
+
+        expect(sessionStorage.getItem(REGISTRATION_NOTICE_FLAG_KEY)).toBe('1');
     });
 });

@@ -1,8 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, beforeEach } from 'vitest';
+import { REGISTRATION_NOTICE_FLAG_KEY as FLAG_KEY } from '@/features/auth';
 import { RegistrationNoticeListener } from './registration-notice-listener';
-
-const FLAG_KEY = 'reg-notice-pending';
 
 beforeEach(() => {
     sessionStorage.clear();

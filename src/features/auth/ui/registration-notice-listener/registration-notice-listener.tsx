@@ -2,8 +2,7 @@
 
 import { useState } from 'react';
 import { useIsClient } from '@/shared/lib';
-
-const FLAG_KEY = 'reg-notice-pending';
+import { REGISTRATION_NOTICE_FLAG_KEY as FLAG_KEY } from '../../lib/registration-notice';
 
 /**
  * Читает флаг из sessionStorage. Обёрнуто в try/catch — доступ к storage
