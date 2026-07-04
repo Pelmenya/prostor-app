@@ -14,7 +14,7 @@ The web platform currently has no real authentication — every `(web)` page run
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: JWT Session Lifecycle** - Token storage, single-flight refresh, and logout work reliably underneath every future auth flow (completed 2026-07-03)
-- [ ] **Phase 2: Email Registration, Verification & Login** - A user can create an account by email, verify it, and log in — landing in an authenticated personal cabinet
+- [x] **Phase 2: Email Registration, Verification & Login** - A user can create an account by email, verify it, and log in — landing in an authenticated personal cabinet (completed 2026-07-04)
 - [ ] **Phase 3: Telegram Login & Registration** - A user can authenticate or register entirely through Telegram, including new-account and email-conflict handling
 - [ ] **Phase 4: Account Linking & Password Management** - A logged-in user can link Telegram to a password account, or set a password on a Telegram-only account, and use either method afterward
 
@@ -52,11 +52,11 @@ Decimal phases appear between their surrounding integers in numeric order.
 3. Clicking the email verification link (`/verify-email?token=...`) shows "Почта подтверждена"; an unverified user can keep using the app and reach the personal cabinet without any block
 4. An authenticated user can request the verification email again (`POST /auth/resend-verification`) without hitting a wall
 5. User can log in with existing email/password from the auth screen (which also offers "Войти через Telegram" / "Регистрация"); a wrong email or password shows one generic "Неверная почта или пароль" message that never reveals which part was wrong
-   **Plans**: 3 plans (all Wave 1, parallel)
+   **Plans**: 3/3 plans complete
 
-- [ ] 02-01-PLAN.md — Auth screen: LOGIN-02 status-gated error hardening + disabled Telegram entry (LOGIN-01/02)
-- [ ] 02-02-PLAN.md — Post-registration verification notice: RegistrationNoticeListener + register flag (REG-01/02/03)
-- [ ] 02-03-PLAN.md — Email verify copy fix + resend row + no-gating regression (REG-04, VERIFY-01/02/03)
+- [x] 02-01-PLAN.md — Auth screen: LOGIN-02 status-gated error hardening + disabled Telegram entry (LOGIN-01/02)
+- [x] 02-02-PLAN.md — Post-registration verification notice: RegistrationNoticeListener + register flag (REG-01/02/03)
+- [x] 02-03-PLAN.md — Email verify copy fix + resend row + no-gating regression (REG-04, VERIFY-01/02/03)
       **UI hint**: yes
 
 ### Phase 3: Telegram Login & Registration
@@ -98,7 +98,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | Phase                                       | Plans Complete | Status      | Completed  |
 | ------------------------------------------- | -------------- | ----------- | ---------- |
 | 1. JWT Session Lifecycle                    | 3/3            | Complete    | 2026-07-03 |
-| 2. Email Registration, Verification & Login | 0/3            | Planned     | -          |
+| 2. Email Registration, Verification & Login | 3/3            | Complete    | 2026-07-04 |
 | 3. Telegram Login & Registration            | 0/TBD          | Not started | -          |
 | 4. Account Linking & Password Management    | 0/TBD          | Not started | -          |
 
