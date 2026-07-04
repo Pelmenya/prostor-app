@@ -7,14 +7,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { webLogin, loginSchema, type TLoginForm } from '@/features/auth';
 import { ApiError, resetSessionExpiredNotified } from '@/shared/api';
-import {
-    useAuthStore,
-    extractErrorMessage,
-    getSafeRedirect,
-    useFormDraft,
-    getFormDraft,
-} from '@/shared/lib';
-import { PageContainer, FormField } from '@/shared/ui';
+import { useAuthStore, getSafeRedirect, useFormDraft, getFormDraft } from '@/shared/lib';
+import { PageContainer, FormField, TelegramIcon } from '@/shared/ui';
 
 function LoginForm() {
     const router = useRouter();
@@ -46,7 +40,9 @@ function LoginForm() {
             router.push(getSafeRedirect(searchParams.get('from')));
         } catch (err) {
             if (err instanceof ApiError) {
-                setServerError(extractErrorMessage(err.data, 'Неверный email или пароль'));
+                // OWASP A07: единое сообщение независимо от причины (несуществующий
+                // email vs неверный пароль) — backend-message из 401-тела не рендерим.
+                setServerError('Неверная почта или пароль');
             } else {
                 setServerError('Ошибка сети');
             }
@@ -91,6 +87,18 @@ function LoginForm() {
                         )}
                     </button>
                 </form>
+
+                <div className="divider text-sm text-base-content/50">или</div>
+
+                <button
+                    type="button"
+                    className="btn btn-outline btn-primary w-full gap-2"
+                    disabled
+                    title="Появится после запуска Telegram-входа"
+                >
+                    <TelegramIcon className="size-5" />
+                    Войти через Telegram
+                </button>
 
                 <div className="flex flex-col items-center gap-2 mt-4 text-sm">
                     <p>
