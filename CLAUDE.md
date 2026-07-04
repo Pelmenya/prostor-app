@@ -54,8 +54,8 @@ Multi-modal smart search (text + photo) в `/water` page. Branch `feature/water-
 
 | Фаза | Описание                                                                    | Прогресс |
 | ---- | --------------------------------------------------------------------------- | -------- |
-| 1    | JWT Session Lifecycle — хранение/refresh/logout токенов                     | ⬜ 0%    |
-| 2    | Email: регистрация, подтверждение почты, вход                               | ⬜ 0%    |
+| 1    | JWT Session Lifecycle — хранение/refresh/logout токенов                     | ✅ done  |
+| 2    | Email: регистрация, подтверждение почты, вход                               | ✅ done  |
 | 3    | Telegram: вход/регистрация, обработка конфликта email                       | ⬜ 0%    |
 | 4    | Привязка Telegram к аккаунту с паролем + установка пароля для telegram-only | ⬜ 0%    |
 
