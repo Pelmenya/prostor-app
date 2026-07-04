@@ -6,6 +6,21 @@ import { useIsClient } from '@/shared/lib';
 const FLAG_KEY = 'reg-notice-pending';
 
 /**
+ * Читает флаг из sessionStorage. Обёрнуто в try/catch — доступ к storage
+ * может синхронно бросить исключение (заблокированное хранилище в
+ * embedded webview, приватный режим Safari с определёнными настройками
+ * ITP, sandboxed iframe), а компонент смонтирован без error boundary
+ * на каждой странице (web)-layout.
+ */
+function readFlag(): boolean {
+    try {
+        return sessionStorage.getItem(FLAG_KEY) === '1';
+    } catch {
+        return false;
+    }
+}
+
+/**
  * Читает sessionStorage-флаг, выставленный register-page.tsx перед
  * router.push (REG-03). Показывает alert-info один раз на первой странице
  * после регистрации — независимо от того, куда пришёл редирект
@@ -23,12 +38,16 @@ export function RegistrationNoticeListener() {
 
     if (!mounted || dismissed) return null;
 
-    const visible = sessionStorage.getItem(FLAG_KEY) === '1';
+    const visible = readFlag();
 
     if (!visible) return null;
 
     function dismiss() {
-        sessionStorage.removeItem(FLAG_KEY);
+        try {
+            sessionStorage.removeItem(FLAG_KEY);
+        } catch {
+            // тихо игнорируем — недоступность storage не должна ронять layout
+        }
         setDismissed(true);
     }
 
