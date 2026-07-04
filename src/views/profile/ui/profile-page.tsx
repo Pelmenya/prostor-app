@@ -1,18 +1,37 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { PencilSquareIcon, LockClosedIcon, EnvelopeIcon } from '@heroicons/react/24/outline';
+import { resendVerification } from '@/features/auth';
 import { useAuthStore, normalizeRuPhone, formatRuPhoneForView, useIsClient } from '@/shared/lib';
 import { PageContainer, PageTitle } from '@/shared/ui';
 
 export function ProfilePage() {
     const user = useAuthStore((s) => s.user);
+    const accessToken = useAuthStore((s) => s.accessToken);
     const mounted = useIsClient();
+    const [isSending, setIsSending] = useState(false);
+    const [resendResult, setResendResult] = useState<'idle' | 'success' | 'error'>('idle');
 
     if (!mounted || !user) return null;
 
     const initials = (user.first_name?.charAt(0) ?? '?') + (user.last_name?.charAt(0) ?? '');
     const phone = user.phone ? formatRuPhoneForView(normalizeRuPhone(user.phone)) : null;
+
+    async function handleResend() {
+        if (!accessToken || isSending) return;
+        setIsSending(true);
+        setResendResult('idle');
+        try {
+            await resendVerification(accessToken);
+            setResendResult('success');
+        } catch {
+            setResendResult('error');
+        } finally {
+            setIsSending(false);
+        }
+    }
 
     return (
         <PageContainer>
@@ -63,6 +82,28 @@ export function ProfilePage() {
                         <PencilSquareIcon className="size-5 shrink-0" />
                     </div>
                 </Link>
+
+                <div className="p-4 bg-base-100 rounded-2xl border border-base-content/10 flex items-center gap-4 w-full">
+                    <EnvelopeIcon className="size-5 shrink-0" />
+                    <div className="flex-1 min-w-0 flex flex-col gap-0.5">
+                        <h3 className="font-semibold">Подтвердить почту</h3>
+                        {resendResult === 'success' && (
+                            <p className="text-xs text-success">Письмо отправлено</p>
+                        )}
+                    </div>
+                    <button
+                        type="button"
+                        className="btn btn-sm btn-outline btn-primary"
+                        onClick={handleResend}
+                        disabled={isSending}
+                    >
+                        {isSending ? (
+                            <span className="loading loading-spinner loading-xs" />
+                        ) : (
+                            'Отправить письмо повторно'
+                        )}
+                    </button>
+                </div>
             </div>
         </PageContainer>
     );
