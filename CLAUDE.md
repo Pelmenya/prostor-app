@@ -132,7 +132,7 @@ Multi-modal smart search (text + photo) в `/water` page. Branch `feature/water-
 
 **Данные:** TanStack Query (API) + Zustand (клиентский стейт) + React Hook Form + Zod.
 
-**Auth:** NextAuth (web), `@telegram-apps/sdk-react` (Telegram Mini App), MAX SDK.
+**Auth:** собственный JWT-флоу через `WebAdapter` (web), `@telegram-apps/sdk-react` (Telegram Mini App), MAX SDK.
 
 **Карты:** MapLibre GL JS + react-map-gl + MapTiler (тайлы). Геокодинг — AHunter через бэкенд. Маршруты — свой OSRM.
 
@@ -144,12 +144,12 @@ Multi-modal smart search (text + photo) в `/water` page. Branch `feature/water-
 
 ### Layout группы и стратегии рендеринга
 
-| Layout group    | Назначение                                | Рендеринг                     | Авторизация              |
-| --------------- | ----------------------------------------- | ----------------------------- | ------------------------ |
-| **(web)**       | Публичный веб — каталог, лендинг          | **SSG / ISR** (SEO, скорость) | NextAuth (опционально)   |
-| **(web)**       | Личный кабинет — заказы, профиль, корзина | **SSR** (данные пользователя) | NextAuth (обязательно)   |
-| **(miniapp)**   | Telegram / MAX Mini App                   | **CSR** (`'use client'`)      | initDataRaw / initData   |
-| **(dashboard)** | Мастера, кураторы, админы                 | **CSR** (`'use client'`)      | NextAuth + проверка роли |
+| Layout group    | Назначение                                | Рендеринг                     | Авторизация                    |
+| --------------- | ----------------------------------------- | ----------------------------- | ------------------------------ |
+| **(web)**       | Публичный веб — каталог, лендинг          | **SSG / ISR** (SEO, скорость) | WebAdapter JWT (опционально)   |
+| **(web)**       | Личный кабинет — заказы, профиль, корзина | **SSR** (данные пользователя) | WebAdapter JWT (обязательно)   |
+| **(miniapp)**   | Telegram / MAX Mini App                   | **CSR** (`'use client'`)      | initDataRaw / initData         |
+| **(dashboard)** | Мастера, кураторы, админы                 | **CSR** (`'use client'`)      | WebAdapter JWT + проверка роли |
 
 - **(web)** — серверный layout, Header/Footer, навигация. Статика где можно (каталог — ISR), SSR где нужны данные пользователя
 - **(miniapp)** — клиентский layout, без chrome браузера, платформенный UI
@@ -165,26 +165,24 @@ Multi-modal smart search (text + photo) в `/water` page. Branch `feature/water-
 Business Logic → PlatformAdapter interface
                     ├── TelegramAdapter (initDataRaw)
                     ├── MaxAdapter (initData)
-                    └── WebAdapter (JWT, NextAuth)
+                    └── WebAdapter (JWT: accessToken/refreshToken, single-flight refresh)
 ```
 
 Адаптер предоставляет: аутентификацию, платежи, haptic feedback, back button, theme, storage.
 
 **Платежи через адаптер:** `TelegramAdapter.pay()` → Telegram Payments, `MaxAdapter.pay()` → MAX Payments, `WebAdapter.pay()` → ЮKassa виджет. Бизнес-логика в `features/checkout` не знает про способ оплаты.
 
-Детали — [`docs/features/auth/AUTH_ADAPTER.md`](docs/features/auth/AUTH_ADAPTER.md).
+Детали адаптера для web — `src/shared/lib/platform/adapters/web-adapter.ts`; полный план авторизации — `.planning/PROJECT.md` / `.planning/ROADMAP.md` (см. «Фронт: Web Auth Rework» выше). `docs/features/auth/AUTH_ADAPTER.md` **отменён** (описывал NextAuth-подход) — не использовать как референс.
 
 ## Аутентификация
 
 Мульти-платформенная аутентификация через `PlatformAdapter`. Один бэкенд, разные стратегии входа в зависимости от платформы.
 
-### Web (через NextAuth / Auth.js)
+### Web (собственный JWT-флоу через `WebAdapter`)
 
-- **Логин/пароль** — основной способ входа
-- **Яндекс ID (OAuth)** — быстрый вход одной кнопкой
-- **Magic link** — мост из Telegram/MAX в веб без повторной регистрации (отправка ссылки на email/телефон)
-- **Подтверждение email/телефона, сброс пароля** — стандартные флоу через NextAuth
-- Сессия — JWT, хранится в httpOnly cookie
+- **Email + пароль** — регистрация (`POST /auth/web/register`), вход (`POST /auth/web/login`), подтверждение почты (`POST /auth/verify-email`, повторная отправка — `POST /auth/resend-verification`), восстановление/установка пароля (`POST /auth/forgot-password` → `POST /auth/reset-password`) — реализовано, Phase 1/2
+- **Telegram Login (OIDC)** — альтернативный способ входа для web (nonce → Telegram Login Widget → `id_token` → `POST /auth/telegram/login`/`register`) — Phase 3, ещё не реализовано (на `/login` пока только disabled-заглушка кнопки)
+- Сессия — `accessToken` (короткоживущий) + `refreshToken` (ротация при обновлении, single-flight через `tryRefreshTokens()` в `api-client.ts`), хранятся в `localStorage` + зеркальная non-httpOnly cookie для SSR-гейтинга (не NextAuth, не httpOnly session)
 
 ### Mini App
 
@@ -203,7 +201,7 @@ Business Logic → PlatformAdapter interface
 
 Полная спецификация роли MANAGER (B2B объекты, публичная карта, API) — [`docs/features/manager/MANAGER_ROLE.md`](docs/features/manager/MANAGER_ROLE.md).
 
-Полная архитектура (Adapter Pattern, NextAuth конфиг, схемы флоу) — [`docs/features/auth/AUTH_ADAPTER.md`](docs/features/auth/AUTH_ADAPTER.md).
+Полная архитектура (Adapter Pattern, JWT-флоу, схемы всех фаз) — `.planning/PROJECT.md` / `.planning/ROADMAP.md` (`docs/features/auth/AUTH_ADAPTER.md` отменён, см. выше).
 
 ## Backend API
 
@@ -235,7 +233,7 @@ src/
 │   ├── (web)/                  — Web layout (SSG/ISR + SSR)
 │   ├── (miniapp)/              — Mini App layout (CSR, 'use client')
 │   ├── (dashboard)/            — Панель мастеров/кураторов/админов (CSR, 'use client')
-│   ├── api/                    — BFF / NextAuth endpoints
+│   ├── api/                    — BFF endpoints
 │   └── layout.tsx              — Root layout
 │
 ├── views/                      — FSD-слой pages (переименован из pages/ — конфликт с Next.js Pages Router)
@@ -436,7 +434,7 @@ FSD 2.1 — **строгое архитектурное требование**. 
 ## Этапы реализации
 
 - **Этап 0:** Strangle Fig бэкенда — UUID в User, UserIdentity, мульти-auth, BullMQ, тесты
-- **Этап 1:** Web MVP — бойлерплейт ✅, адаптер ✅, каталог ✅, корзина ✅, PWA manifest ✅; осталось: перенос shared-компонентов, NextAuth, cart sync, оплата, профиль
+- **Этап 1:** Web MVP — бойлерплейт ✅, адаптер ✅, каталог ✅, корзина ✅, PWA manifest ✅, auth (JWT-флоу, Phase 1/2 Web Auth Rework) ✅; осталось: перенос shared-компонентов, cart sync, оплата, профиль
 - **Этап 2:** MAX Mini App — MaxAdapter поверх готовой архитектуры
 - **Этап 3:** Полный Web — desktop UI для мастеров/кураторов, карта, чат, PWA, SEO
 

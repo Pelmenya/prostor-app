@@ -56,7 +56,6 @@ PROSTOR App — фронтенд для CRM PROSTOR (Aqua Kinetics, монтаж
 - ~~Текущее состояние по `.planning/codebase/CONCERNS.md`: web auth 0% реализован...~~ — **устарело**, см. открытие выше. `.planning/phases/01-jwt-session-lifecycle/01-RESEARCH.md` — актуальный источник правды по факту кода.
 - `api-client.ts` (`src/shared/api/api-client.ts:85-123`) уже содержит `tryRefreshTokens()` с single-flight `refreshPromise` — не переписывать, только хардить (убрать лишний `await import()`) и покрыть тестами.
 - Известный баг «401 console noise при cold load» (`docs/backlog/401-auth-refresh-console-noise.md`) может быть закрыт заодно, если реализовать pre-flight JWT expiration check — не обязательно, но уместно в рамках этой работы.
-- Дев-токен (`NEXT_PUBLIC_DEMO_TOKEN` в `web-adapter.ts:22`) должен быть выведен из использования после внедрения реального флоу.
 - Стек: React Hook Form + Zod для форм — auth-формы (регистрация, логин, завершение telegram-регистрации, восстановление пароля) следуют этому паттерну.
 
 ## Constraints

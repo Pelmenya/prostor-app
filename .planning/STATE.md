@@ -4,8 +4,8 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 3
 current_phase_name: Telegram Login & Registration
-status: executing
-stopped_at: Phase 02 planned — 3 plans ready, verification passed
+status: ready_to_plan
+stopped_at: Phase 02 complete, ready to plan Phase 3
 last_updated: '2026-07-04T08:20:07.858Z'
 last_activity: 2026-07-04
 last_activity_desc: Phase 02 complete, transitioned to Phase 3
@@ -24,16 +24,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-03)
 
 **Core value:** Пользователь должен суметь зарегистрироваться и войти (по почте или через Telegram) и остаться авторизованным — вся цепочка issue/refresh/logout токенов обязана работать без дыр.
-**Current focus:** Phase 02 — Email Registration, Verification & Login
+**Current focus:** Phase 3 — Telegram Login & Registration
 
 ## Current Position
 
 Phase: 3 — Telegram Login & Registration
 Plan: Not started
-Status: Executing Phase 02
+Status: Ready to plan Phase 3
 Last activity: 2026-07-04 — Phase 02 complete, transitioned to Phase 3
 
-Progress: [█████░░░░░░░░░░░░░░░] 25% (1/4 phases)
+Progress: [██████████░░░░░░░░░░] 50% (2/4 phases)
 
 ## Performance Metrics
 
@@ -74,8 +74,7 @@ None yet.
 
 ### Blockers/Concerns
 
-- Дев-токен (`NEXT_PUBLIC_DEMO_TOKEN` в `web-adapter.ts:22`) должен быть выведен из использования по завершении Phase 2 (реальный login появляется там)
-- 6 `(web)` страниц с `// TODO(NextAuth)` (`ssr: false` воркэраунд) — конвертация обратно на SSR не входит явно ни в одну фазу этого roadmap; проверить на транзишене после Phase 2, возможно потребует отдельного тех-долг тикета
+- 8 файлов с `// TODO(SSR-auth)` (7 `(web)` client-компонентов + `use-auth.ts`, `ssr: false` воркэраунд; переименовано из `TODO(NextAuth)` — старый ярлык ссылался на отменённый план) — конвертация обратно на SSR не входит явно ни в одну фазу этого roadmap; проверить на транзишене, возможно потребует отдельного тех-долг тикета
 - [Phase 1] `src/proxy.ts` содержит третью дублирующую копию private-paths логики (помимо `shared/config/private-paths.ts`) — вне скоупа Phase 1 ревью, не устранено
 
 ## Deferred Items
@@ -88,6 +87,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-03
-Stopped at: Phase 02 planned — 3 plans ready, verification passed
+Last session: 2026-07-04
+Stopped at: Phase 02 complete, ready to plan Phase 3
 Resume file: None
