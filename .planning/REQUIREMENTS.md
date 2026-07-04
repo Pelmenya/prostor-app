@@ -9,21 +9,21 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Registration (email)
 
-- [ ] **REG-01**: Пользователь может зарегистрироваться по email/паролю, указав имя, фамилию, email, телефон, пароль (мин. 8 символов) и приняв два чекбокса согласий (`POST /auth/web/register`)
-- [ ] **REG-02**: После успешной регистрации фронт сохраняет `accessToken`/`refreshToken`, считает пользователя авторизованным и перенаправляет в личный кабинет
-- [ ] **REG-03**: После регистрации пользователь видит уведомление «Мы отправили письмо для подтверждения почты»
-- [ ] **REG-04**: Неподтверждённая почта не блокирует вход и доступ к личному кабинету
+- [x] **REG-01**: Пользователь может зарегистрироваться по email/паролю, указав имя, фамилию, email, телефон, пароль (мин. 8 символов) и приняв два чекбокса согласий (`POST /auth/web/register`)
+- [x] **REG-02**: После успешной регистрации фронт сохраняет `accessToken`/`refreshToken`, считает пользователя авторизованным и перенаправляет в личный кабинет
+- [x] **REG-03**: После регистрации пользователь видит уведомление «Мы отправили письмо для подтверждения почты»
+- [x] **REG-04**: Неподтверждённая почта не блокирует вход и доступ к личному кабинету
 
 ### Email Verification
 
-- [ ] **VERIFY-01**: Пользователь подтверждает почту по ссылке `/verify-email?token=...`, фронт вызывает `POST /auth/verify-email`
-- [ ] **VERIFY-02**: После успешного подтверждения показывается сообщение «Почта подтверждена»
-- [ ] **VERIFY-03**: Авторизованный пользователь может запросить повторную отправку письма (`POST /auth/resend-verification`)
+- [x] **VERIFY-01**: Пользователь подтверждает почту по ссылке `/verify-email?token=...`, фронт вызывает `POST /auth/verify-email`
+- [x] **VERIFY-02**: После успешного подтверждения показывается сообщение «Почта подтверждена»
+- [x] **VERIFY-03**: Авторизованный пользователь может запросить повторную отправку письма (`POST /auth/resend-verification`)
 
 ### Login (email)
 
-- [ ] **LOGIN-01**: Пользователь может войти по email и паролю (`POST /auth/web/login`)
-- [ ] **LOGIN-02**: При 401 показывается общее сообщение «Неверная почта или пароль» без уточнения, существует ли такой email
+- [x] **LOGIN-01**: Пользователь может войти по email и паролю (`POST /auth/web/login`)
+- [x] **LOGIN-02**: При 401 показывается общее сообщение «Неверная почта или пароль» без уточнения, существует ли такой email
 
 ### Telegram Login & Registration
 
@@ -82,15 +82,15 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase                                              | Status   |
 | ----------- | -------------------------------------------------- | -------- |
-| REG-01      | Phase 2 — Email Registration, Verification & Login | Pending  |
-| REG-02      | Phase 2 — Email Registration, Verification & Login | Pending  |
-| REG-03      | Phase 2 — Email Registration, Verification & Login | Pending  |
-| REG-04      | Phase 2 — Email Registration, Verification & Login | Pending  |
-| VERIFY-01   | Phase 2 — Email Registration, Verification & Login | Pending  |
-| VERIFY-02   | Phase 2 — Email Registration, Verification & Login | Pending  |
-| VERIFY-03   | Phase 2 — Email Registration, Verification & Login | Pending  |
-| LOGIN-01    | Phase 2 — Email Registration, Verification & Login | Pending  |
-| LOGIN-02    | Phase 2 — Email Registration, Verification & Login | Pending  |
+| REG-01      | Phase 2 — Email Registration, Verification & Login | Complete |
+| REG-02      | Phase 2 — Email Registration, Verification & Login | Complete |
+| REG-03      | Phase 2 — Email Registration, Verification & Login | Complete |
+| REG-04      | Phase 2 — Email Registration, Verification & Login | Complete |
+| VERIFY-01   | Phase 2 — Email Registration, Verification & Login | Complete |
+| VERIFY-02   | Phase 2 — Email Registration, Verification & Login | Complete |
+| VERIFY-03   | Phase 2 — Email Registration, Verification & Login | Complete |
+| LOGIN-01    | Phase 2 — Email Registration, Verification & Login | Complete |
+| LOGIN-02    | Phase 2 — Email Registration, Verification & Login | Complete |
 | TG-01       | Phase 3 — Telegram Login & Registration            | Pending  |
 | TG-02       | Phase 3 — Telegram Login & Registration            | Pending  |
 | TG-03       | Phase 3 — Telegram Login & Registration            | Pending  |
