@@ -1,5 +1,6 @@
 import { apiClient } from '@/shared/api';
 import type { TUser } from '@/shared/model';
+import type { TTelegramProfile } from '../lib/telegram-registration';
 
 export type TAuthResponse = {
     user: TUser;
@@ -35,6 +36,48 @@ export async function webLogout(accessToken: string, refreshToken: string): Prom
         auth: `Bearer ${accessToken}`,
         body: { refreshToken },
     });
+}
+
+// ─── Telegram ────────────────────────────────────────────────
+// ПРИМЕЧАНИЕ (RESEARCH A1): точные имена полей запроса/ответа (idToken vs
+// id_token, registrationToken casing) не подтверждены против исходников
+// бэкенда в этой сессии — локальная копия crm-aqua-kinetics-back не
+// содержит /auth/telegram/* роутов (проверено при исполнении плана), а
+// репозиторий не является git-чекаутом, так что нельзя определить, отстаёт
+// ли он от задеплоенного бэкенда. Поля названы только здесь — расхождение
+// с реальным контрактом правится однострочным diff.
+
+export type TTelegramNonceResponse = { nonce: string };
+
+export async function telegramNonce(): Promise<TTelegramNonceResponse> {
+    return apiClient<TTelegramNonceResponse>('/auth/telegram/nonce', { method: 'POST' });
+}
+
+export type TTelegramLoginResponse =
+    | TAuthResponse
+    | {
+          registrationRequired: true;
+          registrationToken: string;
+          profile: TTelegramProfile;
+      };
+
+export async function telegramLogin(idToken: string): Promise<TTelegramLoginResponse> {
+    return apiClient<TTelegramLoginResponse>('/auth/telegram/login', {
+        method: 'POST',
+        body: { idToken },
+    });
+}
+
+export async function telegramRegister(body: {
+    registrationToken: string;
+    first_name: string;
+    last_name: string;
+    email: string;
+    phone: string;
+    policyVersion: string;
+    pdAgreementVersion: string;
+}): Promise<TAuthResponse> {
+    return apiClient<TAuthResponse>('/auth/telegram/register', { method: 'POST', body });
 }
 
 // ─── Пароль и email ──────────────────────────────────────────
