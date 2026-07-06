@@ -4,11 +4,11 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 3
 current_phase_name: Telegram Login & Registration
-status: ready_to_plan
-stopped_at: Phase 03 UI-SPEC approved
-last_updated: '2026-07-04T08:40:37.148Z'
-last_activity: 2026-07-04
-last_activity_desc: Phase 02 complete, transitioned to Phase 3
+status: ready_to_execute
+stopped_at: Phase 03 planned — 3 plans (03-01, 03-02, 03-03), waves 1/2, verification passed
+last_updated: '2026-07-06T08:03:09.505Z'
+last_activity: 2026-07-06
+last_activity_desc: Phase 3 planned — 3/3 plans, verification passed
 progress:
     total_phases: 4
     completed_phases: 2
@@ -29,9 +29,9 @@ See: .planning/PROJECT.md (updated 2026-07-03)
 ## Current Position
 
 Phase: 3 — Telegram Login & Registration
-Plan: Not started
-Status: Ready to plan Phase 3
-Last activity: 2026-07-04 — Phase 02 complete, transitioned to Phase 3
+Plan: 3 plans ready (03-01 wave 1, 03-02/03-03 wave 2)
+Status: Ready to execute Phase 3
+Last activity: 2026-07-06 — Phase 3 planned, verification passed
 
 Progress: [██████████░░░░░░░░░░] 50% (2/4 phases)
 
@@ -49,6 +49,7 @@ Progress: [██████████░░░░░░░░░░] 50% (2/
 | ----- | ----- | ----- | -------- |
 | 01    | 3     | -     | -        |
 | 02    | 3     | -     | -        |
+| 03    | 3     | -     | -        |
 
 **Recent Trend:**
 
@@ -76,6 +77,7 @@ None yet.
 
 - 8 файлов с `// TODO(SSR-auth)` (7 `(web)` client-компонентов + `use-auth.ts`, `ssr: false` воркэраунд; переименовано из `TODO(NextAuth)` — старый ярлык ссылался на отменённый план) — конвертация обратно на SSR не входит явно ни в одну фазу этого roadmap; проверить на транзишене, возможно потребует отдельного тех-долг тикета
 - [Phase 1] `src/proxy.ts` содержит третью дублирующую копию private-paths логики (помимо `shared/config/private-paths.ts`) — вне скоупа Phase 1 ревью, не устранено
+- [Phase 3] Telegram-бот НЕ настроен в режиме «Web Login»/OIDC через BotFather (client_id, разрешённый домен) — блокирует только живую браузерную проверку (Playwright), не блокирует написание кода/юнит-тестов. Пользователь подтвердил 2026-07-06.
 
 ## Deferred Items
 
@@ -87,6 +89,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-04T08:40:37.142Z
-Stopped at: Phase 03 UI-SPEC approved
-Resume file: .planning/phases/03-telegram-login-registration/03-UI-SPEC.md
+Last session: 2026-07-06
+Stopped at: Phase 03 planned — 3 plans ready, verification passed
+Resume file: None
