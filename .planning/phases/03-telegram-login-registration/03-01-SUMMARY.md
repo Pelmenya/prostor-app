@@ -199,6 +199,18 @@ None of this blocks Plan 02/03 code authorship or unit testing — only the fina
 - Phase 4's LINK-01 can reuse `useTelegramOidc` verbatim, pointed at a different backend endpoint.
 - Blocker carried forward: live end-to-end browser verification (Playwright MCP) is blocked until BotFather Web Login is configured — this does not block Plan 02/03 execution.
 
+## Self-Check: PASSED
+
+- FOUND: `src/features/auth/lib/telegram-registration.ts`
+- FOUND: `src/features/auth/lib/telegram-registration.test.ts`
+- FOUND: `src/features/auth/lib/use-telegram-oidc.ts`
+- FOUND: `.planning/phases/03-telegram-login-registration/03-01-SUMMARY.md`
+- FOUND commit: `a83829a` (test)
+- FOUND commit: `5725abd` (feat)
+- FOUND commit: `93d4c41` (feat)
+- FOUND commit: `6c6f560` (docs, this SUMMARY)
+- Full suite: 742/742 tests passing, `tsc --noEmit` clean, `steiger` clean at HEAD
+
 ---
 
 _Phase: 03-telegram-login-registration_
