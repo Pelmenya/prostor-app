@@ -71,9 +71,9 @@ Decimal phases appear between their surrounding integers in numeric order.
 2. A brand-new Telegram profile (`registrationRequired: true`) is routed to a completion form — имя/фамилия/аватар prefilled from the Telegram profile, email and телефон required, 2 чекбокса согласий, no password field — before `POST /auth/telegram/register` creates the account
 3. The `registrationToken` used in that flow lives only in `sessionStorage`, is treated as one-time and 10-minute-lived, and letting it expire (or hitting an ambiguous network error) forces the whole Telegram flow to restart from the beginning rather than failing silently
 4. If `POST /auth/telegram/register` reports the email is already taken, no second account is created — the user sees a message redirecting them to email login, and is offered "Привязать Telegram" after logging in there
-   **Plans**: 3 plans
+   **Plans**: 1/3 plans executed
 
-- [ ] 03-01-PLAN.md — TG-01 login slice + shared OIDC foundation (nonce→popup→id_token→login, sessionStorage lifecycle, 5-state button) [Wave 1]
+- [x] 03-01-PLAN.md — TG-01 login slice + shared OIDC foundation (nonce→popup→id_token→login, sessionStorage lifecycle, 5-state button) [Wave 1]
 - [ ] 03-02-PLAN.md — TG-02/03/04 registration-completion page (/telegram-register) + restart/conflict states + proxy guard [Wave 2]
 - [ ] 03-03-PLAN.md — TG-04 tail: disabled "Привязать Telegram" profile hint row [Wave 2]
       **UI hint**: yes
@@ -103,7 +103,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | ------------------------------------------- | -------------- | ----------- | ---------- |
 | 1. JWT Session Lifecycle                    | 3/3            | Complete    | 2026-07-03 |
 | 2. Email Registration, Verification & Login | 3/3            | Complete    | 2026-07-04 |
-| 3. Telegram Login & Registration            | 0/3            | Planned     | -          |
+| 3. Telegram Login & Registration            | 1/3            | In Progress |            |
 | 4. Account Linking & Password Management    | 0/TBD          | Not started | -          |
 
 ---
