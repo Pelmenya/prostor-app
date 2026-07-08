@@ -27,9 +27,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Telegram Login & Registration
 
-- [x] **TG-01**: Существующий пользователь входит через Telegram: nonce (`POST /auth/telegram/nonce`) → Telegram Login OIDC → `id_token` → `POST /auth/telegram/login` → токены сохранены, редирект в кабинет
+- [ ] **TG-01**: Существующий пользователь входит через Telegram: nonce (`POST /auth/telegram/nonce`) → Telegram Login OIDC → `id_token` → `POST /auth/telegram/login` → токены сохранены, редирект в кабинет
 - [ ] **TG-02**: Если Telegram-профиль новый (`registrationRequired: true`), показывается форма завершения регистрации: имя/фамилия/аватар — из `profile`, email и телефон — обязательны, два чекбокса согласий, без поля пароля
-- [x] **TG-03**: `registrationToken` хранится только в `sessionStorage`, считается одноразовым и живёт 10 минут; при истечении или неоднозначной сетевой ошибке весь Telegram-вход запускается заново
+- [ ] **TG-03**: `registrationToken` хранится только в `sessionStorage`, считается одноразовым и живёт 10 минут; при истечении или неоднозначной сетевой ошибке весь Telegram-вход запускается заново
 - [ ] **TG-04**: Если `POST /auth/telegram/register` сообщает, что email уже занят — второй аккаунт не создаётся, показывается сообщение с редиректом на вход по почте, после входа предлагается «Привязать Telegram»
 
 ### Account Linking
@@ -91,9 +91,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | VERIFY-03   | Phase 2 — Email Registration, Verification & Login | Complete |
 | LOGIN-01    | Phase 2 — Email Registration, Verification & Login | Complete |
 | LOGIN-02    | Phase 2 — Email Registration, Verification & Login | Complete |
-| TG-01       | Phase 3 — Telegram Login & Registration            | Complete |
+| TG-01       | Phase 3 — Telegram Login & Registration            | Pending  |
 | TG-02       | Phase 3 — Telegram Login & Registration            | Pending  |
-| TG-03       | Phase 3 — Telegram Login & Registration            | Complete |
+| TG-03       | Phase 3 — Telegram Login & Registration            | Pending  |
 | TG-04       | Phase 3 — Telegram Login & Registration            | Pending  |
 | LINK-01     | Phase 4 — Account Linking & Password Management    | Pending  |
 | LINK-02     | Phase 4 — Account Linking & Password Management    | Pending  |
