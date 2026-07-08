@@ -54,6 +54,14 @@ const nextConfig: NextConfig = {
     },
     images: {
         unoptimized: process.env.NODE_ENV === 'development',
+        // Прокси картинок МойСклад отдаёт относительный путь со своей query-строкой
+        // (/api/moysklad/image?href=...) — по умолчанию оптимизатор Next.js блокирует
+        // локальные src с query-параметрами, если явно не разрешить их здесь.
+        localPatterns: [
+            {
+                pathname: '/api/moysklad/image',
+            },
+        ],
         remotePatterns: [
             {
                 protocol: 'http',

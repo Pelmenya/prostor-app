@@ -1,9 +1,19 @@
+import { PHASE_PRODUCTION_BUILD } from 'next/constants';
 import { API_URL as BASE_URL } from '@/shared/config';
 import { useAuthStore } from '@/shared/lib/auth';
 
 function getBaseUrl(): string {
     if (typeof window === 'undefined') {
-        return process.env.BUILD_API_URL || process.env.INTERNAL_API_URL || BASE_URL;
+        // BUILD_API_URL — временный туннель, доступный только сборщику Docker
+        // (у него нет доступа к внутренней сети crm_network_prod). Next.js
+        // standalone копирует .env в рантайм-бандл, поэтому переменная может
+        // "утечь" в process.env запущенного контейнера — ограничиваем её
+        // использование строго фазой сборки, иначе рантайм-SSR будет ходить
+        // через медленный внешний туннель вместо INTERNAL_API_URL.
+        if (process.env.NEXT_PHASE === PHASE_PRODUCTION_BUILD && process.env.BUILD_API_URL) {
+            return process.env.BUILD_API_URL;
+        }
+        return process.env.INTERNAL_API_URL || BASE_URL;
     }
     return BASE_URL;
 }

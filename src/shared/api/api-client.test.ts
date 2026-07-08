@@ -25,6 +25,8 @@ const initialAuthState = useAuthStore.getState();
 describe('apiClient', () => {
     afterEach(() => {
         vi.restoreAllMocks();
+        vi.unstubAllGlobals();
+        vi.unstubAllEnvs();
         useAuthStore.setState(initialAuthState, true);
         resetSessionExpiredNotified();
         localStorage.clear();
@@ -38,6 +40,36 @@ describe('apiClient', () => {
         expect(result).toEqual({ id: 1 });
         expect(fetch).toHaveBeenCalledWith(
             expect.stringContaining('/test'),
+            expect.objectContaining({ method: 'GET' }),
+        );
+    });
+
+    it('в рантайме SSR игнорирует BUILD_API_URL (только для фазы сборки) и использует INTERNAL_API_URL', async () => {
+        vi.stubGlobal('window', undefined);
+        vi.stubEnv('BUILD_API_URL', 'https://stale-build-tunnel.trycloudflare.com');
+        vi.stubEnv('INTERNAL_API_URL', 'http://crm-back:3000');
+        vi.stubEnv('NEXT_PHASE', 'phase-production-server');
+        vi.stubGlobal('fetch', mockFetchJson({ id: 1 }));
+
+        await apiClient('/test');
+
+        expect(fetch).toHaveBeenCalledWith(
+            'http://crm-back:3000/test',
+            expect.objectContaining({ method: 'GET' }),
+        );
+    });
+
+    it('во время сборки (NEXT_PHASE=phase-production-build) использует BUILD_API_URL', async () => {
+        vi.stubGlobal('window', undefined);
+        vi.stubEnv('BUILD_API_URL', 'https://build-tunnel.trycloudflare.com');
+        vi.stubEnv('INTERNAL_API_URL', 'http://crm-back:3000');
+        vi.stubEnv('NEXT_PHASE', 'phase-production-build');
+        vi.stubGlobal('fetch', mockFetchJson({ id: 1 }));
+
+        await apiClient('/test');
+
+        expect(fetch).toHaveBeenCalledWith(
+            'https://build-tunnel.trycloudflare.com/test',
             expect.objectContaining({ method: 'GET' }),
         );
     });
