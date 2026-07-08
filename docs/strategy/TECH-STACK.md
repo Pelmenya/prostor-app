@@ -62,10 +62,10 @@ shared business state между фичами с time-travel debugging — мо�
 
 ### Аутентификация
 
-| Пакет                        | Версия    | Зачем                                                    | Заменяет                                   |
-| ---------------------------- | --------- | -------------------------------------------------------- | ------------------------------------------ |
-| **NextAuth / Auth.js**       | 4.x / 5.x | Логин/пароль, Яндекс ID (OAuth), magic link, JWT, сессии | Telegram initDataRaw (единственный способ) |
-| **@telegram-apps/sdk-react** | 3.x       | Для Telegram Mini App layout                             | 2.0.20                                     |
+| Пакет                                   | Версия | Зачем                                                                                                                                                                  | Заменяет                                   |
+| --------------------------------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| **Собственный JWT-флоу (`WebAdapter`)** | —      | Логин/пароль, регистрация, verify-email, forgot/reset password, accessToken/refreshToken с ротацией — без NextAuth (см. `.planning/PROJECT.md`, решение от 2026-07-03) | Telegram initDataRaw (единственный способ) |
+| **@telegram-apps/sdk-react**            | 3.x    | Для Telegram Mini App layout                                                                                                                                           | 2.0.20                                     |
 
 ### Платежи
 
@@ -143,8 +143,6 @@ app/
 │   └── profile/                — Профиль
 │
 ├── api/                        — BFF (опционально)
-│   └── auth/
-│       └── [...nextauth]/      — NextAuth endpoints
 │
 └── shared/                     — Общие компоненты, хуки, утилиты
     ├── components/
@@ -156,7 +154,7 @@ app/
 
 ### Как это работает
 
-- **(web)** layout — серверный, SSR, `NextAuth` сессии, стандартная навигация
+- **(web)** layout — серверный, SSR, JWT-сессия через `WebAdapter`, стандартная навигация
 - **(miniapp)** layout — клиентский (`'use client'`), авторизация через `initDataRaw` (Telegram) или `initData` (MAX)
 - **shared/** — бизнес-логика, UI-компоненты, TanStack Query hooks, общие для обоих layout'ов
 - Один деплой, один домен, разные точки входа
@@ -175,7 +173,7 @@ app/
 - RTK Query (старый фронт) → TanStack Query + Zustand (PROSTOR)
 - `useMemo` / `useCallback` / `React.memo` → убрать (React Compiler)
 - Telegram SDK прямые вызовы → Platform Adapter
-- Аутентификация → мульти-auth (NextAuth + initData)
+- Аутентификация → мульти-auth (собственный JWT-флоу через `WebAdapter` + initData)
 
 ---
 
@@ -196,7 +194,7 @@ app/
 
 ### Этап 3: Web авторизация (1 неделя)
 
-- NextAuth с логин/пароль провайдером
+- Собственный JWT-флоу (регистрация/логин/refresh) через `WebAdapter`
 - Login/Register страницы
 
 ### Этап 4: Mini App layout (3-5 дней)

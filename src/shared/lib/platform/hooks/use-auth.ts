@@ -10,7 +10,7 @@ export function useAuth() {
     const storeUser = mapUserToPlatformUser(store.user);
 
     return {
-        // TODO(NextAuth): authHeader и isAuthenticated для web — заменить на NextAuth session
+        // TODO(SSR-auth): authHeader и isAuthenticated для web читаются через WebAdapter/useAuthStore — SSR-конверсия страниц из TODO выше остаётся open item
         // authHeader: session?.accessToken ? `Bearer ${session.accessToken}` : null
         // isAuthenticated: !!session?.user
         authHeader:

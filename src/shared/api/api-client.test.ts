@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { apiClient, ApiError } from './api-client';
+import { apiClient, ApiError, resetSessionExpiredNotified } from './api-client';
+import { useAuthStore } from '@/shared/lib/auth';
 
 function mockFetchJson(data: unknown, extra: Record<string, unknown> = {}) {
     return vi.fn().mockResolvedValue({
@@ -11,9 +12,24 @@ function mockFetchJson(data: unknown, extra: Record<string, unknown> = {}) {
     });
 }
 
+function createDeferred<T>() {
+    let resolve!: (value: T) => void;
+    const promise = new Promise<T>((res) => {
+        resolve = res;
+    });
+    return { promise, resolve };
+}
+
+const initialAuthState = useAuthStore.getState();
+
 describe('apiClient', () => {
     afterEach(() => {
         vi.restoreAllMocks();
+        vi.unstubAllGlobals();
+        vi.unstubAllEnvs();
+        useAuthStore.setState(initialAuthState, true);
+        resetSessionExpiredNotified();
+        localStorage.clear();
     });
 
     it('отправляет GET-запрос на правильный URL', async () => {
@@ -24,6 +40,36 @@ describe('apiClient', () => {
         expect(result).toEqual({ id: 1 });
         expect(fetch).toHaveBeenCalledWith(
             expect.stringContaining('/test'),
+            expect.objectContaining({ method: 'GET' }),
+        );
+    });
+
+    it('в рантайме SSR игнорирует BUILD_API_URL (только для фазы сборки) и использует INTERNAL_API_URL', async () => {
+        vi.stubGlobal('window', undefined);
+        vi.stubEnv('BUILD_API_URL', 'https://stale-build-tunnel.trycloudflare.com');
+        vi.stubEnv('INTERNAL_API_URL', 'http://crm-back:3000');
+        vi.stubEnv('NEXT_PHASE', 'phase-production-server');
+        vi.stubGlobal('fetch', mockFetchJson({ id: 1 }));
+
+        await apiClient('/test');
+
+        expect(fetch).toHaveBeenCalledWith(
+            'http://crm-back:3000/test',
+            expect.objectContaining({ method: 'GET' }),
+        );
+    });
+
+    it('во время сборки (NEXT_PHASE=phase-production-build) использует BUILD_API_URL', async () => {
+        vi.stubGlobal('window', undefined);
+        vi.stubEnv('BUILD_API_URL', 'https://build-tunnel.trycloudflare.com');
+        vi.stubEnv('INTERNAL_API_URL', 'http://crm-back:3000');
+        vi.stubEnv('NEXT_PHASE', 'phase-production-build');
+        vi.stubGlobal('fetch', mockFetchJson({ id: 1 }));
+
+        await apiClient('/test');
+
+        expect(fetch).toHaveBeenCalledWith(
+            'https://build-tunnel.trycloudflare.com/test',
             expect.objectContaining({ method: 'GET' }),
         );
     });
@@ -93,5 +139,236 @@ describe('apiClient', () => {
                 body: JSON.stringify({ name: 'test' }),
             }),
         );
+    });
+
+    it('дедуплицирует параллельные refresh-запросы (single-flight) и обновляет обе пары токенов', async () => {
+        useAuthStore.setState({
+            accessToken: 'expired-access',
+            refreshToken: 'refresh-1',
+            isAuthenticated: true,
+        });
+
+        const refreshDeferred = createDeferred<{
+            ok: boolean;
+            status: number;
+            json: () => Promise<unknown>;
+            headers: Headers;
+        }>();
+
+        const fetchMock = vi
+            .fn()
+            // request A → 401
+            .mockResolvedValueOnce({
+                ok: false,
+                status: 401,
+                statusText: 'Unauthorized',
+                json: async () => ({}),
+            })
+            // request B → 401
+            .mockResolvedValueOnce({
+                ok: false,
+                status: 401,
+                statusText: 'Unauthorized',
+                json: async () => ({}),
+            })
+            // единственный POST /auth/web/refresh, удерживаемый открытым до resolve
+            .mockImplementationOnce(() => refreshDeferred.promise)
+            // повтор A
+            .mockResolvedValueOnce({
+                ok: true,
+                status: 200,
+                headers: new Headers({ 'content-type': 'application/json' }),
+                json: async () => ({ a: 1 }),
+            })
+            // повтор B
+            .mockResolvedValueOnce({
+                ok: true,
+                status: 200,
+                headers: new Headers({ 'content-type': 'application/json' }),
+                json: async () => ({ b: 1 }),
+            });
+
+        vi.stubGlobal('fetch', fetchMock);
+
+        const resultA = apiClient('/a', { auth: 'Bearer expired-access' });
+        const resultB = apiClient('/b', { auth: 'Bearer expired-access' });
+
+        refreshDeferred.resolve({
+            ok: true,
+            status: 200,
+            headers: new Headers({ 'content-type': 'application/json' }),
+            json: async () => ({ accessToken: 'new-access', refreshToken: 'new-refresh' }),
+        });
+
+        const [dataA, dataB] = await Promise.all([resultA, resultB]);
+
+        const refreshCalls = fetchMock.mock.calls.filter(([url]) =>
+            String(url).includes('/auth/web/refresh'),
+        );
+        expect(refreshCalls).toHaveLength(1); // SESSION-02: ровно один refresh-запрос
+
+        const { accessToken, refreshToken } = useAuthStore.getState();
+        expect(accessToken).toBe('new-access'); // SESSION-03
+        expect(refreshToken).toBe('new-refresh'); // SESSION-03
+
+        expect(dataA).toEqual({ a: 1 });
+        expect(dataB).toEqual({ b: 1 });
+    });
+
+    it('CR-01: явный logout во время фонового refresh не откатывается устаревшим результатом refresh', async () => {
+        useAuthStore.setState({
+            accessToken: 'expired-access',
+            refreshToken: 'refresh-1',
+            isAuthenticated: true,
+        });
+
+        const refreshDeferred = createDeferred<{
+            ok: boolean;
+            status: number;
+            json: () => Promise<unknown>;
+            headers: Headers;
+        }>();
+
+        const fetchMock = vi
+            .fn()
+            // оригинальный запрос /test → 401, запускает refresh
+            .mockResolvedValueOnce({
+                ok: false,
+                status: 401,
+                statusText: 'Unauthorized',
+                json: async () => ({}),
+            })
+            // POST /auth/web/refresh — удерживается открытым до resolve
+            .mockImplementationOnce(() => refreshDeferred.promise);
+
+        vi.stubGlobal('fetch', fetchMock);
+
+        const requestPromise = apiClient('/test', { auth: 'Bearer expired-access' });
+
+        // Дождаться, пока apiClient реально дойдёт до POST /auth/web/refresh
+        // (2-й вызов fetch), иначе logout() ниже сработает раньше, чем refresh
+        // вообще стартовал, и тест ничего не проверит (ложный проход).
+        await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+
+        // Пока refresh ещё в полёте, пользователь явно разлогинивается.
+        useAuthStore.getState().logout();
+        expect(useAuthStore.getState().isAuthenticated).toBe(false);
+        expect(useAuthStore.getState().accessToken).toBeNull();
+
+        // Устаревший refresh успешно резолвится уже ПОСЛЕ logout — его результат
+        // не должен воскресить сессию (защита refreshTokenAtStart, коммит 85bbff6).
+        refreshDeferred.resolve({
+            ok: true,
+            status: 200,
+            headers: new Headers({ 'content-type': 'application/json' }),
+            json: async () => ({
+                accessToken: 'stale-new-access',
+                refreshToken: 'stale-new-refresh',
+            }),
+        });
+
+        await expect(requestPromise).rejects.toBeInstanceOf(ApiError);
+
+        const { accessToken, refreshToken, isAuthenticated } = useAuthStore.getState();
+        expect(accessToken).toBeNull();
+        expect(refreshToken).toBeNull();
+        expect(isAuthenticated).toBe(false);
+    });
+
+    it('терминальный 401 на refresh очищает токены и диспатчит auth:session-expired, повторный запрос не делает второй refresh', async () => {
+        useAuthStore.setState({
+            accessToken: 'expired-access',
+            refreshToken: 'refresh-1',
+            isAuthenticated: true,
+        });
+
+        const dispatchSpy = vi.spyOn(window, 'dispatchEvent');
+
+        const fetchMock = vi
+            .fn()
+            // оригинальный запрос /test → 401
+            .mockResolvedValueOnce({
+                ok: false,
+                status: 401,
+                statusText: 'Unauthorized',
+                json: async () => ({}),
+            })
+            // POST /auth/web/refresh → терминальная ошибка (401)
+            .mockResolvedValueOnce({
+                ok: false,
+                status: 401,
+                statusText: 'Unauthorized',
+                json: async () => ({}),
+            });
+
+        vi.stubGlobal('fetch', fetchMock);
+
+        await expect(apiClient('/test', { auth: 'Bearer expired-access' })).rejects.toMatchObject({
+            status: 401,
+        });
+
+        expect(useAuthStore.getState().accessToken).toBeNull();
+
+        const sessionExpiredCalls = dispatchSpy.mock.calls.filter(
+            ([event]) => (event as Event).type === 'auth:session-expired',
+        );
+        expect(sessionExpiredCalls).toHaveLength(1);
+
+        // Pitfall 4: follow-up запрос после очистки токенов не делает второй /auth/web/refresh
+        fetchMock.mockResolvedValueOnce({
+            ok: false,
+            status: 401,
+            statusText: 'Unauthorized',
+            json: async () => ({}),
+        });
+
+        await expect(apiClient('/test2')).rejects.toMatchObject({ status: 401 });
+
+        const refreshCalls = fetchMock.mock.calls.filter(([url]) =>
+            String(url).includes('/auth/web/refresh'),
+        );
+        expect(refreshCalls).toHaveLength(1);
+
+        // WR-01: повторный 401 после уже истёкшей сессии не должен диспатчить
+        // auth:session-expired ещё раз (one-shot guard)
+        const sessionExpiredCallsAfterSecondRequest = dispatchSpy.mock.calls.filter(
+            ([event]) => (event as Event).type === 'auth:session-expired',
+        );
+        expect(sessionExpiredCallsAfterSecondRequest).toHaveLength(1);
+    });
+
+    it('сетевая ошибка при refresh (catch) тоже очищает токены и диспатчит auth:session-expired', async () => {
+        useAuthStore.setState({
+            accessToken: 'expired-access',
+            refreshToken: 'refresh-1',
+            isAuthenticated: true,
+        });
+
+        const dispatchSpy = vi.spyOn(window, 'dispatchEvent');
+
+        const fetchMock = vi
+            .fn()
+            // оригинальный запрос /test → 401
+            .mockResolvedValueOnce({
+                ok: false,
+                status: 401,
+                statusText: 'Unauthorized',
+                json: async () => ({}),
+            })
+            // POST /auth/web/refresh → сетевая ошибка
+            .mockRejectedValueOnce(new Error('network error'));
+
+        vi.stubGlobal('fetch', fetchMock);
+
+        await expect(apiClient('/test', { auth: 'Bearer expired-access' })).rejects.toMatchObject({
+            status: 401,
+        });
+
+        expect(useAuthStore.getState().accessToken).toBeNull();
+
+        const sessionExpiredCalls = dispatchSpy.mock.calls.filter(
+            ([event]) => (event as Event).type === 'auth:session-expired',
+        );
+        expect(sessionExpiredCalls).toHaveLength(1);
     });
 });

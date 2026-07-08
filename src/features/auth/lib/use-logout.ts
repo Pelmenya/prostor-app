@@ -3,7 +3,7 @@
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/shared/lib/platform';
 import { useAuthStore } from '@/shared/lib';
-import { PRIVATE_PATHS } from '@/shared/config';
+import { isPrivatePath } from '@/shared/config';
 import { webLogout } from '../api/auth-api';
 
 /**
@@ -41,7 +41,6 @@ export function useLogout() {
         logout();
 
         // 4. Редирект только с приватных страниц
-        const isPrivate = PRIVATE_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));
-        if (isPrivate) router.push('/');
+        if (isPrivatePath(pathname)) router.push('/');
     };
 }

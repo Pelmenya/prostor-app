@@ -1,8 +1,19 @@
+import { PHASE_PRODUCTION_BUILD } from 'next/constants';
 import { API_URL as BASE_URL } from '@/shared/config';
+import { useAuthStore } from '@/shared/lib/auth';
 
 function getBaseUrl(): string {
     if (typeof window === 'undefined') {
-        return process.env.BUILD_API_URL || process.env.INTERNAL_API_URL || BASE_URL;
+        // BUILD_API_URL — временный туннель, доступный только сборщику Docker
+        // (у него нет доступа к внутренней сети crm_network_prod). Next.js
+        // standalone копирует .env в рантайм-бандл, поэтому переменная может
+        // "утечь" в process.env запущенного контейнера — ограничиваем её
+        // использование строго фазой сборки, иначе рантайм-SSR будет ходить
+        // через медленный внешний туннель вместо INTERNAL_API_URL.
+        if (process.env.NEXT_PHASE === PHASE_PRODUCTION_BUILD && process.env.BUILD_API_URL) {
+            return process.env.BUILD_API_URL;
+        }
+        return process.env.INTERNAL_API_URL || BASE_URL;
     }
     return BASE_URL;
 }
@@ -28,6 +39,34 @@ export type TApiClientOptions = {
 type TApiClientInternalOptions = TApiClientOptions & { _retry?: boolean };
 
 let refreshPromise: Promise<void> | null = null;
+
+// Не даёт повторно диспатчить auth:session-expired для каждого
+// параллельного 401-запроса после того, как сессия уже завершена —
+// иначе SessionExpiredListener делает лишние router.push() (WR-01).
+let sessionExpiredNotified = false;
+
+/**
+ * Уведомляет приложение о терминальном провале refresh-токена (SESSION-04).
+ * api-client.ts остаётся плоским модулем без next/navigation — навигацию
+ * берёт на себя SessionExpiredListener, смонтированный в (web)/layout.tsx.
+ */
+function notifySessionExpired(): void {
+    if (sessionExpiredNotified) return;
+    sessionExpiredNotified = true;
+    if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('auth:session-expired'));
+    }
+}
+
+/**
+ * Сбрасывает флаг "уже уведомили об истечении сессии". Вызывать при
+ * любом успешном получении новых токенов (логин, регистрация, успешный
+ * refresh) — иначе после повторного входа новое истечение сессии больше
+ * не триггерит редирект на /login.
+ */
+export function resetSessionExpiredNotified(): void {
+    sessionExpiredNotified = false;
+}
 
 export async function apiClient<T = unknown>(
     path: string,
@@ -59,7 +98,6 @@ export async function apiClient<T = unknown>(
         if (response.status === 401 && !_retry && typeof window !== 'undefined') {
             const refreshed = await tryRefreshTokens();
             if (refreshed) {
-                const { useAuthStore } = await import('@/shared/lib/auth');
                 const newToken = useAuthStore.getState().accessToken;
                 return apiClient<T>(path, {
                     ...options,
@@ -83,11 +121,11 @@ export async function apiClient<T = unknown>(
 }
 
 async function tryRefreshTokens(): Promise<boolean> {
-    const { useAuthStore } = await import('@/shared/lib/auth');
     const { refreshToken, logout, setTokens } = useAuthStore.getState();
 
     if (!refreshToken) {
         logout();
+        notifySessionExpired();
         return false;
     }
 
@@ -97,6 +135,7 @@ async function tryRefreshTokens(): Promise<boolean> {
     }
 
     refreshPromise = (async () => {
+        const refreshTokenAtStart = refreshToken;
         try {
             const res = await fetch(`${BASE_URL}/auth/web/refresh`, {
                 method: 'POST',
@@ -104,20 +143,36 @@ async function tryRefreshTokens(): Promise<boolean> {
                 body: JSON.stringify({ refreshToken }),
             });
 
+            // Сессия могла быть завершена (logout()) или уже обновлена, пока
+            // этот refresh был в полёте — не применяем устаревший результат.
+            if (useAuthStore.getState().refreshToken !== refreshTokenAtStart) return;
+
             if (!res.ok) {
                 logout();
+                notifySessionExpired();
                 return;
             }
 
             const data = await res.json();
+            if (useAuthStore.getState().refreshToken !== refreshTokenAtStart) return;
+            if (typeof data?.accessToken !== 'string' || typeof data?.refreshToken !== 'string') {
+                logout();
+                notifySessionExpired();
+                return;
+            }
             setTokens(data.accessToken, data.refreshToken);
+            sessionExpiredNotified = false;
         } catch {
             logout();
+            notifySessionExpired();
         }
     })();
 
-    await refreshPromise;
-    refreshPromise = null;
+    try {
+        await refreshPromise;
+    } finally {
+        refreshPromise = null;
+    }
 
     return !!useAuthStore.getState().accessToken;
 }
