@@ -33,7 +33,6 @@ export {
     People,
     WaterDrop,
     ArticleDotsIcon,
-    TelegramIcon,
 } from './icons';
 export { MapView } from './map-view';
 export { CartCardWrapper } from './cart-card-wrapper';

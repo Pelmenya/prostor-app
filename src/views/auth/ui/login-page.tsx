@@ -8,7 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { webLogin, loginSchema, type TLoginForm } from '@/features/auth';
 import { ApiError, resetSessionExpiredNotified } from '@/shared/api';
 import { useAuthStore, getSafeRedirect, useFormDraft, getFormDraft } from '@/shared/lib';
-import { PageContainer, FormField, TelegramIcon } from '@/shared/ui';
+import { PageContainer, FormField } from '@/shared/ui';
 
 function LoginForm() {
     const router = useRouter();
@@ -89,18 +89,6 @@ function LoginForm() {
                         )}
                     </button>
                 </form>
-
-                <div className="divider text-sm text-base-content/50">или</div>
-
-                <button
-                    type="button"
-                    className="btn btn-outline btn-primary w-full gap-2"
-                    disabled
-                    title="Появится после запуска Telegram-входа"
-                >
-                    <TelegramIcon className="size-5" />
-                    Войти через Telegram
-                </button>
 
                 <div className="flex flex-col items-center gap-2 mt-4 text-sm">
                     <p>

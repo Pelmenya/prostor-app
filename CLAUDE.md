@@ -48,26 +48,28 @@ Multi-modal smart search (text + photo) в `/water` page. Branch `feature/water-
 
 ### Фронт: Web Auth Rework — GSD-проект, `.planning/PROJECT.md`
 
-Продукт сменил курс на web-only: Telegram/MAX Mini App вью-слои больше не развиваются (код пока не трогаем — `TelegramAdapter`/`MaxAdapter`/layout `(miniapp)`, отдельная будущая задача по чистке). Backend auth-эндпоинты (`/auth/web/*`, `/auth/telegram/*`, verify-email, forgot/reset-password) уже задеплоены. Полный план (4 фазы, 23 требования) — `.planning/ROADMAP.md` / `.planning/REQUIREMENTS.md`. Работа ведётся через GSD-флоу (`/gsd-plan-phase`, `/gsd-execute-phase`).
+Продукт сменил курс на web-only: Telegram/MAX Mini App вью-слои больше не развиваются (код пока не трогаем — `TelegramAdapter`/`MaxAdapter`/layout `(miniapp)`, отдельная будущая задача по чистке). Backend auth-эндпоинты (`/auth/web/*`, verify-email, forgot/reset-password) уже задеплоены. Работа ведётся через GSD-флоу (`/gsd-plan-phase`, `/gsd-execute-phase`).
 
 **Заменяет** старый план `docs/features/auth/AUTH_ADAPTER.md` (NextAuth + Яндекс ID + magic link) — отменён в пользу собственного JWT-флоу через `WebAdapter` (accessToken/refreshToken, single-flight refresh).
 
-| Фаза | Описание                                                                    | Прогресс |
-| ---- | --------------------------------------------------------------------------- | -------- |
-| 1    | JWT Session Lifecycle — хранение/refresh/logout токенов                     | ✅ done  |
-| 2    | Email: регистрация, подтверждение почты, вход                               | ✅ done  |
-| 3    | Telegram: вход/регистрация, обработка конфликта email                       | ⬜ 0%    |
-| 4    | Привязка Telegram к аккаунту с паролем + установка пароля для telegram-only | ⬜ 0%    |
+**Milestone эффективно завершён на Phase 2** (2026-07-08). Phase 3 (Telegram Login) и Phase 4 (Account Linking) **отменены продуктом** — веб-авторизация остаётся строго email/пароль, без входа через Telegram. Не путать с `TelegramAdapter`/Mini App выше — это другое (вход в веб-версию через Telegram vs запуск приложения внутри Telegram), Mini App-код решение не затрагивает. Подробности — `.planning/phases/03-telegram-login-registration/03-CANCELLED.md`.
+
+| Фаза | Описание                                                    | Прогресс    |
+| ---- | ----------------------------------------------------------- | ----------- |
+| 1    | JWT Session Lifecycle — хранение/refresh/logout токенов     | ✅ done     |
+| 2    | Email: регистрация, подтверждение почты, вход               | ✅ done     |
+| 3    | ~~Telegram: вход/регистрация~~                              | ❌ отменено |
+| 4    | ~~Привязка Telegram к аккаунту + пароль для telegram-only~~ | ❌ отменено |
 
 ### Бэк: Strangle Fig Migration — `docs/backend/STRANGLE_FIG_MIGRATION.md`
 
-| Шаг | Описание                                                                | Риск   | Прогресс |
-| --- | ----------------------------------------------------------------------- | ------ | -------- |
-| 1   | UUID колонка в User (не меняя PK)                                       | 0      | ✅ done  |
-| 2   | Таблица UserIdentity                                                    | 0      | ✅ done  |
-| 3   | JWT + Telegram OIDC в auth.guard (OAuth/magic link отменены — см. выше) | Низкий | ✅ done  |
-| 4   | Bull/BullMQ очереди                                                     | 0      | ⬜ 0%    |
-| 5   | Тесты на новый код                                                      | 0      | ⬜ 0%    |
+| Шаг | Описание                                                                                                                                                                                                       | Риск   | Прогресс |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | -------- |
+| 1   | UUID колонка в User (не меняя PK)                                                                                                                                                                              | 0      | ✅ done  |
+| 2   | Таблица UserIdentity                                                                                                                                                                                           | 0      | ✅ done  |
+| 3   | JWT + Telegram OIDC в auth.guard (OAuth/magic link отменены — см. выше). Бэкенд-возможность остаётся, но фронт (Web Auth Rework) её больше не потребляет — Telegram Login на вебе отменён продуктом 2026-07-08 | Низкий | ✅ done  |
+| 4   | Bull/BullMQ очереди                                                                                                                                                                                            | 0      | ⬜ 0%    |
+| 5   | Тесты на новый код                                                                                                                                                                                             | 0      | ⬜ 0%    |
 
 ## Язык общения
 
@@ -180,8 +182,7 @@ Business Logic → PlatformAdapter interface
 
 ### Web (собственный JWT-флоу через `WebAdapter`)
 
-- **Email + пароль** — регистрация (`POST /auth/web/register`), вход (`POST /auth/web/login`), подтверждение почты (`POST /auth/verify-email`, повторная отправка — `POST /auth/resend-verification`), восстановление/установка пароля (`POST /auth/forgot-password` → `POST /auth/reset-password`) — реализовано, Phase 1/2
-- **Telegram Login (OIDC)** — альтернативный способ входа для web (nonce → Telegram Login Widget → `id_token` → `POST /auth/telegram/login`/`register`) — Phase 3, ещё не реализовано (на `/login` пока только disabled-заглушка кнопки)
+- **Email + пароль** — регистрация (`POST /auth/web/register`), вход (`POST /auth/web/login`), подтверждение почты (`POST /auth/verify-email`, повторная отправка — `POST /auth/resend-verification`), восстановление/установка пароля (`POST /auth/forgot-password` → `POST /auth/reset-password`) — реализовано, Phase 1/2. **Единственный способ входа на web** — Telegram Login (OIDC через Login Widget) отменён продуктом 2026-07-08, см. `.planning/phases/03-telegram-login-registration/03-CANCELLED.md`
 - Сессия — `accessToken` (короткоживущий) + `refreshToken` (ротация при обновлении, single-flight через `tryRefreshTokens()` в `api-client.ts`), хранятся в `localStorage` + зеркальная non-httpOnly cookie для SSR-гейтинга (не NextAuth, не httpOnly session)
 
 ### Mini App

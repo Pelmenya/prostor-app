@@ -1,7 +1,7 @@
 # Requirements: PROSTOR App — Web Auth Rework
 
 **Defined:** 2026-07-03
-**Core Value:** Пользователь должен суметь зарегистрироваться и войти (по почте или через Telegram) и остаться авторизованным — вся цепочка issue/refresh/logout токенов обязана работать без дыр.
+**Core Value:** Пользователь должен суметь зарегистрироваться и войти по почте и остаться авторизованным — вся цепочка issue/refresh/logout токенов обязана работать без дыр.
 
 ## v1 Requirements
 
@@ -25,23 +25,27 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **LOGIN-01**: Пользователь может войти по email и паролю (`POST /auth/web/login`)
 - [x] **LOGIN-02**: При 401 показывается общее сообщение «Неверная почта или пароль» без уточнения, существует ли такой email
 
-### Telegram Login & Registration
+### Telegram Login & Registration — ❌ CANCELLED 2026-07-08
 
-- [ ] **TG-01**: Существующий пользователь входит через Telegram: nonce (`POST /auth/telegram/nonce`) → Telegram Login OIDC → `id_token` → `POST /auth/telegram/login` → токены сохранены, редирект в кабинет
-- [ ] **TG-02**: Если Telegram-профиль новый (`registrationRequired: true`), показывается форма завершения регистрации: имя/фамилия/аватар — из `profile`, email и телефон — обязательны, два чекбокса согласий, без поля пароля
-- [ ] **TG-03**: `registrationToken` хранится только в `sessionStorage`, считается одноразовым и живёт 10 минут; при истечении или неоднозначной сетевой ошибке весь Telegram-вход запускается заново
-- [ ] **TG-04**: Если `POST /auth/telegram/register` сообщает, что email уже занят — второй аккаунт не создаётся, показывается сообщение с редиректом на вход по почте, после входа предлагается «Привязать Telegram»
+Продукт отказался от Telegram Login на вебе. Wave 1 (TG-01/TG-03 частично) была смержена и полностью откачена через `git revert` — см. `.planning/phases/03-telegram-login-registration/03-CANCELLED.md`.
 
-### Account Linking
+- ~~**TG-01**: Существующий пользователь входит через Telegram: nonce (`POST /auth/telegram/nonce`) → Telegram Login OIDC → `id_token` → `POST /auth/telegram/login` → токены сохранены, редирект в кабинет~~
+- ~~**TG-02**: Если Telegram-профиль новый (`registrationRequired: true`), показывается форма завершения регистрации: имя/фамилия/аватар — из `profile`, email и телефон — обязательны, два чекбокса согласий, без поля пароля~~
+- ~~**TG-03**: `registrationToken` хранится только в `sessionStorage`, считается одноразовым и живёт 10 минут; при истечении или неоднозначной сетевой ошибке весь Telegram-вход запускается заново~~
+- ~~**TG-04**: Если `POST /auth/telegram/register` сообщает, что email уже занят — второй аккаунт не создаётся, показывается сообщение с редиректом на вход по почте, после входа предлагается «Привязать Telegram»~~
 
-- [ ] **LINK-01**: Авторизованный по email/паролю пользователь может привязать Telegram: новый nonce → Telegram Login → новый `id_token` → `POST /auth/telegram/link`
-- [ ] **LINK-02**: После привязки пользователь может входить обоими способами (email или Telegram)
+### Account Linking — ❌ CANCELLED 2026-07-08
 
-### Password Management
+Зависел целиком от Telegram Login выше — отменён вместе с ним.
 
-- [ ] **PASS-01**: Пользователь, зарегистрированный только через Telegram (без пароля), может запросить установку пароля через «Установить/восстановить пароль» (`POST /auth/forgot-password`)
-- [ ] **PASS-02**: Пользователь завершает установку/сброс пароля по ссылке `/reset-password?token=...` (`POST /auth/reset-password`)
-- [ ] **PASS-03**: После установки пароля пользователь может входить и через Telegram, и по почте
+- ~~**LINK-01**: Авторизованный по email/паролю пользователь может привязать Telegram: новый nonce → Telegram Login → новый `id_token` → `POST /auth/telegram/link`~~
+- ~~**LINK-02**: После привязки пользователь может входить обоими способами (email или Telegram)~~
+
+### Password Management — ❌ CANCELLED 2026-07-08
+
+- ~~**PASS-01**: Пользователь, зарегистрированный только через Telegram (без пароля), может запросить установку пароля через «Установить/восстановить пароль» (`POST /auth/forgot-password`)~~
+- ~~**PASS-02**: Пользователь завершает установку/сброс пароля по ссылке `/reset-password?token=...` (`POST /auth/reset-password`)~~
+- ~~**PASS-03**: После установки пароля пользователь может входить и через Telegram, и по почте~~
 
 ### Session / JWT Lifecycle
 
@@ -69,6 +73,7 @@ Explicitly excluded. Documented to prevent scope creep.
 
 | Feature                                             | Reason                                                                                                                 |
 | --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Telegram Login (веб-вход/регистрация через OIDC)    | Отменено продуктом 2026-07-08 — веб-авторизация остаётся email/пароль-only (TG-01..04, LINK-01/02, PASS-01..03)        |
 | NextAuth / Auth.js                                  | Новый backend-контракт отдаёт голые accessToken/refreshToken для ручного управления — не соответствует модели NextAuth |
 | Яндекс ID OAuth                                     | Отменено вместе с NextAuth-планом                                                                                      |
 | Magic link (Telegram/MAX → Web)                     | Отменено вместе с NextAuth-планом; мультиплатформенность заморожена                                                    |
@@ -80,39 +85,40 @@ Explicitly excluded. Documented to prevent scope creep.
 
 Which phases cover which requirements. Updated during roadmap creation.
 
-| Requirement | Phase                                              | Status   |
-| ----------- | -------------------------------------------------- | -------- |
-| REG-01      | Phase 2 — Email Registration, Verification & Login | Complete |
-| REG-02      | Phase 2 — Email Registration, Verification & Login | Complete |
-| REG-03      | Phase 2 — Email Registration, Verification & Login | Complete |
-| REG-04      | Phase 2 — Email Registration, Verification & Login | Complete |
-| VERIFY-01   | Phase 2 — Email Registration, Verification & Login | Complete |
-| VERIFY-02   | Phase 2 — Email Registration, Verification & Login | Complete |
-| VERIFY-03   | Phase 2 — Email Registration, Verification & Login | Complete |
-| LOGIN-01    | Phase 2 — Email Registration, Verification & Login | Complete |
-| LOGIN-02    | Phase 2 — Email Registration, Verification & Login | Complete |
-| TG-01       | Phase 3 — Telegram Login & Registration            | Pending  |
-| TG-02       | Phase 3 — Telegram Login & Registration            | Pending  |
-| TG-03       | Phase 3 — Telegram Login & Registration            | Pending  |
-| TG-04       | Phase 3 — Telegram Login & Registration            | Pending  |
-| LINK-01     | Phase 4 — Account Linking & Password Management    | Pending  |
-| LINK-02     | Phase 4 — Account Linking & Password Management    | Pending  |
-| PASS-01     | Phase 4 — Account Linking & Password Management    | Pending  |
-| PASS-02     | Phase 4 — Account Linking & Password Management    | Pending  |
-| PASS-03     | Phase 4 — Account Linking & Password Management    | Pending  |
-| SESSION-01  | Phase 1 — JWT Session Lifecycle                    | Complete |
-| SESSION-02  | Phase 1 — JWT Session Lifecycle                    | Complete |
-| SESSION-03  | Phase 1 — JWT Session Lifecycle                    | Complete |
-| SESSION-04  | Phase 1 — JWT Session Lifecycle                    | Complete |
-| SESSION-05  | Phase 1 — JWT Session Lifecycle                    | Complete |
+| Requirement | Phase                                              | Status    |
+| ----------- | -------------------------------------------------- | --------- |
+| REG-01      | Phase 2 — Email Registration, Verification & Login | Complete  |
+| REG-02      | Phase 2 — Email Registration, Verification & Login | Complete  |
+| REG-03      | Phase 2 — Email Registration, Verification & Login | Complete  |
+| REG-04      | Phase 2 — Email Registration, Verification & Login | Complete  |
+| VERIFY-01   | Phase 2 — Email Registration, Verification & Login | Complete  |
+| VERIFY-02   | Phase 2 — Email Registration, Verification & Login | Complete  |
+| VERIFY-03   | Phase 2 — Email Registration, Verification & Login | Complete  |
+| LOGIN-01    | Phase 2 — Email Registration, Verification & Login | Complete  |
+| LOGIN-02    | Phase 2 — Email Registration, Verification & Login | Complete  |
+| TG-01       | Phase 3 — CANCELLED 2026-07-08                     | Cancelled |
+| TG-02       | Phase 3 — CANCELLED 2026-07-08                     | Cancelled |
+| TG-03       | Phase 3 — CANCELLED 2026-07-08                     | Cancelled |
+| TG-04       | Phase 3 — CANCELLED 2026-07-08                     | Cancelled |
+| LINK-01     | Phase 4 — CANCELLED 2026-07-08                     | Cancelled |
+| LINK-02     | Phase 4 — CANCELLED 2026-07-08                     | Cancelled |
+| PASS-01     | Phase 4 — CANCELLED 2026-07-08                     | Cancelled |
+| PASS-02     | Phase 4 — CANCELLED 2026-07-08                     | Cancelled |
+| PASS-03     | Phase 4 — CANCELLED 2026-07-08                     | Cancelled |
+| SESSION-01  | Phase 1 — JWT Session Lifecycle                    | Complete  |
+| SESSION-02  | Phase 1 — JWT Session Lifecycle                    | Complete  |
+| SESSION-03  | Phase 1 — JWT Session Lifecycle                    | Complete  |
+| SESSION-04  | Phase 1 — JWT Session Lifecycle                    | Complete  |
+| SESSION-05  | Phase 1 — JWT Session Lifecycle                    | Complete  |
 
 **Coverage:**
 
 - v1 requirements: 23 total
-- Mapped to phases: 23 (roadmap created 2026-07-03)
+- Complete: 14 (Phase 1 + Phase 2)
+- Cancelled: 9 (TG-01..04, LINK-01/02, PASS-01..03 — Phase 3/4 cancelled 2026-07-08)
 - Unmapped: 0 ✓
 
 ---
 
 _Requirements defined: 2026-07-03_
-_Last updated: 2026-07-03 after roadmap creation_
+_Last updated: 2026-07-08 after Phase 3/4 cancellation_

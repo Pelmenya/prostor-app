@@ -2,38 +2,37 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 03
-current_phase_name: Telegram Login & Registration
-status: executing
-stopped_at: Phase 03 planned — 3 plans (03-01, 03-02, 03-03), waves 1/2, verification passed
-last_updated: '2026-07-06T08:08:52.919Z'
-last_activity: 2026-07-06
-last_activity_desc: Phase 03 execution started
+current_phase: 02
+current_phase_name: Email Registration, Verification & Login
+status: complete
+stopped_at: Milestone effectively complete — Phase 3 (Telegram Login) and Phase 4 (Account Linking) cancelled 2026-07-08 by product decision; web auth stays email/password-only through WebAdapter's JWT flow
+last_updated: '2026-07-08T00:00:00.000Z'
+last_activity: 2026-07-08
+last_activity_desc: Phase 3 cancelled — reverted merged Wave 1 (git revert), planning docs marked cancelled, roadmap/requirements/PROJECT.md updated
 progress:
-    total_phases: 4
+    total_phases: 2
     completed_phases: 2
-    total_plans: 9
+    total_plans: 6
     completed_plans: 6
-    percent: 50
+    percent: 100
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-07-03)
+See: .planning/PROJECT.md (updated 2026-07-08)
 
-**Core value:** Пользователь должен суметь зарегистрироваться и войти (по почте или через Telegram) и остаться авторизованным — вся цепочка issue/refresh/logout токенов обязана работать без дыр.
-**Current focus:** Phase 03 — Telegram Login & Registration
+**Core value:** Пользователь должен суметь зарегистрироваться и войти по почте и остаться авторизованным — вся цепочка issue/refresh/logout токенов обязана работать без дыр.
+**Current focus:** Milestone complete (Phase 1 + Phase 2). Phase 3/4 cancelled.
 
 ## Current Position
 
-Phase: 03 (Telegram Login & Registration) — EXECUTING
-Plan: 1 of 3
-Status: Executing Phase 03
-Last activity: 2026-07-06 — Phase 03 execution started
+Phase: 02 (Email Registration, Verification & Login) — COMPLETE (last active phase)
+Status: Milestone effectively complete — Phase 3/4 cancelled 2026-07-08
+Last activity: 2026-07-08 — Phase 3 cancellation: reverted Wave 1, updated planning docs
 
-Progress: [██████████░░░░░░░░░░] 50% (2/4 phases)
+Progress: [████████████████████] 100% (2/2 active phases)
 
 ## Performance Metrics
 
@@ -45,11 +44,11 @@ Progress: [██████████░░░░░░░░░░] 50% (2/
 
 **By Phase:**
 
-| Phase | Plans | Total | Avg/Plan |
-| ----- | ----- | ----- | -------- |
-| 01    | 3     | -     | -        |
-| 02    | 3     | -     | -        |
-| 03    | 3     | -     | -        |
+| Phase | Plans     | Total | Avg/Plan |
+| ----- | --------- | ----- | -------- |
+| 01    | 3         | -     | -        |
+| 02    | 3         | -     | -        |
+| 03    | cancelled | -     | -        |
 
 **Recent Trend:**
 
@@ -66,8 +65,9 @@ Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
 - PROJECT.md: Отказ от NextAuth в пользу собственного JWT-флоу через WebAdapter (backend отдаёт голые accessToken/refreshToken)
-- PROJECT.md: Telegram Mini App / MAX код не удаляется в этом проекте (мультиплатформенность заморожена, не снесена)
+- PROJECT.md: Telegram Mini App / MAX код не удаляется в этом проекте (мультиплатформенность заморожена, не снесена) — **не путать** с отменой Telegram Login ниже, это разные вещи
 - Roadmap: Session/JWT lifecycle (Phase 1) поставлена первой намеренно — ни один login-флоу не тестируется осмысленно без работающего token storage/refresh, даже если сама фаза не создаёт новый UI
+- PROJECT.md (2026-07-08): Telegram Login (веб OIDC-вход через Login Widget, Phase 3/4) отменён продуктом целиком — веб-авторизация остаётся email/пароль-only. Смерженная Wave 1 Phase 3 откачена через `git revert`
 
 ### Pending Todos
 
@@ -77,7 +77,6 @@ None yet.
 
 - 8 файлов с `// TODO(SSR-auth)` (7 `(web)` client-компонентов + `use-auth.ts`, `ssr: false` воркэраунд; переименовано из `TODO(NextAuth)` — старый ярлык ссылался на отменённый план) — конвертация обратно на SSR не входит явно ни в одну фазу этого roadmap; проверить на транзишене, возможно потребует отдельного тех-долг тикета
 - [Phase 1] `src/proxy.ts` содержит третью дублирующую копию private-paths логики (помимо `shared/config/private-paths.ts`) — вне скоупа Phase 1 ревью, не устранено
-- [Phase 3] Telegram-бот НЕ настроен в режиме «Web Login»/OIDC через BotFather (client_id, разрешённый домен) — блокирует только живую браузерную проверку (Playwright), не блокирует написание кода/юнит-тестов. Пользователь подтвердил 2026-07-06.
 
 ## Deferred Items
 
@@ -89,6 +88,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-06
-Stopped at: Phase 03 planned — 3 plans ready, verification passed
+Last session: 2026-07-08
+Stopped at: Phase 3/4 cancellation complete — Wave 1 reverted, planning docs/roadmap/requirements/PROJECT.md/CLAUDE.md updated. Milestone effectively complete at Phase 2.
 Resume file: None
