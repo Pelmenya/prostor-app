@@ -19,7 +19,6 @@ export class WebAdapter implements TPlatformAdapter {
         return mapUserToPlatformUser(user);
     }
 
-    // TODO(NextAuth): заменить на !!session?.user после реализации NextAuth (шаг 2 AUTH_ADAPTER.md)
     isAuthenticated(): boolean {
         return useAuthStore.getState().isAuthenticated;
     }

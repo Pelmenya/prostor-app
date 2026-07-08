@@ -6,8 +6,8 @@ import Link from 'next/link';
 import { useForm, useFormContext, Controller, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { webRegister } from '@/features/auth';
-import { ApiError } from '@/shared/api';
+import { webRegister, REGISTRATION_NOTICE_FLAG_KEY } from '@/features/auth';
+import { ApiError, resetSessionExpiredNotified } from '@/shared/api';
 import {
     useAuthStore,
     extractErrorMessage,
@@ -161,6 +161,8 @@ function RegisterForm() {
             clearDraft();
             setTokens(data.accessToken, data.refreshToken);
             setUser(data.user);
+            resetSessionExpiredNotified();
+            sessionStorage.setItem(REGISTRATION_NOTICE_FLAG_KEY, '1'); // читается RegistrationNoticeListener (REG-03)
             router.push(getSafeRedirect(searchParams.get('from')));
         } catch (err) {
             if (err instanceof ApiError) {

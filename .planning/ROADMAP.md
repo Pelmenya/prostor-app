@@ -1,0 +1,121 @@
+# Roadmap: PROSTOR App — Web Auth Rework
+
+## Overview
+
+The web platform currently has no real authentication — every `(web)` page runs on a dev-token workaround. This milestone replaces that with a self-managed JWT flow through `WebAdapter`: token storage/refresh/logout infrastructure first (nothing else can be meaningfully verified without it), then the email register → verify → login vertical slice that gives users a real account. Phase 3 (Telegram Login) and Phase 4 (Account Linking, which depended on it) were cancelled 2026-07-08 — product decided web auth stays email/password-only through `WebAdapter`'s JWT flow, no Telegram entry point. The milestone now effectively ends at Phase 2. Telegram Mini App (`TelegramAdapter`, `(miniapp)` layout) is unaffected — this cancellation is scoped to web login only.
+
+## Phases
+
+**Phase Numbering:**
+
+- Integer phases (1, 2, 3): Planned milestone work
+- Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
+
+Decimal phases appear between their surrounding integers in numeric order.
+
+- [x] **Phase 1: JWT Session Lifecycle** - Token storage, single-flight refresh, and logout work reliably underneath every future auth flow (completed 2026-07-03)
+- [x] **Phase 2: Email Registration, Verification & Login** - A user can create an account by email, verify it, and log in — landing in an authenticated personal cabinet (completed 2026-07-04)
+- [~] **Phase 3: Telegram Login & Registration** - CANCELLED 2026-07-08 — product decided web auth stays email/password-only, no Telegram login entry point
+- [~] **Phase 4: Account Linking & Password Management** - CANCELLED 2026-07-08 — depended entirely on Phase 3
+
+## Phase Details
+
+### Phase 1: JWT Session Lifecycle
+
+**Goal**: Authenticated requests reliably carry, refresh, and clear JWT tokens across the app — the infrastructure every login/registration flow in later phases depends on. No login flow can be meaningfully tested without this working first.
+**Mode:** mvp
+**Depends on**: Nothing (first phase)
+**Requirements**: SESSION-01, SESSION-02, SESSION-03, SESSION-04, SESSION-05
+**Success Criteria** (what must be TRUE):
+
+1. Every request to a protected endpoint includes `Authorization: Bearer <accessToken>` when a token is present (visible in the Network tab)
+2. When an access token is expired or near expiry, the app transparently calls `POST /auth/web/refresh` and retries the original request — the user notices nothing and stays signed in
+3. Firing multiple protected requests at once while the token is expired triggers exactly one `POST /auth/web/refresh` call (single-flight, refresh token rotates); every pending request still succeeds using the refreshed token
+4. If the refresh call also comes back 401, all local tokens are cleared and the user is sent back to sign in
+5. Triggering logout clears local tokens and ends the session immediately, even if the `POST /auth/web/logout` network call fails or times out
+   **Plans**: 3/3 plans complete
+
+- [x] 01-01-PLAN.md — SESSION-01/05 regression tests (Bearer header positive case, direct-call-site audit, logout-survives-network-failure)
+- [x] 01-02-PLAN.md — SESSION-02/03 single-flight refresh hardening (static import) + dedup & both-tokens-replaced tests
+- [x] 01-03-PLAN.md — SESSION-04 forced logout+redirect on terminal refresh failure (auth:session-expired event + SessionExpiredListener)
+
+### Phase 2: Email Registration, Verification & Login
+
+**Goal**: As a new or returning user, I want to register by email, verify my email, and log in by email or password, so that I land in my authenticated personal cabinet through a shared auth screen. (Originally scoped for Phase 3 to extend with Telegram login — Phase 3 was cancelled 2026-07-08; the auth screen is email/password-only.)
+**Mode:** mvp
+**Depends on**: Phase 1
+**Requirements**: REG-01, REG-02, REG-03, REG-04, VERIFY-01, VERIFY-02, VERIFY-03, LOGIN-01, LOGIN-02
+**Success Criteria** (what must be TRUE):
+
+1. User can fill out the registration form (имя, фамилия, email, телефон, пароль ≥8 символов, 2 чекбокса согласий) and submit it, creating an account via `POST /auth/web/register`
+2. After successful registration, the user is immediately authenticated (tokens stored), redirected to the personal cabinet, and sees a "Мы отправили письмо для подтверждения почты" notice
+3. Clicking the email verification link (`/verify-email?token=...`) shows "Почта подтверждена"; an unverified user can keep using the app and reach the personal cabinet without any block
+4. An authenticated user can request the verification email again (`POST /auth/resend-verification`) without hitting a wall
+5. User can log in with existing email/password from the auth screen (which also offers "Регистрация"); a wrong email or password shows one generic "Неверная почта или пароль" message that never reveals which part was wrong
+   **Plans**: 3/3 plans complete
+
+- [x] 02-01-PLAN.md — Auth screen: LOGIN-02 status-gated error hardening + disabled Telegram entry (LOGIN-01/02)
+- [x] 02-02-PLAN.md — Post-registration verification notice: RegistrationNoticeListener + register flag (REG-01/02/03)
+- [x] 02-03-PLAN.md — Email verify copy fix + resend row + no-gating regression (REG-04, VERIFY-01/02/03)
+      **UI hint**: yes
+
+### Phase 3: Telegram Login & Registration — ❌ CANCELLED (2026-07-08)
+
+**Причина отмены:** продукт отказался от Telegram Login как способа веб-аутентификации — остаётся только email/пароль через `WebAdapter`. Планирование было завершено (RESEARCH/UI-SPEC/PATTERNS/VALIDATION/3 плана готовы), Wave 1 (`03-01`) была выполнена и смержена в `feature/web-auth-rework`, затем полностью откачена через `git revert` (см. `.planning/phases/03-telegram-login-registration/03-CANCELLED.md`). Wave 2 (`03-02`, `03-03`) не запускалась.
+
+<details>
+<summary>Исходный план фазы (архив, не действует)</summary>
+
+**Goal**: As a user, I want to authenticate or register entirely through Telegram from the auth screen built in Phase 2, so that new accounts are detected correctly and email conflicts are handled gracefully instead of creating duplicate accounts.
+**Mode:** mvp
+**Depends on**: Phase 2
+**Requirements**: TG-01, TG-02, TG-03, TG-04
+**Success Criteria** (what must be TRUE):
+
+1. Clicking "Войти через Telegram" for an existing account runs nonce (`POST /auth/telegram/nonce`) → Telegram Login OIDC → `id_token` → `POST /auth/telegram/login`, and lands the user in the personal cabinet with valid tokens
+2. A brand-new Telegram profile (`registrationRequired: true`) is routed to a completion form — имя/фамилия/аватар prefilled from the Telegram profile, email and телефон required, 2 чекбокса согласий, no password field — before `POST /auth/telegram/register` creates the account
+3. The `registrationToken` used in that flow lives only in `sessionStorage`, is treated as one-time and 10-minute-lived, and letting it expire (or hitting an ambiguous network error) forces the whole Telegram flow to restart from the beginning rather than failing silently
+4. If `POST /auth/telegram/register` reports the email is already taken, no second account is created — the user sees a message redirecting them to email login, and is offered "Привязать Telegram" after logging in there
+
+- 03-01-PLAN.md — TG-01 login slice + shared OIDC foundation (nonce→popup→id_token→login, sessionStorage lifecycle, 5-state button) [Wave 1]
+- 03-02-PLAN.md — TG-02/03/04 registration-completion page (/telegram-register) + restart/conflict states + proxy guard [Wave 2]
+- 03-03-PLAN.md — TG-04 tail: disabled "Привязать Telegram" profile hint row [Wave 2]
+
+</details>
+
+### Phase 4: Account Linking & Password Management — ❌ CANCELLED (2026-07-08)
+
+**Причина отмены:** полностью зависел от Phase 3 (привязка Telegram к аккаунту) — отменён вместе с ней. Не планировался (Plans: TBD).
+
+<details>
+<summary>Исходный план фазы (архив, не действует)</summary>
+
+**Goal**: A logged-in user can consolidate their identity — linking Telegram to a password account, or setting a password on a Telegram-only account — so they can authenticate through either method afterward.
+**Mode:** mvp
+**Depends on**: Phase 2, Phase 3
+**Requirements**: LINK-01, LINK-02, PASS-01, PASS-02, PASS-03
+**Success Criteria** (what must be TRUE):
+
+1. A logged-in email/password user can trigger Telegram linking from their account, complete a fresh nonce → Telegram Login → `POST /auth/telegram/link` round trip, and see Telegram linked to the account
+2. After linking, that user can subsequently log in with either email/password or Telegram and lands on the same account
+3. A Telegram-only user (no password set) can request "Установить/восстановить пароль" (`POST /auth/forgot-password`) and receive a reset link
+4. Following the `/reset-password?token=...` link, the user sets a new password via `POST /auth/reset-password` and sees confirmation
+5. After setting a password, that user can subsequently log in with either Telegram or email/password
+
+</details>
+
+## Progress
+
+**Execution Order:**
+Phases execute in numeric order: 1 → 2. Milestone effectively ends here — Phase 3/4 cancelled 2026-07-08.
+
+| Phase                                       | Plans Complete | Status    | Completed  |
+| ------------------------------------------- | -------------- | --------- | ---------- |
+| 1. JWT Session Lifecycle                    | 3/3            | Complete  | 2026-07-03 |
+| 2. Email Registration, Verification & Login | 3/3            | Complete  | 2026-07-04 |
+| 3. Telegram Login & Registration            | —              | Cancelled | 2026-07-08 |
+| 4. Account Linking & Password Management    | —              | Cancelled | 2026-07-08 |
+
+---
+
+_Roadmap created: 2026-07-03_
