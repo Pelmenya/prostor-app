@@ -1,19 +1,13 @@
 # Авторизация: Adapter Pattern
 
-## Статус: 🔴 Отменён
+## Статус: 🟡 В работе
 
-Шаг 2 (Web авторизация через NextAuth/Яндекс ID/magic link) отменён 2026-07-03 в пользу
-собственного JWT-флоу через `WebAdapter` (accessToken/refreshToken, single-flight refresh).
-Актуальный план — `.planning/PROJECT.md` и `.planning/ROADMAP.md` (GSD-проект Web Auth Rework,
-4 фазы). Не использовать этот файл как референс для web-авторизации — оставлен как исторический
-контекст по Adapter Pattern (шаги 1/3/4 ниже по-прежнему актуальны).
-
-| Шаг                  | Описание                                           | Статус                                  |
-| -------------------- | -------------------------------------------------- | --------------------------------------- |
-| 1. Каркас            | platform adapter + api-слой + dev-токен            | ✅ Готов                                |
-| 2. Web авторизация   | ~~NextAuth (логин/пароль, Яндекс ID, magic link)~~ | 🔴 Отменён — см. `.planning/PROJECT.md` |
-| 3. Telegram Mini App | TelegramAdapter + @telegram-apps/sdk-react         | ⬜ Не начат                             |
-| 4. MAX Mini App      | MaxAdapter (SDK аналогичен Telegram)               | ⬜ Не начат                             |
+| Шаг                  | Описание                                       | Статус      |
+| -------------------- | ---------------------------------------------- | ----------- |
+| 1. Каркас            | platform adapter + api-слой + dev-токен        | ✅ Готов    |
+| 2. Web авторизация   | NextAuth (логин/пароль, Яндекс ID, magic link) | ⬜ Не начат |
+| 3. Telegram Mini App | TelegramAdapter + @telegram-apps/sdk-react     | ⬜ Не начат |
+| 4. MAX Mini App      | MaxAdapter (SDK аналогичен Telegram)           | ⬜ Не начат |
 
 ## Архитектура
 

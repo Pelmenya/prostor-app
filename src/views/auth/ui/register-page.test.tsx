@@ -2,7 +2,6 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { REGISTRATION_NOTICE_FLAG_KEY } from '@/features/auth';
 import { RegisterPage } from './register-page';
 
 const mockPush = vi.fn();
@@ -13,17 +12,13 @@ vi.mock('next/navigation', () => ({
     useSearchParams: () => ({ get: mockGet }),
 }));
 
-vi.mock('@/features/auth', async (importOriginal) => {
-    const actual = await importOriginal<typeof import('@/features/auth')>();
-    return {
-        ...actual,
-        webRegister: vi.fn().mockResolvedValue({
-            user: { id: 1, first_name: 'Тест', last_name: 'Тестов' },
-            accessToken: 'access-token',
-            refreshToken: 'refresh-token',
-        }),
-    };
-});
+vi.mock('@/features/auth', () => ({
+    webRegister: vi.fn().mockResolvedValue({
+        user: { id: 1, first_name: 'Тест', last_name: 'Тестов' },
+        accessToken: 'access-token',
+        refreshToken: 'refresh-token',
+    }),
+}));
 
 vi.mock('@/shared/lib', async (importOriginal) => {
     const actual = await importOriginal<Record<string, unknown>>();
@@ -61,11 +56,6 @@ function renderWithQuery(ui: React.ReactElement) {
 
 beforeEach(() => {
     vi.clearAllMocks();
-    // Изоляция от useFormDraft: без очистки черновик из предыдущего теста
-    // (сохраняется в sessionStorage при каждом watch()) подмешивается в
-    // defaultValues следующего рендера и userEvent.type дописывает поверх
-    // уже заполненных полей вместо пустых.
-    sessionStorage.clear();
 });
 
 describe('RegisterPage', () => {
@@ -138,55 +128,5 @@ describe('RegisterPage', () => {
 
         const loginLink = screen.getByRole('link', { name: 'Войти' });
         expect(loginLink).toHaveAttribute('href', '/login');
-    });
-
-    it('REG-02: happy path — создаёт аккаунт, сохраняет токены и редиректит', async () => {
-        const { webRegister } = await import('@/features/auth');
-        const { EUserRole } = await import('@/shared/model');
-        vi.mocked(webRegister).mockResolvedValueOnce({
-            user: {
-                id: 1,
-                uuid: 'test-uuid',
-                first_name: 'Тест',
-                last_name: 'Тестов',
-                role: EUserRole.CLIENT,
-                is_auth: true,
-            },
-            accessToken: 'access-token',
-            refreshToken: 'refresh-token',
-        });
-
-        const user = userEvent.setup();
-        renderWithQuery(<RegisterPage />);
-
-        await user.type(screen.getByPlaceholderText('Имя'), 'Тест');
-        await user.type(screen.getByPlaceholderText('Фамилия'), 'Тестов');
-        await user.type(screen.getByPlaceholderText('Email'), 'Test@Mail.ru');
-        await user.type(screen.getByPlaceholderText('+7 999 999-99-99'), '9991234567');
-        await user.type(screen.getByPlaceholderText('Пароль (минимум 8 символов)'), 'password123');
-
-        const checkboxes = screen.getAllByRole('checkbox');
-        await user.click(checkboxes[0]);
-        await user.click(checkboxes[1]);
-
-        await user.click(screen.getByRole('button', { name: 'Создать аккаунт' }));
-
-        await waitFor(() => {
-            expect(webRegister).toHaveBeenCalledWith({
-                first_name: 'Тест',
-                last_name: 'Тестов',
-                email: 'test@mail.ru',
-                phone: '+79991234567',
-                password: 'password123',
-                policyVersion: '1.0.0',
-                pdAgreementVersion: '1.0.0',
-            });
-        });
-
-        await waitFor(() => {
-            expect(mockPush).toHaveBeenCalledWith('/');
-        });
-
-        expect(sessionStorage.getItem(REGISTRATION_NOTICE_FLAG_KEY)).toBe('1');
     });
 });

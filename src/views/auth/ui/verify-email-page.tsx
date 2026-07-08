@@ -12,7 +12,7 @@ type TVerifyStatus = 'loading' | 'verified' | 'changed' | 'error';
 
 const STATUS_CONFIG = {
     verified: {
-        title: 'Почта подтверждена',
+        title: 'Email подтверждён',
         description:
             'Теперь вы будете получать уведомления о заказах и напоминания о замене картриджей.',
         linkHref: '/catalog',

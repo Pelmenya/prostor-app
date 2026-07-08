@@ -13,9 +13,6 @@ export {
 } from './api/auth-api';
 export type { TAuthResponse } from './api/auth-api';
 export { useLogout } from './lib/use-logout';
-export { REGISTRATION_NOTICE_FLAG_KEY } from './lib/registration-notice';
-export { SessionExpiredListener } from './ui/session-expired-listener';
-export { RegistrationNoticeListener } from './ui/registration-notice-listener';
 export {
     loginSchema,
     newPasswordSchema,

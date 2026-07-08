@@ -6,8 +6,14 @@ import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { webLogin, loginSchema, type TLoginForm } from '@/features/auth';
-import { ApiError, resetSessionExpiredNotified } from '@/shared/api';
-import { useAuthStore, getSafeRedirect, useFormDraft, getFormDraft } from '@/shared/lib';
+import { ApiError } from '@/shared/api';
+import {
+    useAuthStore,
+    extractErrorMessage,
+    getSafeRedirect,
+    useFormDraft,
+    getFormDraft,
+} from '@/shared/lib';
 import { PageContainer, FormField } from '@/shared/ui';
 
 function LoginForm() {
@@ -36,15 +42,10 @@ function LoginForm() {
             clearDraft();
             setTokens(data.accessToken, data.refreshToken);
             setUser(data.user);
-            resetSessionExpiredNotified();
             router.push(getSafeRedirect(searchParams.get('from')));
         } catch (err) {
-            if (err instanceof ApiError && err.status === 401) {
-                // OWASP A07: единое сообщение независимо от причины (несуществующий
-                // email vs неверный пароль) — backend-message из 401-тела не рендерим.
-                setServerError('Неверная почта или пароль');
-            } else if (err instanceof ApiError) {
-                setServerError('Не удалось войти. Попробуйте позже.');
+            if (err instanceof ApiError) {
+                setServerError(extractErrorMessage(err.data, 'Неверный email или пароль'));
             } else {
                 setServerError('Ошибка сети');
             }

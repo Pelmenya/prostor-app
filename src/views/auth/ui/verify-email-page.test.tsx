@@ -79,7 +79,7 @@ describe('VerifyEmailPage', () => {
         renderWithProviders(<VerifyEmailPage />);
 
         await waitFor(() => {
-            expect(screen.getByText('Почта подтверждена')).toBeInTheDocument();
+            expect(screen.getByText('Email подтверждён')).toBeInTheDocument();
         });
         expect(mockVerifyEmail).toHaveBeenCalledWith('valid-token');
     });

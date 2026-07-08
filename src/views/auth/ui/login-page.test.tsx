@@ -1,7 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { ApiError } from '@/shared/api';
 import { LoginPage } from './login-page';
 
 const mockPush = vi.fn();
@@ -37,10 +36,6 @@ vi.mock('@/shared/lib', async (importOriginal) => {
 
 beforeEach(() => {
     vi.clearAllMocks();
-    // WR-06: useFormDraft персистит email в sessionStorage между тестами —
-    // без очистки поле Email в следующем тесте предзаполняется прошлым
-    // значением и user.type() дописывает поверх, ломая email-валидацию.
-    sessionStorage.clear();
 });
 
 describe('LoginPage', () => {
@@ -119,56 +114,5 @@ describe('LoginPage', () => {
 
         const registerLink = screen.getByRole('link', { name: 'Зарегистрироваться' });
         expect(registerLink).toHaveAttribute('href', '/register');
-    });
-
-    it('LOGIN-02: подавляет backend-сообщение 401 и показывает locked-строку', async () => {
-        const { webLogin } = await import('@/features/auth');
-        vi.mocked(webLogin).mockRejectedValueOnce(
-            new ApiError(401, 'Unauthorized', { message: 'User not found' }),
-        );
-        const user = userEvent.setup();
-        render(<LoginPage />);
-
-        await user.type(screen.getByPlaceholderText('Email'), 'test@mail.ru');
-        await user.type(screen.getByPlaceholderText('Пароль'), 'password123');
-        await user.click(screen.getByRole('button', { name: 'Войти' }));
-
-        await waitFor(() => {
-            expect(screen.getByText('Неверная почта или пароль')).toBeInTheDocument();
-        });
-        expect(screen.queryByText('User not found')).not.toBeInTheDocument();
-    });
-
-    it('LOGIN-02: показывает locked-строку и без поля message в data (defense-in-depth)', async () => {
-        const { webLogin } = await import('@/features/auth');
-        vi.mocked(webLogin).mockRejectedValueOnce(new ApiError(401, 'Unauthorized', {}));
-        const user = userEvent.setup();
-        render(<LoginPage />);
-
-        await user.type(screen.getByPlaceholderText('Email'), 'test@mail.ru');
-        await user.type(screen.getByPlaceholderText('Пароль'), 'password123');
-        await user.click(screen.getByRole('button', { name: 'Войти' }));
-
-        await waitFor(() => {
-            expect(screen.getByText('Неверная почта или пароль')).toBeInTheDocument();
-        });
-    });
-
-    it('WR-01: не показывает locked-строку для не-401 ApiError (например 429)', async () => {
-        const { webLogin } = await import('@/features/auth');
-        vi.mocked(webLogin).mockRejectedValueOnce(
-            new ApiError(429, 'Too Many Requests', { message: 'rate limited' }),
-        );
-        const user = userEvent.setup();
-        render(<LoginPage />);
-
-        await user.type(screen.getByPlaceholderText('Email'), 'test@mail.ru');
-        await user.type(screen.getByPlaceholderText('Пароль'), 'password123');
-        await user.click(screen.getByRole('button', { name: 'Войти' }));
-
-        await waitFor(() => {
-            expect(screen.getByText('Не удалось войти. Попробуйте позже.')).toBeInTheDocument();
-        });
-        expect(screen.queryByText('Неверная почта или пароль')).not.toBeInTheDocument();
     });
 });

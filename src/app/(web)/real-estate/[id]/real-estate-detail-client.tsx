@@ -3,7 +3,7 @@
 import dynamic from 'next/dynamic';
 
 // SSR отключён: auth-состояние читается из localStorage (только клиент).
-// TODO(SSR-auth): вернуть SSR с prefetchQuery + HydrationBoundary
+// TODO(NextAuth): после реализации NextAuth вернуть SSR с prefetchQuery + HydrationBoundary
 const AddressDetailPageDynamic = dynamic(
     () => import('@/views/addresses').then((m) => ({ default: m.AddressDetailPage })),
     { ssr: false },
