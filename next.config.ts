@@ -61,6 +61,9 @@ const nextConfig: NextConfig = {
             {
                 pathname: '/api/moysklad/image',
             },
+            {
+                pathname: '/assets/**',
+            },
         ],
         remotePatterns: [
             {
