@@ -30,39 +30,48 @@
 
 ### Ядро
 
-| Пакет | Версия | Зачем | Заменяет |
-|-------|--------|-------|----------|
-| **Next.js** | 16.x | Фреймворк, SSR/SSG, App Router | Vite 5 + React Router 6 |
-| **React** | 19.x | React Compiler — автоматическая мемоизация | React 18 |
-| **TypeScript** | 6.x → 7.x | 6 = мост, 7 = Go-компилятор (10x быстрее, середина 2026) | TS 5.4 |
+| Пакет          | Версия    | Зачем                                                    | Заменяет                |
+| -------------- | --------- | -------------------------------------------------------- | ----------------------- |
+| **Next.js**    | 16.x      | Фреймворк, SSR/SSG, App Router                           | Vite 5 + React Router 6 |
+| **React**      | 19.x      | React Compiler — автоматическая мемоизация               | React 18                |
+| **TypeScript** | 6.x → 7.x | 6 = мост, 7 = Go-компилятор (10x быстрее, середина 2026) | TS 5.4                  |
 
 ### UI
 
-| Пакет | Версия | Зачем | Заменяет |
-|-------|--------|-------|----------|
-| **Tailwind CSS** | 4.2.x | CSS-утилиты, v4 = CSS-based конфиг | Tailwind 4.0.7 |
-| **DaisyUI** | 5.5.x | UI-компоненты поверх Tailwind, вышел в stable | DaisyUI 5.0.0-beta.8 |
+| Пакет            | Версия | Зачем                                         | Заменяет             |
+| ---------------- | ------ | --------------------------------------------- | -------------------- |
+| **Tailwind CSS** | 4.2.x  | CSS-утилиты, v4 = CSS-based конфиг            | Tailwind 4.0.7       |
+| **DaisyUI**      | 5.5.x  | UI-компоненты поверх Tailwind, вышел в stable | DaisyUI 5.0.0-beta.8 |
 
 ### State & Data
 
-| Пакет | Версия | Зачем | Заменяет |
-|-------|--------|-------|----------|
-| **RTK Query** | 2.11.x | API-слой, кэширование, мутации | RTK 2.5.1 (переезжает без изменений) |
-| **React Redux** | 9.x | Привязка Redux к React | Без изменений |
-| **date-fns** | 4.x | Работа с датами | Без изменений |
+| Пакет               | Версия | Зачем                                                 | Заменяет                    |
+| ------------------- | ------ | ----------------------------------------------------- | --------------------------- |
+| **TanStack Query**  | 5.90.x | API-слой, кэширование, мутации, refetch on focus, SWR | RTK Query 2.5.1             |
+| **Zustand**         | 5.0.x  | Клиентский UI state + persist (localStorage)          | Redux Toolkit + React Redux |
+| **React Hook Form** | 7.x    | Управляемые формы                                     | Без изменений               |
+| **Zod**             | 3.x    | Runtime validation (TS-инференс типов из схем)        | Без изменений               |
+| **date-fns**        | 4.x    | Работа с датами                                       | Без изменений               |
+
+**Решение пересмотрено** в Phase 1 (Web MVP): после оценки RTK Query vs TanStack
+Query на реальных кейсах (каталог, корзина, water-analysis) — TanStack даёт
+лучше DX (queryKey-based кэш, suspense-режим, infinite queries встроены),
+плюс Zustand для UI-state легче чем Redux store с slices. Если в будущем понадобится
+shared business state между фичами с time-travel debugging — можно вернуть RTK,
+но пока TanStack + Zustand покрывают все use cases.
 
 ### Аутентификация
 
-| Пакет | Версия | Зачем | Заменяет |
-|-------|--------|-------|----------|
-| **NextAuth / Auth.js** | 4.x / 5.x | Логин/пароль, Яндекс ID (OAuth), magic link, JWT, сессии | Telegram initDataRaw (единственный способ) |
-| **@telegram-apps/sdk-react** | 3.x | Для Telegram Mini App layout | 2.0.20 |
+| Пакет                                   | Версия | Зачем                                                                                                                                                                  | Заменяет                                   |
+| --------------------------------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| **Собственный JWT-флоу (`WebAdapter`)** | —      | Логин/пароль, регистрация, verify-email, forgot/reset password, accessToken/refreshToken с ротацией — без NextAuth (см. `.planning/PROJECT.md`, решение от 2026-07-03) | Telegram initDataRaw (единственный способ) |
+| **@telegram-apps/sdk-react**            | 3.x    | Для Telegram Mini App layout                                                                                                                                           | 2.0.20                                     |
 
 ### Платежи
 
-| Пакет | Версия | Зачем | Заменяет |
-|-------|--------|-------|----------|
-| **ЮKassa виджет** | — | Прямая интеграция без мессенджера | Telegram Payments API |
+| Пакет             | Версия | Зачем                             | Заменяет              |
+| ----------------- | ------ | --------------------------------- | --------------------- |
+| **ЮKassa виджет** | —      | Прямая интеграция без мессенджера | Telegram Payments API |
 
 ---
 
@@ -71,6 +80,7 @@
 ### React Compiler (автоматическая мемоизация)
 
 Компилятор автоматически оптимизирует ререндеры. Больше не нужны:
+
 - `useMemo()` — компилятор сам определяет что кэшировать
 - `useCallback()` — функции мемоизируются автоматически
 - `React.memo()` — компоненты оптимизируются без обёртки
@@ -133,29 +143,26 @@ app/
 │   └── profile/                — Профиль
 │
 ├── api/                        — BFF (опционально)
-│   └── auth/
-│       └── [...nextauth]/      — NextAuth endpoints
 │
 └── shared/                     — Общие компоненты, хуки, утилиты
     ├── components/
     ├── hooks/
     ├── lib/
-    │   └── messenger/          — Adapter Pattern (Telegram/MAX/Web)
+    │   └── platform/           — Adapter Pattern (Telegram/MAX/Web)
     └── styles/
 ```
 
 ### Как это работает
 
-- **(web)** layout — серверный, SSR, `NextAuth` сессии, стандартная навигация
+- **(web)** layout — серверный, SSR, JWT-сессия через `WebAdapter`, стандартная навигация
 - **(miniapp)** layout — клиентский (`'use client'`), авторизация через `initDataRaw` (Telegram) или `initData` (MAX)
-- **shared/** — бизнес-логика, UI-компоненты, RTK Query слайсы — общие для обоих layout'ов
+- **shared/** — бизнес-логика, UI-компоненты, TanStack Query hooks, общие для обоих layout'ов
 - Один деплой, один домен, разные точки входа
 
 ---
 
 ## Что переезжает без изменений
 
-- RTK Query слайсы (API endpoints)
 - DaisyUI компоненты + Tailwind стили
 - Бизнес-логика (хуки, утилиты, типы)
 - date-fns форматирование
@@ -163,9 +170,10 @@ app/
 ## Что нужно переписать
 
 - React Router → App Router (маршрутизация)
+- RTK Query (старый фронт) → TanStack Query + Zustand (PROSTOR)
 - `useMemo` / `useCallback` / `React.memo` → убрать (React Compiler)
-- Telegram SDK прямые вызовы → Messenger Adapter
-- Аутентификация → мульти-auth (NextAuth + initData)
+- Telegram SDK прямые вызовы → Platform Adapter
+- Аутентификация → мульти-auth (собственный JWT-флоу через `WebAdapter` + initData)
 
 ---
 
@@ -175,7 +183,7 @@ app/
 
 - Создать Next.js 16 проект
 - Настроить Tailwind 4 + DaisyUI 5
-- Настроить RTK Query (провайдеры)
+- Настроить TanStack Query (QueryProvider в layout) + Zustand stores
 - Два layout'а: (web) и (miniapp)
 
 ### Этап 2: Перенос компонентов (1-2 недели)
@@ -186,13 +194,13 @@ app/
 
 ### Этап 3: Web авторизация (1 неделя)
 
-- NextAuth с логин/пароль провайдером
+- Собственный JWT-флоу (регистрация/логин/refresh) через `WebAdapter`
 - Login/Register страницы
 
 ### Этап 4: Mini App layout (3-5 дней)
 
 - Перенести Telegram SDK интеграцию
-- Messenger Adapter
+- Platform Adapter
 
 ### Этап 5: Тестирование (1 неделя)
 

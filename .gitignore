@@ -30,8 +30,8 @@ node_modules/
 .DS_Store
 Thumbs.db
 
-# Claude Code
-.claude/
+# Claude Code (локальные настройки)
+.claude/settings.local.json
 
 # Debug
 npm-debug.log*
@@ -51,3 +51,11 @@ next-env.d.ts
 
 # Misc
 *.pem
+
+certificates
+
+# Playwright MCP traces (transient screenshots / yml snapshots, не в git)
+.playwright-mcp/
+
+# Корневые скриншоты от MCP (постоянные скрины — в docs/feedback/screenshots/)
+/*.png

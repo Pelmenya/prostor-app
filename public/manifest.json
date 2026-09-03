@@ -1,0 +1,43 @@
+{
+    "id": "/",
+    "name": "PROSTOR — клуб чистой воды",
+    "short_name": "PROSTOR",
+    "description": "Карта качества воды в твоём районе + AI-помощник по подбору оборудования. Анализы, фильтры, обслуживание.",
+    "start_url": "/catalog",
+    "scope": "/",
+    "display": "standalone",
+    "background_color": "#eff8ff",
+    "theme_color": "#1c4ed8",
+    "orientation": "portrait-primary",
+    "icons": [
+        {
+            "src": "/icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/icon-maskable-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "maskable"
+        },
+        {
+            "src": "/icon-maskable-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        },
+        {
+            "src": "/badge-72.png",
+            "sizes": "72x72",
+            "type": "image/png"
+        }
+    ]
+}

@@ -1,24 +1,35 @@
-import type { Metadata, Viewport } from "next";
-import { Montserrat } from "next/font/google";
-import "./globals.css";
+import type { Metadata, Viewport } from 'next';
+import { Montserrat } from 'next/font/google';
+import { QueryProvider } from '@/shared/api';
+import { APP_NAME } from '@/shared/config';
+import './globals.css';
 
 const montserrat = Montserrat({
-    subsets: ["latin", "cyrillic"],
-    variable: "--font-montserrat",
-    display: "swap",
+    subsets: ['latin', 'cyrillic'],
+    display: 'swap',
 });
 
 export const metadata: Metadata = {
-    title: "PROSTOR — водоочистка и обслуживание",
-    description: "Монтаж и обслуживание систем водоочистки, продажа оборудования",
+    title: `${APP_NAME} — водоочистка и обслуживание`,
+    description: 'Монтаж и обслуживание систем водоочистки, продажа оборудования',
+    manifest: '/manifest.json',
+    appleWebApp: {
+        capable: true,
+        statusBarStyle: 'default',
+        title: APP_NAME,
+    },
+    icons: {
+        icon: '/icon-192.png',
+        apple: '/apple-touch-icon.png',
+    },
 };
 
 export const viewport: Viewport = {
-    width: "device-width",
+    width: 'device-width',
     initialScale: 1,
     maximumScale: 1,
     userScalable: false,
-    viewportFit: "cover",
+    viewportFit: 'cover',
 };
 
 export default function RootLayout({
@@ -27,9 +38,16 @@ export default function RootLayout({
     children: React.ReactNode;
 }>) {
     return (
-        <html lang="ru" data-theme="light">
-            <body className={`${montserrat.variable} font-sans antialiased`}>
-                {children}
+        <html lang="ru" data-theme="light" suppressHydrationWarning>
+            <head>
+                <script
+                    dangerouslySetInnerHTML={{
+                        __html: `(function(){try{var t=localStorage.getItem('theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}else if(window.matchMedia('(prefers-color-scheme: dark)').matches){document.documentElement.setAttribute('data-theme','dark');}}catch(e){}})();`,
+                    }}
+                />
+            </head>
+            <body className={`${montserrat.className} antialiased`}>
+                <QueryProvider>{children}</QueryProvider>
             </body>
         </html>
     );

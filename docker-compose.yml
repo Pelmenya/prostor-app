@@ -1,0 +1,43 @@
+services:
+    prostor_app:
+        build:
+            context: .
+            args:
+                NODE_IMAGE: ${NODE_IMAGE:-node:22.16-slim}
+                NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-/api}
+                NEXT_PUBLIC_SLOVO_API_URL: ${NEXT_PUBLIC_SLOVO_API_URL:-/smart-search}
+                NEXT_PUBLIC_S3_PUBLIC_URL: ${NEXT_PUBLIC_S3_PUBLIC_URL:-}
+                NEXT_PUBLIC_SALE_PRICES: ${NEXT_PUBLIC_SALE_PRICES:-Приложение}
+                NEXT_PUBLIC_VAPID_PUBLIC_KEY: ${NEXT_PUBLIC_VAPID_PUBLIC_KEY:-}
+                NEXT_PUBLIC_COMMISSION_PERCENTS: ${NEXT_PUBLIC_COMMISSION_PERCENTS:-35}
+                NEXT_PUBLIC_SMART_SEARCH_MOCK: ${NEXT_PUBLIC_SMART_SEARCH_MOCK:-0}
+                BUILD_API_URL: ${BUILD_API_URL:-}
+                BUILD_SLOVO_API_URL: ${BUILD_SLOVO_API_URL:-}
+                INTERNAL_API_URL: ${INTERNAL_API_URL:-http://crm-back:3000}
+                INTERNAL_SLOVO_API_URL: ${INTERNAL_SLOVO_API_URL:-http://slovo-api:3101}
+        container_name: prostor_app
+        restart: always
+        ports:
+            - '127.0.0.1:${PORT_APP:-3010}:3000'
+        environment:
+            - NODE_ENV=production
+            - INTERNAL_API_URL=${INTERNAL_API_URL:-http://crm-back:3000}
+            - INTERNAL_SLOVO_API_URL=${INTERNAL_SLOVO_API_URL:-http://slovo-api:3101}
+        healthcheck:
+            test:
+                [
+                    'CMD',
+                    'node',
+                    '-e',
+                    "fetch('http://localhost:3000/').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))",
+                ]
+            interval: 30s
+            timeout: 10s
+            retries: 3
+            start_period: 15s
+        networks:
+            - crm_network_prod
+
+networks:
+    crm_network_prod:
+        external: true

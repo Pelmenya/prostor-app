@@ -1,0 +1,58 @@
+import { describe, it, expect, beforeAll, afterEach, afterAll } from 'vitest';
+import { renderHook, waitFor } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { http, HttpResponse } from 'msw';
+import { setupServer } from 'msw/node';
+import { useCurrentAgreement } from './personal-data-agreement.api';
+
+const mockAgreement = {
+    version: '1.0.0',
+    content: '# Согласие на обработку ПДн',
+    effectiveDate: '2026-01-01',
+};
+
+const server = setupServer(
+    http.get('*/personal-data-agreement/current', () => {
+        return HttpResponse.json(mockAgreement);
+    }),
+);
+
+beforeAll(() => server.listen());
+afterEach(() => server.resetHandlers());
+afterAll(() => server.close());
+
+function createWrapper() {
+    const queryClient = new QueryClient({
+        defaultOptions: { queries: { retry: false } },
+    });
+    function Wrapper({ children }: { children: React.ReactNode }) {
+        return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+    }
+    return Wrapper;
+}
+
+describe('useCurrentAgreement', () => {
+    it('загружает текущее соглашение', async () => {
+        const { result } = renderHook(() => useCurrentAgreement(), {
+            wrapper: createWrapper(),
+        });
+
+        await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+        expect(result.current.data).toEqual(mockAgreement);
+    });
+
+    it('обрабатывает ошибку сервера', async () => {
+        server.use(
+            http.get('*/personal-data-agreement/current', () => {
+                return new HttpResponse(null, { status: 500 });
+            }),
+        );
+
+        const { result } = renderHook(() => useCurrentAgreement(), {
+            wrapper: createWrapper(),
+        });
+
+        await waitFor(() => expect(result.current.isError).toBe(true));
+    });
+});

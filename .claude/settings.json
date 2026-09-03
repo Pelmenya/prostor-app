@@ -1,0 +1,17 @@
+{
+    "hooks": {
+        "PreToolUse": [
+            {
+                "matcher": "Bash(git commit*)",
+                "hooks": [
+                    {
+                        "type": "agent",
+                        "prompt": "Review the staged git changes (run `git diff --cached`) for this Next.js + FSD project. Check for:\n1. FSD violations: direct imports from internal modules instead of public API (index.ts)\n2. Duplicated code: same logic in multiple places (formatPrice, breadcrumbs, etc.)\n3. Missing public API exports in index.ts files\n4. Cross-slice imports between entities\n5. Business logic in app/ layer (should be in views/)\n6. 'use client' on components that could be server components\n7. Hardcoded values that should be in shared/config\n\nIf issues found, return {\"decision\": \"block\", \"reason\": \"Issues found: ...\"}\nIf clean, return {\"decision\": \"allow\"}",
+                        "timeout": 120,
+                        "statusMessage": "Code review before commit..."
+                    }
+                ]
+            }
+        ]
+    }
+}

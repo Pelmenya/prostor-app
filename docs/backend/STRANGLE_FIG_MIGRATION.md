@@ -394,5 +394,5 @@ export class EmailProcessor {
 
 ## Связанные документы
 
-- `docs/features/AUTH_ADAPTER.md` — фронтенд Adapter Pattern
+- `docs/features/auth/AUTH_ADAPTER.md` — фронтенд Adapter Pattern
 - `docs/multi-platform/MIGRATION_PLAN.md` (в crm-aqua-kinetics-back) — полный план миграции
